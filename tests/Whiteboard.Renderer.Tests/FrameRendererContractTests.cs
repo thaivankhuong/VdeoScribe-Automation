@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Whiteboard.Core.Enums;
 using Whiteboard.Core.ValueObjects;
 using Whiteboard.Engine.Context;
@@ -65,6 +65,31 @@ public sealed class FrameRendererContractTests
         Assert.Equal(first.ObjectCount, second.ObjectCount);
         Assert.Equal(first.Operations.Count, second.Operations.Count);
         Assert.Equal(first.Operations[0], second.Operations[0]);
+    }
+
+    [Fact]
+    public void FrameRenderer_WithEquivalentRequests_ProducesEquivalentRenderSummary()
+    {
+        var renderer = new FrameRenderer();
+        var firstRequest = new RenderFrameRequest
+        {
+            FrameState = CreateResolvedFrameState(),
+            SurfaceSize = new RenderSurfaceSize(1280, 720)
+        };
+        var secondRequest = new RenderFrameRequest
+        {
+            FrameState = CreateResolvedFrameState(),
+            SurfaceSize = new RenderSurfaceSize(1280, 720)
+        };
+
+        var first = renderer.Render(firstRequest);
+        var second = renderer.Render(secondRequest);
+
+        Assert.Equal(first.Success, second.Success);
+        Assert.Equal(first.FrameIndex, second.FrameIndex);
+        Assert.Equal(first.SceneCount, second.SceneCount);
+        Assert.Equal(first.ObjectCount, second.ObjectCount);
+        Assert.Equal(first.Operations, second.Operations);
     }
 
     private static ResolvedFrameState CreateResolvedFrameState()

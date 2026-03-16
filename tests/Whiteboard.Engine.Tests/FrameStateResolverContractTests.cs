@@ -1,4 +1,4 @@
-﻿using Whiteboard.Core.Assets;
+using Whiteboard.Core.Assets;
 using Whiteboard.Core.Enums;
 using Whiteboard.Core.Models;
 using Whiteboard.Core.Scene;
@@ -56,7 +56,7 @@ public sealed class FrameStateResolverContractTests
     public void Resolver_RevealProgress_IsZero_WhenRevealEventIsNotActive()
     {
         var project = CreateProject();
-        var frameContext = FrameContext.FromFrameIndex(frameIndex: 120, frameRate: 30); // 4s
+        var frameContext = FrameContext.FromFrameIndex(frameIndex: 120, frameRate: 30);
         var resolver = new FrameStateResolver();
 
         var resolved = resolver.Resolve(project, frameContext);
@@ -68,7 +68,7 @@ public sealed class FrameStateResolverContractTests
     public void Resolver_UsesNearestCameraKeyframe_AtOrBeforeCurrentTime()
     {
         var project = CreateProject();
-        var frameContext = FrameContext.FromFrameIndex(frameIndex: 45, frameRate: 30); // 1.5s
+        var frameContext = FrameContext.FromFrameIndex(frameIndex: 45, frameRate: 30);
         var resolver = new FrameStateResolver();
 
         var resolved = resolver.Resolve(project, frameContext);
@@ -94,6 +94,37 @@ public sealed class FrameStateResolverContractTests
         Assert.Equal(first.TimelineEvents[0].EventId, second.TimelineEvents[0].EventId);
         Assert.Equal(first.Camera.Position, second.Camera.Position);
         Assert.Equal(first.Camera.Zoom, second.Camera.Zoom);
+        Assert.Equal(first.Scenes[0].Objects[0].SceneObjectId, second.Scenes[0].Objects[0].SceneObjectId);
+        Assert.Equal(first.Scenes[0].Objects[0].Transform.Position, second.Scenes[0].Objects[0].Transform.Position);
+        Assert.Equal(first.Scenes[0].Objects[0].Transform.Size, second.Scenes[0].Objects[0].Transform.Size);
+        Assert.Equal(first.Scenes[0].Objects[0].IsVisible, second.Scenes[0].Objects[0].IsVisible);
+        Assert.Equal(first.TimelineEvents[0].ActionType, second.TimelineEvents[0].ActionType);
+        Assert.Equal(first.TimelineEvents[0].IsActive, second.TimelineEvents[0].IsActive);
+    }
+
+    [Fact]
+    public void Resolver_WithEquivalentRequests_ProducesEquivalentResolvedObjectState()
+    {
+        var firstProject = CreateProject();
+        var secondProject = CreateProject();
+        var firstContext = FrameContext.FromFrameIndex(frameIndex: 30, frameRate: 30);
+        var secondContext = FrameContext.FromFrameIndex(frameIndex: 30, frameRate: 30);
+        var resolver = new FrameStateResolver();
+
+        var first = resolver.Resolve(firstProject, firstContext);
+        var second = resolver.Resolve(secondProject, secondContext);
+        var firstObject = first.Scenes[0].Objects[0];
+        var secondObject = second.Scenes[0].Objects[0];
+
+        Assert.Equal(first.FrameContext, second.FrameContext);
+        Assert.Equal(firstObject.SceneObjectId, secondObject.SceneObjectId);
+        Assert.Equal(firstObject.Type, secondObject.Type);
+        Assert.Equal(firstObject.AssetRefId, secondObject.AssetRefId);
+        Assert.Equal(firstObject.Layer, secondObject.Layer);
+        Assert.Equal(firstObject.IsVisible, secondObject.IsVisible);
+        Assert.Equal(firstObject.RevealProgress, secondObject.RevealProgress);
+        Assert.Equal(firstObject.Transform.Position, secondObject.Transform.Position);
+        Assert.Equal(firstObject.Transform.Size, secondObject.Transform.Size);
     }
 
     private static VideoProject CreateProject()

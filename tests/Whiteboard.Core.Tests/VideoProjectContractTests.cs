@@ -1,4 +1,4 @@
-﻿using Whiteboard.Core.Assets;
+using Whiteboard.Core.Assets;
 using Whiteboard.Core.Enums;
 using Whiteboard.Core.Models;
 using Whiteboard.Core.Scene;
@@ -26,7 +26,54 @@ public sealed class VideoProjectContractTests
     [Fact]
     public void VideoProject_CanComposeCoreContracts()
     {
-        var project = new VideoProject
+        var project = CreateProject();
+
+        Assert.Single(project.Assets.SvgAssets);
+        Assert.Single(project.Scenes);
+        Assert.Single(project.Timeline.Events);
+    }
+
+    [Fact]
+    public void VideoProject_DefaultContractShape_IsDeterministic()
+    {
+        var first = new VideoProject();
+        var second = new VideoProject();
+
+        Assert.Equal(first.Meta.ProjectId, second.Meta.ProjectId);
+        Assert.Equal(first.Meta.Name, second.Meta.Name);
+        Assert.Equal(first.Output.Width, second.Output.Width);
+        Assert.Equal(first.Output.Height, second.Output.Height);
+        Assert.Equal(first.Output.FrameRate, second.Output.FrameRate);
+        Assert.Equal(first.Output.BackgroundColorHex, second.Output.BackgroundColorHex);
+        Assert.Equal(first.Scenes.Count, second.Scenes.Count);
+        Assert.Equal(first.Timeline.Events.Count, second.Timeline.Events.Count);
+        Assert.Equal(first.Assets.SvgAssets.Count, second.Assets.SvgAssets.Count);
+        Assert.Equal(first.Assets.AudioAssets.Count, second.Assets.AudioAssets.Count);
+    }
+
+    [Fact]
+    public void VideoProject_ComposedContracts_AreStableForEquivalentInput()
+    {
+        var first = CreateProject();
+        var second = CreateProject();
+
+        Assert.Equal(first.Meta.ProjectId, second.Meta.ProjectId);
+        Assert.Equal(first.Meta.Name, second.Meta.Name);
+        Assert.Equal(first.Output.Width, second.Output.Width);
+        Assert.Equal(first.Output.Height, second.Output.Height);
+        Assert.Equal(first.Output.FrameRate, second.Output.FrameRate);
+        Assert.Equal(first.Scenes[0].Id, second.Scenes[0].Id);
+        Assert.Equal(first.Scenes[0].Objects[0].Id, second.Scenes[0].Objects[0].Id);
+        Assert.Equal(first.Scenes[0].Objects[0].Transform.Position, second.Scenes[0].Objects[0].Transform.Position);
+        Assert.Equal(first.Timeline.Events[0].Id, second.Timeline.Events[0].Id);
+        Assert.Equal(first.Timeline.Events[0].ActionType, second.Timeline.Events[0].ActionType);
+        Assert.Equal(first.Timeline.CameraTrack.Keyframes[0].Position, second.Timeline.CameraTrack.Keyframes[0].Position);
+        Assert.Equal(first.Timeline.AudioCues[0].AudioAssetId, second.Timeline.AudioCues[0].AudioAssetId);
+    }
+
+    private static VideoProject CreateProject()
+    {
+        return new VideoProject
         {
             Meta = new ProjectMeta
             {
@@ -128,9 +175,5 @@ public sealed class VideoProjectContractTests
                 ]
             }
         };
-
-        Assert.Single(project.Assets.SvgAssets);
-        Assert.Single(project.Scenes);
-        Assert.Single(project.Timeline.Events);
     }
 }
