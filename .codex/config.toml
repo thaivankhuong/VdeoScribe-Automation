@@ -1,0 +1,6 @@
+﻿project_root_markers = [".git", "AGENTS.md"]
+
+model = "gpt-5.4"
+
+[model_reasoning]
+effort = "medium"

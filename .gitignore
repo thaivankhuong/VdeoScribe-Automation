@@ -1,0 +1,14 @@
+# Build outputs
+bin/
+obj/
+
+# IDE/editor
+.vs/
+.vscode/
+
+# Local tooling
+.dotnet/
+
+# Logs
+*.log
+
