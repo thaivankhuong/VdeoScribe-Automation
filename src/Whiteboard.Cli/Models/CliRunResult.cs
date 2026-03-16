@@ -11,6 +11,8 @@ public record CliRunResult
     public int SceneCount { get; init; }
     public int ObjectCount { get; init; }
     public int OperationCount { get; init; }
+    public int ExportedFrameCount { get; init; }
+    public string OutputPath { get; init; } = string.Empty;
     public IReadOnlyList<string> Operations { get; init; } = [];
     public string ExportStatus { get; init; } = string.Empty;
     public string DeterministicKey { get; init; } = string.Empty;

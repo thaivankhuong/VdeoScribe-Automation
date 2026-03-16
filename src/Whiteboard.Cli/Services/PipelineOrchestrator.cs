@@ -4,6 +4,9 @@ using Whiteboard.Cli.Models;
 using Whiteboard.Engine.Context;
 using Whiteboard.Engine.Resolvers;
 using Whiteboard.Engine.Services;
+using Whiteboard.Export.Contracts;
+using Whiteboard.Export.Models;
+using Whiteboard.Export.Services;
 using Whiteboard.Renderer.Contracts;
 using Whiteboard.Renderer.Models;
 using Whiteboard.Renderer.Services;
@@ -15,15 +18,18 @@ public sealed class PipelineOrchestrator : IPipelineOrchestrator
     private readonly IProjectSpecLoader _projectSpecLoader;
     private readonly IFrameStateResolver _frameStateResolver;
     private readonly IFrameRenderer _frameRenderer;
+    private readonly IExportPipeline _exportPipeline;
 
     public PipelineOrchestrator(
         IProjectSpecLoader? projectSpecLoader = null,
         IFrameStateResolver? frameStateResolver = null,
-        IFrameRenderer? frameRenderer = null)
+        IFrameRenderer? frameRenderer = null,
+        IExportPipeline? exportPipeline = null)
     {
         _projectSpecLoader = projectSpecLoader ?? new ProjectSpecLoader();
         _frameStateResolver = frameStateResolver ?? new FrameStateResolver();
         _frameRenderer = frameRenderer ?? new FrameRenderer();
+        _exportPipeline = exportPipeline ?? new ExportPipeline();
     }
 
     public CliRunResult Run(CliRunRequest request)
@@ -46,20 +52,30 @@ public sealed class PipelineOrchestrator : IPipelineOrchestrator
             SurfaceSize = new RenderSurfaceSize(project.Output.Width, project.Output.Height)
         });
 
+        var exportResult = _exportPipeline.Export(new ExportRequest
+        {
+            ProjectId = project.Meta.ProjectId,
+            Frames = [renderResult],
+            Target = new ExportTarget
+            {
+                OutputPath = request.OutputPath ?? string.Empty
+            }
+        });
+
         return new CliRunResult
         {
-            Success = renderResult.Success,
-            Message = "Pipeline skeleton executed with placeholder export stage.",
+            Success = renderResult.Success && exportResult.Success,
+            Message = "Integrated placeholder pipeline executed through export stage.",
             SpecPath = request.SpecPath,
             FrameIndex = renderResult.FrameIndex,
             SceneCount = renderResult.SceneCount,
             ObjectCount = renderResult.ObjectCount,
             OperationCount = renderResult.Operations.Count,
+            ExportedFrameCount = exportResult.ExportedFrameCount,
+            OutputPath = exportResult.OutputPath,
             Operations = renderResult.Operations,
-            ExportStatus = string.IsNullOrWhiteSpace(request.OutputPath)
-                ? "Export skipped: no output path provided."
-                : $"Export placeholder prepared for '{request.OutputPath}'.",
-            DeterministicKey = $"{request.SpecPath}|{request.FrameIndex}|{project.Output.Width}x{project.Output.Height}|{frameRate}"
+            ExportStatus = exportResult.Message,
+            DeterministicKey = $"{request.SpecPath}|{request.FrameIndex}|{renderResult.SceneCount}|{renderResult.ObjectCount}|{exportResult.DeterministicKey}"
         };
     }
 }

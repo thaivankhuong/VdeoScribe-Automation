@@ -1,4 +1,4 @@
-﻿namespace Whiteboard.Export;
+namespace Whiteboard.Export;
 
 public sealed class ExportModule
 {

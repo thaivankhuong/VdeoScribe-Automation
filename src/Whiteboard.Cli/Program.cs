@@ -27,6 +27,8 @@ public static class Program
             Console.WriteLine($"SceneCount: {result.SceneCount}");
             Console.WriteLine($"ObjectCount: {result.ObjectCount}");
             Console.WriteLine($"OperationCount: {result.OperationCount}");
+            Console.WriteLine($"ExportedFrameCount: {result.ExportedFrameCount}");
+            Console.WriteLine($"OutputPath: {result.OutputPath}");
             Console.WriteLine($"ExportStatus: {result.ExportStatus}");
             Console.WriteLine($"DeterministicKey: {result.DeterministicKey}");
 
@@ -117,6 +119,6 @@ public static class Program
     private static void PrintUsage()
     {
         Console.WriteLine("Usage: whiteboard-cli --spec <path> [--output <path>] [--frame-index <int>]");
-        Console.WriteLine("Step 11 scope: deterministic orchestration skeleton with placeholder spec loading/export.");
+        Console.WriteLine("Step 12 scope: deterministic Core -> Engine -> Renderer -> Export -> CLI placeholder pipeline.");
     }
 }

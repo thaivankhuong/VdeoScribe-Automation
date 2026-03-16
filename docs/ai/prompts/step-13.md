@@ -1,6 +1,4 @@
-# Next Task Prompt (Copy/Paste Ready)
-
-Use this exact prompt to continue development:
+# Prompt - Step 13
 
 ```text
 Work on Step 13 for the `whiteboard-engine` solution.
@@ -65,9 +63,3 @@ Output:
 - Briefly summarize determinism checks added
 - Report validation status and remaining gaps
 ```
-
-## Handoff Context
-- Step 12 is complete: the placeholder pipeline now reaches `Whiteboard.Export` through `Whiteboard.Cli`.
-- Existing test projects are present for Core, Engine, and Renderer.
-- No existing test projects are present yet for Export or CLI.
-- Next logical focus: strengthen deterministic behavior guarantees before adding runtime-heavy implementation.
