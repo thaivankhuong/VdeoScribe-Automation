@@ -12,7 +12,9 @@ Given the same spec, assets, and settings, the engine must always produce the sa
 
 ### Validated
 
-(None yet - ship to validate)
+- [x] SPEC-01 JSON spec single-source contract established - Phase 1
+- [x] SPEC-02 Schema versioning and normalization gates documented - Phase 1
+- [x] SPEC-03 Validation error contract and deterministic ordering documented - Phase 1
 
 ### Active
 
@@ -42,10 +44,12 @@ The repository already defines architecture documents under `docs/architecture/`
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Engine-first delivery before any UI/editor | Protect deterministic core from premature UI coupling | - Pending |
-| JSON spec as single source of truth for scenes/timeline/output intent | Enables reusable batch generation and stable contracts | - Pending |
-| Deterministic frame-state as central handoff contract | Keeps renderer/export replaceable while preserving semantics | - Pending |
-| Start with roadmap phases from existing architecture docs | Align GSD planning with current repository intent | - Pending |
+| Engine-first delivery before any UI/editor | Protect deterministic core from premature UI coupling | Adopted in Phase 1 |
+| JSON spec as single source of truth for scenes/timeline/output intent | Enables reusable batch generation and stable contracts | Adopted in Phase 1 |
+| Deterministic frame-state as central handoff contract | Keeps renderer/export replaceable while preserving semantics | Baseline contracts defined in Phase 1 |
+| Start with roadmap phases from existing architecture docs | Align GSD planning with current repository intent | Completed in Phase 1 |
 
 ---
-*Last updated: 2026-03-17 after initialization*
+*Last updated: 2026-03-17 after Phase 1*
+
+
