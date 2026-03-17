@@ -1,7 +1,7 @@
 # Module Contract Matrix
 
 ## Purpose
-Define the responsibilities, handoff contracts, and forbidden couplings for the whiteboard engine modules so later implementation stays engine-first, spec-driven, and deterministic.
+Define the responsibilities, handoff contracts, and forbidden couplings for the whiteboard engine modules so later implementation stays engine-first, spec-driven, frame-based, and deterministic.
 
 ## Module Matrix
 
@@ -18,7 +18,7 @@ Define the responsibilities, handoff contracts, and forbidden couplings for the 
 ### `Whiteboard.Core`
 - Owns shared contracts that every higher module depends on.
 - Exposes module-neutral types only; no references to renderer engines, encoders, or command shells.
-- Acts as the single source for deterministic policy descriptions that need to be shared across modules.
+- Acts as the single source for deterministic policy descriptions and shared contract primitives that need to be reused across modules.
 
 ### `Whiteboard.Engine`
 - Consumes validated spec contracts and produces resolved frame-state contracts.
@@ -61,3 +61,4 @@ Define the responsibilities, handoff contracts, and forbidden couplings for the 
 - [ ] No hardcoded scene logic or hidden defaults bypass documented contracts.
 - [ ] Deterministic behavior is preserved: the same spec, assets, and settings must produce the same outputs.
 - [ ] New contracts describe explicit inputs, outputs, and diagnostics rather than relying on side effects.
+

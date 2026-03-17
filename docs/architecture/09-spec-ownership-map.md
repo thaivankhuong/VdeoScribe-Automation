@@ -1,7 +1,7 @@
 # Spec Ownership Map
 
 ## Purpose
-Map top-level project/spec JSON sections to the module contracts that own validation, interpretation, and downstream handoff responsibilities.
+Map top-level project/spec JSON sections to the module contracts that own validation, interpretation, and downstream handoff responsibilities while preserving project/spec JSON as the single source of truth.
 
 ## Ownership Table
 
@@ -41,7 +41,7 @@ Map top-level project/spec JSON sections to the module contracts that own valida
 - Export consumes the resolved output contract without changing semantics.
 
 ## Ownership Rules
-- Each top-level project/spec JSON section has one primary owner responsible for contract definition or semantic interpretation.
+- Each top-level project/spec JSON section has one primary owner responsible for contract definition or semantic interpretation in support of SPEC-01, SPEC-02, and SPEC-03.
 - Secondary consumers may read a section only through explicit contracts or derived handoffs from the primary owner.
 - No module may bypass ownership by embedding hardcoded scene logic or undocumented defaults.
 - When a section influences deterministic behavior, the owning module must document the rule in a stable contract before other modules rely on it.
@@ -52,3 +52,4 @@ Map top-level project/spec JSON sections to the module contracts that own valida
 - [ ] No hardcoded scene logic, undocumented defaults, or renderer heuristics override spec ownership.
 - [ ] Deterministic behavior is preserved when ownership rules feed frame-state and output contracts.
 - [ ] Ownership changes are documented before implementation relies on them.
+

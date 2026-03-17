@@ -4,7 +4,7 @@
 Accepted
 
 ## Context
-The repository is in the bootstrap-and-architecture-baseline phase. The system must remain engine-first, deterministic, and driven by project/spec JSON inputs rather than hardcoded scene behavior. Later implementation work needs an explicit dependency rule set so module ownership does not drift.
+The repository is in the bootstrap-and-architecture-baseline phase. The system must remain engine-first, deterministic, and driven by project/spec JSON inputs as the single source of truth rather than hardcoded scene behavior. Later implementation work needs an explicit dependency rule set so module ownership does not drift.
 
 ## Decision
 Adopt strict dependency direction across the five modules:
@@ -36,7 +36,7 @@ Adopt strict dependency direction across the five modules:
 ## Determinism Protection
 - Deterministic rules are non-negotiable across every boundary.
 - A downstream module may consume upstream outputs, but it may not mutate the meaning of those outputs.
-- Time, ordering, and output metadata must flow through explicit contracts so repeated runs remain reproducible.
+- Time, ordering, and output metadata must flow through explicit contracts so repeated runs remain reproducible and aligned with SPEC-01 through SPEC-03.
 
 ## Consequences
 - Future implementation can add internals within a module without changing dependency direction.
@@ -50,3 +50,4 @@ Adopt strict dependency direction across the five modules:
 - [ ] No hardcoded scene logic or hidden state bypasses the documented dependency rules.
 - [ ] Deterministic behavior is preserved across downstream boundaries and packaging stages.
 - [ ] Any new integration uses explicit contracts instead of shared mutable state or backchannels.
+
