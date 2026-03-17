@@ -123,3 +123,19 @@ Validation emits the contract payload when a document fails any pre-execution ga
 - Do rejection rules forbid hidden fallback behavior and implicit guessing?
 - Are repeat-run comparisons defined in terms of canonical serialization and checksum evidence?
 - Are SPEC-01, SPEC-02, and SPEC-03 covered without adding implementation code?
+
+## Repeat-Run Evidence Record
+
+Future verification records should capture the following fields for each reference fixture:
+
+| Field | Description |
+| --- | --- |
+| `fixtureId` | Stable identifier for the accepted or rejected contract fixture |
+| `schemaVersion` | Declared `meta.schemaVersion` used for evaluation |
+| `artifactType` | `canonical-spec` or `validation-payload` |
+| `serializationVersion` | Version identifier for the canonical serialization format once introduced |
+| `sha256` | Checksum of the exact serialized bytes |
+| `runCount` | Number of repeat executions compared |
+| `matchResult` | `match` or `mismatch` |
+
+A future processor should record these fields without adding nondeterministic metadata such as local timestamps into the hashed bytes themselves.

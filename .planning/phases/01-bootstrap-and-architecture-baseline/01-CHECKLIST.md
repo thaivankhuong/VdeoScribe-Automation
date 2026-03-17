@@ -45,3 +45,5 @@ Provide an auditable checklist that maps Phase 1 success criteria and `SPEC-01`,
 - Can a reviewer trace `SPEC-01`, `SPEC-02`, and `SPEC-03` without inferring unstated behavior?
 - Do the docs define repeat-run evidence for both accepted and rejected inputs?
 - Do the docs explicitly reject UI/editor work, rendering/business implementation, and contract bypass?
+
+| Repeat-run evidence record fields are predefined | `docs/architecture/13-determinism-invariants.md` | Can future automation capture fixture id, artifact type, checksum, and match result without redefining the contract? | Pending review |
