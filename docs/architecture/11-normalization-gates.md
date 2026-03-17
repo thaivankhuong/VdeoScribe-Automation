@@ -116,3 +116,37 @@ Output:
 - Timeline evaluation begins only after execution readiness succeeds.
 - Renderer and export work must consume only execution-ready specs.
 - Any pre-execution upgrade path must complete inside the versioning and normalization policy, never during rendering or export.
+
+## Deterministic Ordering and Tie-Break Rules
+
+### Defaults
+- Defaults must be applied only after schema validity is established for the containing object.
+- Explicit author-provided values always win over defaults.
+- If multiple defaults could apply, precedence is resolved from most specific scope to least specific scope.
+- If two defaults exist at the same scope for the same field, the spec is invalid; the engine must not guess.
+- Default application order must be stable so repeated normalization produces the same canonical object graph.
+
+### Reference Resolution
+- References are resolved against the normalized identifier set, not the raw authoring order.
+- Identifier matching is exact and case-sensitive unless a future schema version explicitly changes that contract.
+- A reference must resolve to exactly one target.
+- Zero matches is an error.
+- More than one match is an error.
+- Reference aliases, if ever supported, must normalize to one canonical identifier before semantic consistency checks continue.
+
+### Collection Canonicalization
+- Object collections that are conceptually keyed by `id` must normalize into ascending lexical `id` order.
+- Collections without stable identifiers must preserve documented source order from the parsed JSON array.
+- Maps or object-property bags must normalize by ascending property name when converted to ordered canonical structures.
+
+### Timeline Event Ordering
+- Events must normalize into ascending `start` time order.
+- For equal `start` values, shorter `duration` sorts first.
+- For equal `start` and `duration`, ordering falls back to ascending target category in this order: camera, scene object, audio, metadata/control.
+- For equal `start`, `duration`, and target category, ordering falls back to ascending lexical `targetId`.
+- For complete ties after all prior keys, ordering falls back to ascending lexical event `id`.
+- If two events remain indistinguishable because required tie-break fields are missing, the spec is invalid rather than implementation-defined.
+
+### Determinism Requirement
+- These rules exist to ensure the same valid spec always produces the same normalized representation.
+- No runtime, platform, hash-table behavior, or parser-specific iteration order may influence canonical output.
