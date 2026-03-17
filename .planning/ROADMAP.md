@@ -6,7 +6,7 @@ Build a deterministic .NET whiteboard video engine that reproduces core VideoScr
 
 ## Phases
 
-- [ ] **Phase 1: Bootstrap and Architecture Baseline** - lock planning artifacts, module contracts, and deterministic rules.
+- [x] **Phase 1: Bootstrap and Architecture Baseline** - lock planning artifacts, module contracts, and deterministic rules.
 - [ ] **Phase 2: Spec Schema and Deterministic Timeline Core** - define schema, normalization, validation, and frame-state evaluation semantics.
 - [ ] **Phase 3: Draw Progression and Camera State Resolution** - implement and verify draw/camera behavior in frame-state outputs.
 - [ ] **Phase 4: SVG Draw Rendering Adapter** - consume resolved frame state and generate deterministic frame visuals.
@@ -28,7 +28,7 @@ Build a deterministic .NET whiteboard video engine that reproduces core VideoScr
 Plans:
 - [x] 01-01: Finalize module contracts and dependency boundaries
 - [x] 01-02: Define JSON spec schema/versioning and validation strategy
-- [ ] 01-03: Define deterministic evaluation and verification strategy
+- [x] 01-03: Define deterministic evaluation and verification strategy
 
 ### Phase 2: Spec Schema and Deterministic Timeline Core
 **Goal**: Build the schema normalization + deterministic timeline/frame-state evaluation core.
@@ -106,10 +106,11 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Bootstrap and Architecture Baseline | 2/3 | In Progress | 01-01, 01-02 |
+| 1. Bootstrap and Architecture Baseline | 3/3 | Complete | 01-01, 01-02, 01-03 |
 | 2. Spec Schema and Deterministic Timeline Core | 0/3 | Not started | - |
 | 3. Draw Progression and Camera State Resolution | 0/3 | Not started | - |
 | 4. SVG Draw Rendering Adapter | 0/2 | Not started | - |
 | 5. Export Pipeline Integration | 0/2 | Not started | - |
 | 6. CLI Batch Orchestration and End-to-End Validation | 0/2 | Not started | - |
+
 
