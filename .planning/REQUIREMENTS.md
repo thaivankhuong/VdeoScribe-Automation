@@ -7,9 +7,9 @@
 
 ### Spec and Contracts
 
-- [ ] **SPEC-01**: Engine accepts project/spec JSON as the single source of truth for timeline, scene, camera, assets, and output settings.
-- [ ] **SPEC-02**: Schema versioning and normalization rules are defined and validated before timeline execution.
-- [ ] **SPEC-03**: Invalid or inconsistent spec data is reported through explicit validation errors.
+- [x] **SPEC-01**: Engine accepts project/spec JSON as the single source of truth for timeline, scene, camera, assets, and output settings.
+- [x] **SPEC-02**: Schema versioning and normalization rules are defined and validated before timeline execution.
+- [x] **SPEC-03**: Invalid or inconsistent spec data is reported through explicit validation errors.
 
 ### Timeline and State Resolution
 
@@ -55,9 +55,9 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SPEC-01 | Phase 1 | Pending |
-| SPEC-02 | Phase 1 | Pending |
-| SPEC-03 | Phase 1 | Pending |
+| SPEC-01 | Phase 1 | Complete |
+| SPEC-02 | Phase 1 | Complete |
+| SPEC-03 | Phase 1 | Complete |
 | TIME-01 | Phase 2 | Pending |
 | TIME-02 | Phase 2 | Pending |
 | TIME-03 | Phase 2 | Pending |
