@@ -117,3 +117,149 @@ A processor must not rely on hash-map iteration, parser-specific discovery order
 - `SPEC_NORMALIZATION_CONFLICTING_DEFAULTS`
 - `SPEC_SEMANTIC_UNRESOLVED_REFERENCE`
 - `SPEC_READINESS_MISSING_EXECUTION_VALUE`
+
+## Representative Invalid-Spec Examples
+
+### Example 1: Missing schema version
+Invalid spec:
+```json
+{
+  "meta": {
+    "projectId": "demo-001"
+  },
+  "timeline": {
+    "events": []
+  }
+}
+```
+
+Expected validation output:
+```json
+[
+  {
+    "code": "SPEC_CONTRACT_MISSING_SCHEMA_VERSION",
+    "message": "meta.schemaVersion is required.",
+    "path": "meta.schemaVersion",
+    "value": null,
+    "hint": "Declare a supported major.minor schema version such as 1.0.",
+    "severity": "error"
+  }
+]
+```
+
+### Example 2: Invalid field type and unresolved reference
+Invalid spec:
+```json
+{
+  "meta": {
+    "projectId": "demo-002",
+    "schemaVersion": "1.0"
+  },
+  "scene": {
+    "objects": [
+      { "id": "obj-1", "type": "path", "assetRef": "svg-1", "layer": 1 }
+    ]
+  },
+  "timeline": {
+    "events": [
+      { "id": "ev-1", "start": "now", "duration": 1.5, "targetId": "obj-9", "action": "draw" }
+    ]
+  }
+}
+```
+
+Expected validation output:
+```json
+[
+  {
+    "code": "SPEC_SCHEMA_INVALID_TYPE",
+    "message": "Field must be a number.",
+    "path": "timeline.events[0].start",
+    "value": "now",
+    "hint": "Provide start as a numeric timeline position.",
+    "severity": "error"
+  }
+]
+```
+
+Reasoning:
+- schema gate fails on `timeline.events[0].start`;
+- semantic reference checks do not run because downstream gates are blocked.
+
+### Example 3: Duplicate identities after schema success
+Invalid spec:
+```json
+{
+  "meta": {
+    "projectId": "demo-003",
+    "schemaVersion": "1.0"
+  },
+  "scene": {
+    "objects": [
+      { "id": "obj-1", "type": "path", "assetRef": "svg-1", "layer": 1 },
+      { "id": "obj-1", "type": "path", "assetRef": "svg-2", "layer": 2 }
+    ]
+  },
+  "timeline": {
+    "events": []
+  }
+}
+```
+
+Expected validation output:
+```json
+[
+  {
+    "code": "SPEC_SEMANTIC_DUPLICATE_IDENTIFIER",
+    "message": "Identifier must be unique within scene.objects.",
+    "path": "scene.objects[1].id",
+    "value": "obj-1",
+    "hint": "Rename the duplicate object id so references resolve to exactly one target.",
+    "severity": "error"
+  }
+]
+```
+
+### Example 4: Deterministic multi-error ordering within one gate
+Invalid spec:
+```json
+{
+  "meta": {
+    "projectId": "demo-004",
+    "schemaVersion": "1.0"
+  },
+  "timeline": {
+    "events": [
+      { "id": "ev-2", "start": 2.0, "duration": "fast", "targetId": "obj-2", "action": "draw" },
+      { "id": "ev-1", "start": 1.0, "duration": "slow", "targetId": "obj-1", "action": "draw" }
+    ]
+  }
+}
+```
+
+Expected validation output:
+```json
+[
+  {
+    "code": "SPEC_SCHEMA_INVALID_TYPE",
+    "message": "Field must be a number.",
+    "path": "timeline.events[0].duration",
+    "value": "fast",
+    "hint": "Provide duration as a numeric timeline span.",
+    "severity": "error"
+  },
+  {
+    "code": "SPEC_SCHEMA_INVALID_TYPE",
+    "message": "Field must be a number.",
+    "path": "timeline.events[1].duration",
+    "value": "slow",
+    "hint": "Provide duration as a numeric timeline span.",
+    "severity": "error"
+  }
+]
+```
+
+Reasoning:
+- both errors occur in the schema gate;
+- ordering follows ascending canonical path order;
+- event ids do not affect error order when path ordering already distinguishes the items.
