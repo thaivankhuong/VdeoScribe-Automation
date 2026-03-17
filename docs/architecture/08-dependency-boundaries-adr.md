@@ -43,3 +43,10 @@ Adopt strict dependency direction across the five modules:
 - Renderer and export adapters remain replaceable because they depend on stable handoff contracts rather than implicit behavior.
 - CLI workflows stay maintainable because orchestration is separated from domain and rendering semantics.
 - Any proposal that requires a reverse dependency or hidden shared state should be treated as an architecture violation.
+
+## Architecture Review Checklist
+- [ ] Dependency direction still flows through explicit module boundaries without reverse references.
+- [ ] Project/spec JSON remains the source of truth rather than CLI, renderer, or exporter shortcuts.
+- [ ] No hardcoded scene logic or hidden state bypasses the documented dependency rules.
+- [ ] Deterministic behavior is preserved across downstream boundaries and packaging stages.
+- [ ] Any new integration uses explicit contracts instead of shared mutable state or backchannels.

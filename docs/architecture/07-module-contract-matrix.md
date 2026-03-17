@@ -54,3 +54,10 @@ Define the responsibilities, handoff contracts, and forbidden couplings for the 
 3. `Whiteboard.Renderer` consumes resolved frame-state and emits deterministic frame artifacts.
 4. `Whiteboard.Export` consumes ordered frame artifacts and explicit output/audio metadata to package final deliverables.
 5. `Whiteboard.Cli` coordinates end-to-end execution by invoking documented module entry points only.
+
+## Architecture Review Checklist
+- [ ] Module responsibilities stay within documented boundaries and do not leak into adjacent layers.
+- [ ] Project/spec JSON remains the single source of truth for module behavior and handoff data.
+- [ ] No hardcoded scene logic or hidden defaults bypass documented contracts.
+- [ ] Deterministic behavior is preserved: the same spec, assets, and settings must produce the same outputs.
+- [ ] New contracts describe explicit inputs, outputs, and diagnostics rather than relying on side effects.

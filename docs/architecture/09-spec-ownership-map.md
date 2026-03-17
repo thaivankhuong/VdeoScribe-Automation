@@ -45,3 +45,10 @@ Map top-level project/spec JSON sections to the module contracts that own valida
 - Secondary consumers may read a section only through explicit contracts or derived handoffs from the primary owner.
 - No module may bypass ownership by embedding hardcoded scene logic or undocumented defaults.
 - When a section influences deterministic behavior, the owning module must document the rule in a stable contract before other modules rely on it.
+
+## Architecture Review Checklist
+- [ ] Each top-level project/spec JSON section still has one clear primary owner.
+- [ ] Secondary consumers access section data only through explicit contracts or derived handoffs.
+- [ ] No hardcoded scene logic, undocumented defaults, or renderer heuristics override spec ownership.
+- [ ] Deterministic behavior is preserved when ownership rules feed frame-state and output contracts.
+- [ ] Ownership changes are documented before implementation relies on them.
