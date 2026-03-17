@@ -113,3 +113,12 @@ Phase 1 architecture is verification-ready only when all of the following are tr
 - This strategy does not add executable verification code in Phase 1.
 - This strategy does not define renderer correctness, export fidelity, or runtime performance tests.
 - This strategy does not allow contract compliance to be inferred from manual intuition alone.
+
+## Verification Matrix
+
+| Verification Target | Primary Artifact | Review Result |
+| --- | --- | --- |
+| Deterministic accepted-spec outcome | `docs/architecture/13-determinism-invariants.md` | One canonical serialized artifact required |
+| Deterministic rejected-spec outcome | `docs/architecture/12-validation-error-contract.md` | One ordered validation payload required |
+| Requirement evidence completeness | `.planning/phases/01-bootstrap-and-architecture-baseline/01-CHECKLIST.md` | Every Phase 1 requirement mapped to concrete proof |
+| Scope control for Phase 1 | `docs/architecture/07-module-contract-matrix.md`, `docs/architecture/14-verification-strategy.md` | No implementation or UI/editor scope allowed |
