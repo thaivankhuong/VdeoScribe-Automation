@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: planning
-stopped_at: Phase 2 context gathered
-last_updated: "2026-03-17T15:35:14.565Z"
-last_activity: 2026-03-17 - Transitioned from Phase 1 to Phase 2 planning
+status: executing
+stopped_at: Completed 02-01-PLAN.md
+last_updated: "2026-03-17T16:16:52.015Z"
+last_activity: 2026-03-17 - Completed Phase 2 Plan 02-01 schema validation and normalization pipeline
 progress:
   total_phases: 6
   completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
-  percent: 100
+  total_plans: 6
+  completed_plans: 4
+  percent: 67
 ---
 
 # Project State
@@ -26,31 +26,33 @@ See: .planning/PROJECT.md (updated 2026-03-17)
 ## Current Position
 
 Phase: 2 of 6 (Spec Schema and Deterministic Timeline Core)
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-03-17 - Transitioned from Phase 1 to Phase 2 planning
+Plan: 02-02 of 3
+Status: Ready to execute next plan
+Last activity: 2026-03-17 - Completed 02-01 schema validation and normalization pipeline
 
-Progress: [##########] 100%
+Progress: [######----] 67%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 3
-- Average duration: 5 min
-- Total execution time: 0.2 hours
+- Total plans completed: 4
+- Average duration: 10 min
+- Total execution time: 0.6 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1 | 3 | 14 min | 5 min |
+| 2 | 1 | 24 min | 24 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01, 01-02, 01-03
+- Last 5 plans: 01-01, 01-02, 01-03, 02-01
 - Trend: Stable
 - Phase 01 P01-01 | 4 min | 5 tasks | 3 files
 - Phase 01 P01-02 | 5 min | 5 tasks | 3 files
 - Phase 01 P01-03 | 5 min | 5 tasks | 3 files
+- Phase 02 P02-01 | 24 min | 3 tasks | 9 files
 
 ## Accumulated Context
 
@@ -70,6 +72,9 @@ Recent decisions affecting current work:
 - [Phase 01-bootstrap-and-architecture-baseline]: Deterministic compliance is evaluated through canonical serialized artifacts and ordered validation payloads rather than implementation-specific internal state.
 - [Phase 01-bootstrap-and-architecture-baseline]: Repeat-run verification should hash serialized bytes only, with SHA-256 as the documented checksum baseline for future automation.
 - [Phase 01-bootstrap-and-architecture-baseline]: Phase 1 review must fail if any artifact introduces UI/editor scope, runtime logic implementation, or contract bypass behavior.
+- [Phase 02]: Core owns the five-gate spec processing sequence and emits canonical normalized VideoProject data plus canonical JSON for deterministic downstream consumption.
+- [Phase 02]: CLI loader surfaces ordered validation issues directly from the Core pipeline and rejects invalid specs before any timeline evaluation path can run.
+- [Phase 02]: CLI loader contract tests compile against Core only until the broader CLI restore graph is repaired.
 
 ### Pending Todos
 
@@ -77,15 +82,10 @@ None yet.
 
 ### Blockers/Concerns
 
-None yet.
+- The broader `Whiteboard.Cli` restore graph involving renderer/export still fails before full CLI builds; `02-01` verified the loader contract through a narrowed CLI test harness instead.
 
 ## Session Continuity
 
-Last session: 2026-03-17T15:35:14.563Z
-Stopped at: Phase 2 context gathered
-Resume file: .planning/phases/02-spec-schema-and-deterministic-timeline-core/02-CONTEXT.md
-
-
-
-
-
+Last session: 2026-03-17T16:16:52.015Z
+Stopped at: Completed 02-01-PLAN.md
+Resume file: .planning/phases/02-spec-schema-and-deterministic-timeline-core/02-02-PLAN.md

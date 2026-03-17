@@ -41,7 +41,7 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 02-01: Implement schema validation and normalization pipeline
+- [x] 02-01: Implement schema validation and normalization pipeline
 - [ ] 02-02: Implement timeline-to-frame index conversion and ordering rules
 - [ ] 02-03: Implement frame-state resolution for object lifecycle
 
@@ -107,10 +107,8 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Bootstrap and Architecture Baseline | 3/3 | Complete | 01-01, 01-02, 01-03 |
-| 2. Spec Schema and Deterministic Timeline Core | 0/3 | Not started | - |
+| 2. Spec Schema and Deterministic Timeline Core | 1/3 | In progress | 02-01 |
 | 3. Draw Progression and Camera State Resolution | 0/3 | Not started | - |
 | 4. SVG Draw Rendering Adapter | 0/2 | Not started | - |
 | 5. Export Pipeline Integration | 0/2 | Not started | - |
 | 6. CLI Batch Orchestration and End-to-End Validation | 0/2 | Not started | - |
-
-
