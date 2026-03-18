@@ -61,6 +61,17 @@ public sealed class CameraInterpolationResolutionTests
     }
 
     [Fact]
+    public void Camera_UsesExactKeyframePayloadOnKeyframeBoundary()
+    {
+        var resolved = ResolveFrame(CreateProject(), frameIndex: 60);
+
+        Assert.Equal(2, resolved.FrameTimeSeconds);
+        Assert.Equal(new Position2D(20, 10), resolved.Position);
+        Assert.Equal(1.5, resolved.Zoom);
+        Assert.Equal(EasingType.Linear, resolved.Interpolation);
+    }
+
+    [Fact]
     public void Camera_InterpolatesLinearlyBetweenDistinctKeyframes()
     {
         var resolved = ResolveFrame(CreateProject(), frameIndex: 45);
@@ -118,6 +129,61 @@ public sealed class CameraInterpolationResolutionTests
         var second = ResolveFrame(project, frameIndex: 45);
 
         Assert.Equal(first, second);
+    }
+
+    [Fact]
+    public void Camera_RepeatedRunsPreserveBoundaryAndFallbackSemantics()
+    {
+        var project = CreateProject(
+            new CameraKeyframe
+            {
+                TimeSeconds = 0,
+                Position = new Position2D(-10, -10),
+                Zoom = 0.9,
+                Interpolation = EasingType.Linear
+            },
+            new CameraKeyframe
+            {
+                TimeSeconds = 1,
+                Position = new Position2D(8, 8),
+                Zoom = 1.25,
+                Interpolation = EasingType.Step
+            },
+            new CameraKeyframe
+            {
+                TimeSeconds = 1,
+                Position = new Position2D(12, 6),
+                Zoom = 1.4,
+                Interpolation = EasingType.Linear
+            },
+            new CameraKeyframe
+            {
+                TimeSeconds = 2,
+                Position = new Position2D(20, 10),
+                Zoom = 1.5,
+                Interpolation = EasingType.Linear
+            });
+
+        var beforeFirstA = ResolveFrame(project, frameIndex: -1);
+        var beforeFirstB = ResolveFrame(project, frameIndex: -1);
+        var duplicateHitA = ResolveFrame(project, frameIndex: 30);
+        var duplicateHitB = ResolveFrame(project, frameIndex: 30);
+        var afterLastA = ResolveFrame(project, frameIndex: 90);
+        var afterLastB = ResolveFrame(project, frameIndex: 90);
+
+        Assert.Equal(beforeFirstA, beforeFirstB);
+        Assert.Equal(0, beforeFirstA.FrameTimeSeconds);
+        Assert.Equal(new Position2D(-10, -10), beforeFirstA.Position);
+        Assert.Equal(0.9, beforeFirstA.Zoom);
+
+        Assert.Equal(duplicateHitA, duplicateHitB);
+        Assert.Equal(new Position2D(12, 6), duplicateHitA.Position);
+        Assert.Equal(1.4, duplicateHitA.Zoom);
+        Assert.Equal(EasingType.Linear, duplicateHitA.Interpolation);
+
+        Assert.Equal(afterLastA, afterLastB);
+        Assert.Equal(new Position2D(20, 10), afterLastA.Position);
+        Assert.Equal(1.5, afterLastA.Zoom);
     }
 
     private ResolvedCameraState ResolveFrame(VideoProject project, int frameIndex)

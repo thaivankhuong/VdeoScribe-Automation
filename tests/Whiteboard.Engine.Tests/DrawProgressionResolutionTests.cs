@@ -7,6 +7,7 @@ using Whiteboard.Core.Scene;
 using Whiteboard.Core.Timeline;
 using Whiteboard.Core.ValueObjects;
 using Whiteboard.Engine.Context;
+using Whiteboard.Engine.Models;
 using Whiteboard.Engine.Services;
 using Xunit;
 
@@ -100,6 +101,44 @@ public sealed class DrawProgressionResolutionTests
         Assert.Equal(0.5, redraw.DrawProgress, 3);
         Assert.Single(redraw.DrawPaths);
         Assert.Equal(0, redraw.DrawPaths[0].PathIndex);
+    }
+
+    [Fact]
+    public void OverlappingHideWindow_DoesNotInterruptActiveDrawCycle()
+    {
+        var project = CreateProject(
+            CreateDrawEvent("draw-1", startFrame: 0, durationFrames: 4, pathOrder: 0),
+            CreateHideEvent("hide-1", startFrame: 1));
+        var resolver = new ObjectStateResolver();
+
+        var frame1 = ResolveObject(project, resolver, frameIndex: 1);
+        var frame2 = ResolveObject(project, resolver, frameIndex: 2);
+        var frame3 = ResolveObject(project, resolver, frameIndex: 3);
+
+        Assert.True(frame1.IsVisible);
+        Assert.Equal(ObjectLifecycleState.Draw, frame1.LifecycleState);
+        Assert.Equal(0.5, frame1.DrawProgress, 3);
+        Assert.Equal(0.75, frame2.DrawProgress, 3);
+        Assert.Equal(1, frame3.DrawProgress, 3);
+    }
+
+    [Fact]
+    public void RepeatedRuns_ProduceStableDrawOrderingAndProgression()
+    {
+        var project = CreateProject(
+            CreateDrawEvent("draw-b", startFrame: 2, durationFrames: 2, pathOrder: 2),
+            CreateDrawEvent("draw-a", startFrame: 0, durationFrames: 2, pathOrder: 0),
+            CreateDrawEvent("draw-c", startFrame: 4, durationFrames: 2, pathOrder: 1));
+        var resolver = new ObjectStateResolver();
+
+        var first = ResolveObject(project, resolver, frameIndex: 4);
+        var second = ResolveObject(project, resolver, frameIndex: 4);
+
+        Assert.Equal(first.DrawProgress, second.DrawProgress);
+        Assert.Equal(first.DrawPathCount, second.DrawPathCount);
+        Assert.Equal(first.ActiveDrawPathIndex, second.ActiveDrawPathIndex);
+        Assert.Equal(first.DrawOrderingKey, second.DrawOrderingKey);
+        Assert.Equal(first.DrawPaths, second.DrawPaths);
     }
 
     private static Whiteboard.Engine.Models.ResolvedObjectState ResolveObject(VideoProject project, ObjectStateResolver resolver, int frameIndex)

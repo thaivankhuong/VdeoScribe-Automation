@@ -53,7 +53,7 @@ public sealed class FrameStateResolverContractTests
         Assert.Equal(SceneObjectType.Svg, firstObject.Type);
         Assert.Equal("svg-1", firstObject.AssetRefId);
         Assert.Equal(2, firstObject.Layer);
-        Assert.Equal(ObjectLifecycleState.Enter, firstObject.LifecycleState);
+        Assert.Equal(ObjectLifecycleState.Draw, firstObject.LifecycleState);
         Assert.Equal(0.5, firstObject.RevealProgress, 3);
         Assert.Equal(0.5, firstObject.DrawProgress, 3);
         Assert.Equal(1, firstObject.DrawPathCount);
@@ -244,6 +244,44 @@ public sealed class FrameStateResolverContractTests
         var resolved = resolver.Resolve(project, frameContext);
 
         Assert.Equal(expectedCamera, resolved.Camera);
+    }
+
+    [Fact]
+    public void Contract_AlwaysIncludesCompleteDrawAndCameraPayloadForRendererHandoff()
+    {
+        var project = CreateProject();
+        var frameContext = FrameContext.FromFrameIndex(frameIndex: 15, frameRate: 30);
+        var resolver = new FrameStateResolver(
+            objectStateResolver: new StubObjectStateResolver(
+                [new ResolvedSceneState { SceneId = "scene-1", Objects = [CreateStubResolvedObject(drawProgress: 0.75, activePathIndex: 1)] }]),
+            cameraStateResolver: new StubCameraStateResolver(
+                new ResolvedCameraState
+                {
+                    FrameTimeSeconds = 0.5,
+                    Position = new Position2D(5, 5),
+                    Zoom = 1.2,
+                    Interpolation = EasingType.Linear
+                }));
+
+        var first = resolver.Resolve(project, frameContext);
+        var second = resolver.Resolve(project, frameContext);
+        var firstObject = first.Scenes.Single().Objects.Single();
+        var secondObject = second.Scenes.Single().Objects.Single();
+
+        Assert.Equal(first.Camera, second.Camera);
+        Assert.Equal(0.5, first.Camera.FrameTimeSeconds);
+        Assert.Equal(new Position2D(5, 5), first.Camera.Position);
+        Assert.Equal(1.2, first.Camera.Zoom);
+        Assert.Equal(EasingType.Linear, first.Camera.Interpolation);
+
+        Assert.Equal(firstObject.DrawProgress, secondObject.DrawProgress);
+        Assert.Equal(firstObject.DrawPaths, secondObject.DrawPaths);
+        Assert.Equal(2, firstObject.DrawPathCount);
+        Assert.Equal(1, firstObject.ActiveDrawPathIndex);
+        Assert.Equal("scene-1:2:object-1", firstObject.DrawOrderingKey);
+        Assert.All(firstObject.DrawPaths, path => Assert.False(string.IsNullOrWhiteSpace(path.OrderingKey)));
+        Assert.False(string.IsNullOrWhiteSpace(first.DeterministicKey));
+        Assert.Equal(first.DeterministicKey, second.DeterministicKey);
     }
 
     [Fact]
