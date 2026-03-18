@@ -1,4 +1,4 @@
-﻿using Whiteboard.Core.Enums;
+using Whiteboard.Core.Enums;
 
 namespace Whiteboard.Engine.Models;
 
@@ -8,5 +8,7 @@ public record ResolvedTimelineEvent
     public string SceneId { get; init; } = string.Empty;
     public string SceneObjectId { get; init; } = string.Empty;
     public TimelineActionType ActionType { get; init; } = TimelineActionType.Draw;
+    public int StartFrameIndex { get; init; }
+    public int EndFrameIndexExclusive { get; init; }
     public bool IsActive { get; init; }
 }

@@ -78,7 +78,8 @@ public sealed class TimelineResolver : ITimelineResolver
     private static string GetTargetIdentifier(ResolvedTimelineEvent timelineEvent)
     {
         return string.IsNullOrWhiteSpace(timelineEvent.SceneObjectId)
-            ? timelineEvent.SceneId
-            : timelineEvent.SceneObjectId;
+            ? $"0:{timelineEvent.SceneId}"
+            : $"1:{timelineEvent.SceneObjectId}";
     }
 }
+
