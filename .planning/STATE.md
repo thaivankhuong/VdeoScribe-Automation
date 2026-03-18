@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 02-02-PLAN.md
-last_updated: "2026-03-18T10:50:57.8947242+07:00"
-last_activity: 2026-03-18 - Completed Phase 2 Plan 02-02 timeline-to-frame conversion and ordering rules
+stopped_at: Completed 02-03-PLAN.md
+last_updated: "2026-03-18T11:37:00+07:00"
+last_activity: 2026-03-18 - Completed Phase 2 Plan 02-03 frame-state resolution for object lifecycle
 progress:
   total_phases: 6
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 6
-  completed_plans: 5
-  percent: 83
+  completed_plans: 6
+  percent: 100
 ---
 
 # Project State
@@ -21,39 +21,40 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-17)
 
 **Core value:** Given the same spec, assets, and settings, the engine must always produce the same frame/video output.
-**Current focus:** Phase 2 - Spec Schema and Deterministic Timeline Core
+**Current focus:** Phase 3 - Draw Progression and Camera State Resolution
 
 ## Current Position
 
-Phase: 2 of 6 (Spec Schema and Deterministic Timeline Core)
-Plan: 02-03 of 3
-Status: Ready to execute next plan
-Last activity: 2026-03-18 - Completed 02-02 timeline-to-frame conversion and ordering rules
+Phase: 3 of 6 (Draw Progression and Camera State Resolution)
+Plan: Planning pending for next phase
+Status: Ready to discuss or plan next phase
+Last activity: 2026-03-18 - Completed 02-03 frame-state resolution for object lifecycle
 
-Progress: [########--] 83%
+Progress: [##########] 100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 5
-- Average duration: 10 min
-- Total execution time: 0.6 hours
+- Total plans completed: 6
+- Average duration: 13 min
+- Total execution time: 1.3 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1 | 3 | 14 min | 5 min |
-| 2 | 2 | 57 min | 29 min |
+| 2 | 3 | 103 min | 34 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01, 01-02, 01-03, 02-01, 02-02
+- Last 6 plans: 01-01, 01-02, 01-03, 02-01, 02-02, 02-03
 - Trend: Stable
 - Phase 01 P01-01 | 4 min | 5 tasks | 3 files
 - Phase 01 P01-02 | 5 min | 5 tasks | 3 files
 - Phase 01 P01-03 | 5 min | 5 tasks | 3 files
 - Phase 02 P02-01 | 24 min | 3 tasks | 9 files
 - Phase 02 P02-02 | 33 min | 3 tasks | 6 files
+- Phase 02 P02-03 | 46 min | 3 tasks | 8 files
 
 ## Accumulated Context
 
@@ -76,6 +77,9 @@ Recent decisions affecting current work:
 - [Phase 02]: Core owns the five-gate spec processing sequence and emits canonical normalized VideoProject data plus canonical JSON for deterministic downstream consumption.
 - [Phase 02]: CLI loader surfaces ordered validation issues directly from the Core pipeline and rejects invalid specs before any timeline evaluation path can run.
 - [Phase 02]: CLI loader contract tests compile against Core only until the broader CLI restore graph is repaired.
+- [Phase 02]: Time-to-frame conversion uses one explicit fixed-FPS rule with boundary-safe ceiling semantics.
+- [Phase 02]: Resolved object state now exposes explicit lifecycle states while retaining reveal progress for downstream compatibility.
+- [Phase 02]: Pipeline deterministic parity is measured from canonical frame-state and rendered/exported outputs instead of spec file paths.
 
 ### Pending Todos
 
@@ -83,12 +87,11 @@ None yet.
 
 ### Blockers/Concerns
 
-- The broader `Whiteboard.Cli` restore graph involving renderer/export still fails before full CLI builds; `02-01` verified the loader contract through a narrowed CLI test harness instead.
+- Parallel `dotnet test` runs in this workspace still intermittently lock build outputs under `src/*/obj`; serial execution remains the reliable verification path.
 
 ## Session Continuity
 
-Last session: 2026-03-18T10:50:57.8947242+07:00
-Stopped at: Completed 02-02-PLAN.md
-Resume file: .planning/phases/02-spec-schema-and-deterministic-timeline-core/02-03-PLAN.md
-
+Last session: 2026-03-18T11:37:00+07:00
+Stopped at: Completed 02-03-PLAN.md
+Resume file: none
 

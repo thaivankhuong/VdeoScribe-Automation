@@ -13,8 +13,8 @@
 
 ### Timeline and State Resolution
 
-- [ ] **TIME-01**: Timeline events are converted to frame indices deterministically at fixed FPS.
-- [ ] **TIME-02**: Object lifecycle states (enter, draw, hold, exit) are resolved per frame from timeline + prior state.
+- [x] **TIME-01**: Timeline events are converted to frame indices deterministically at fixed FPS.
+- [x] **TIME-02**: Object lifecycle states (enter, draw, hold, exit) are resolved per frame from timeline + prior state.
 - [x] **TIME-03**: Event ordering and overlap handling are stable across repeated runs.
 
 ### Draw and Camera Behavior
@@ -58,8 +58,8 @@
 | SPEC-01 | Phase 1 | Complete |
 | SPEC-02 | Phase 1 | Complete |
 | SPEC-03 | Phase 1 | Complete |
-| TIME-01 | Phase 2 | Pending |
-| TIME-02 | Phase 2 | Pending |
+| TIME-01 | Phase 2 | Complete |
+| TIME-02 | Phase 2 | Complete |
 | TIME-03 | Phase 2 | Complete |
 | DRAW-01 | Phase 3 | Pending |
 | DRAW-02 | Phase 3 | Pending |
@@ -77,4 +77,5 @@
 
 ---
 *Requirements defined: 2026-03-17*
-*Last updated: 2026-03-17 after completing Phase 2 Plan 02-01*
+*Last updated: 2026-03-18 after completing Phase 2*
+
