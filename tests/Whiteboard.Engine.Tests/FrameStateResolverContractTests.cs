@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using Whiteboard.Core.Assets;
 using Whiteboard.Core.Enums;
 using Whiteboard.Core.Models;
@@ -51,18 +53,20 @@ public sealed class FrameStateResolverContractTests
         Assert.Equal(SceneObjectType.Svg, firstObject.Type);
         Assert.Equal("svg-1", firstObject.AssetRefId);
         Assert.Equal(2, firstObject.Layer);
-        Assert.Equal(1, firstObject.RevealProgress);
+        Assert.Equal(ObjectLifecycleState.Enter, firstObject.LifecycleState);
+        Assert.Equal(0.5, firstObject.RevealProgress, 3);
     }
 
     [Fact]
-    public void Resolver_RevealProgress_IsZero_WhenRevealEventIsNotActive()
+    public void Resolver_ObjectLifecycle_IsExit_WhenObjectStartsHiddenAndHasNoRevealHistory()
     {
-        var project = CreateProject();
+        var project = CreateProjectWithNoTimelineEvents(initiallyVisible: false);
         var frameContext = FrameContext.FromFrameIndex(frameIndex: 120, frameRate: 30);
         var resolver = new FrameStateResolver();
 
         var resolved = resolver.Resolve(project, frameContext);
 
+        Assert.Equal(ObjectLifecycleState.Exit, resolved.Scenes[0].Objects[0].LifecycleState);
         Assert.Equal(0, resolved.Scenes[0].Objects[0].RevealProgress);
     }
 
@@ -100,8 +104,10 @@ public sealed class FrameStateResolverContractTests
         Assert.Equal(first.Scenes[0].Objects[0].Transform.Position, second.Scenes[0].Objects[0].Transform.Position);
         Assert.Equal(first.Scenes[0].Objects[0].Transform.Size, second.Scenes[0].Objects[0].Transform.Size);
         Assert.Equal(first.Scenes[0].Objects[0].IsVisible, second.Scenes[0].Objects[0].IsVisible);
+        Assert.Equal(first.Scenes[0].Objects[0].LifecycleState, second.Scenes[0].Objects[0].LifecycleState);
         Assert.Equal(first.TimelineEvents[0].ActionType, second.TimelineEvents[0].ActionType);
         Assert.Equal(first.TimelineEvents[0].IsActive, second.TimelineEvents[0].IsActive);
+        Assert.Equal(first.DeterministicKey, second.DeterministicKey);
     }
 
     [Fact]
@@ -124,9 +130,11 @@ public sealed class FrameStateResolverContractTests
         Assert.Equal(firstObject.AssetRefId, secondObject.AssetRefId);
         Assert.Equal(firstObject.Layer, secondObject.Layer);
         Assert.Equal(firstObject.IsVisible, secondObject.IsVisible);
+        Assert.Equal(firstObject.LifecycleState, secondObject.LifecycleState);
         Assert.Equal(firstObject.RevealProgress, secondObject.RevealProgress);
         Assert.Equal(firstObject.Transform.Position, secondObject.Transform.Position);
         Assert.Equal(firstObject.Transform.Size, secondObject.Transform.Size);
+        Assert.Equal(first.DeterministicKey, second.DeterministicKey);
     }
 
     [Fact]
@@ -150,7 +158,43 @@ public sealed class FrameStateResolverContractTests
             resolved.TimelineEvents.Select(evt => evt.EventId).ToArray());
     }
 
-    private static VideoProject CreateProject()
+    [Fact]
+    public void Resolver_OrdersScenesAndObjectsDeterministically()
+    {
+        var project = CreateProjectWithOutOfOrderSceneObjects();
+        var frameContext = FrameContext.FromFrameIndex(frameIndex: 0, frameRate: 30);
+        var resolver = new FrameStateResolver();
+
+        var resolved = resolver.Resolve(project, frameContext);
+
+        Assert.Equal(new[] { "scene-a", "scene-b" }, resolved.Scenes.Select(scene => scene.SceneId).ToArray());
+        Assert.Equal(new[] { "object-a", "object-b" }, resolved.Scenes[0].Objects.Select(obj => obj.SceneObjectId).ToArray());
+    }
+
+    private static VideoProject CreateProject(bool initiallyVisible = true)
+    {
+        return CreateProjectCore(
+            initiallyVisible,
+            new List<TimelineEvent>
+            {
+                new()
+                {
+                    Id = "event-1",
+                    SceneId = "scene-1",
+                    SceneObjectId = "object-1",
+                    ActionType = TimelineActionType.Draw,
+                    StartSeconds = 0,
+                    DurationSeconds = 2d / 30d
+                }
+            });
+    }
+
+    private static VideoProject CreateProjectWithNoTimelineEvents(bool initiallyVisible)
+    {
+        return CreateProjectCore(initiallyVisible, new List<TimelineEvent>());
+    }
+
+    private static VideoProject CreateProjectCore(bool initiallyVisible, List<TimelineEvent> events)
     {
         return new VideoProject
         {
@@ -192,7 +236,7 @@ public sealed class FrameStateResolverContractTests
                             Name = "Shape Object",
                             Type = SceneObjectType.Svg,
                             AssetRefId = "svg-1",
-                            IsVisible = true,
+                            IsVisible = initiallyVisible,
                             Layer = 2,
                             Transform = new TransformSpec
                             {
@@ -205,18 +249,7 @@ public sealed class FrameStateResolverContractTests
             ],
             Timeline = new TimelineDefinition
             {
-                Events =
-                [
-                    new TimelineEvent
-                    {
-                        Id = "event-1",
-                        SceneId = "scene-1",
-                        SceneObjectId = "object-1",
-                        ActionType = TimelineActionType.Draw,
-                        StartSeconds = 0,
-                        DurationSeconds = 2
-                    }
-                ],
+                Events = events,
                 CameraTrack = new CameraTrack
                 {
                     Keyframes =
@@ -241,6 +274,53 @@ public sealed class FrameStateResolverContractTests
                         }
                     ]
                 }
+            }
+        };
+    }
+
+    private static VideoProject CreateProjectWithOutOfOrderSceneObjects()
+    {
+        return new VideoProject
+        {
+            Meta = new ProjectMeta
+            {
+                ProjectId = "project-002",
+                Name = "Ordering Test"
+            },
+            Output = new OutputSpec
+            {
+                Width = 1280,
+                Height = 720,
+                FrameRate = 30
+            },
+            Assets = new AssetCollection(),
+            Scenes =
+            [
+                new SceneDefinition
+                {
+                    Id = "scene-b",
+                    Name = "Scene B",
+                    Objects =
+                    [
+                        new SceneObject { Id = "object-z", Layer = 5, Type = SceneObjectType.Text, IsVisible = true },
+                        new SceneObject { Id = "object-y", Layer = 4, Type = SceneObjectType.Text, IsVisible = true }
+                    ]
+                },
+                new SceneDefinition
+                {
+                    Id = "scene-a",
+                    Name = "Scene A",
+                    Objects =
+                    [
+                        new SceneObject { Id = "object-b", Layer = 2, Type = SceneObjectType.Text, IsVisible = true },
+                        new SceneObject { Id = "object-a", Layer = 1, Type = SceneObjectType.Text, IsVisible = true }
+                    ]
+                }
+            ],
+            Timeline = new TimelineDefinition
+            {
+                Events = new List<TimelineEvent>(),
+                CameraTrack = new CameraTrack()
             }
         };
     }

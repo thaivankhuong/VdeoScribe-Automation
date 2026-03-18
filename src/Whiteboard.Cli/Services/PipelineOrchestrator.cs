@@ -75,7 +75,7 @@ public sealed class PipelineOrchestrator : IPipelineOrchestrator
             OutputPath = exportResult.OutputPath,
             Operations = renderResult.Operations,
             ExportStatus = exportResult.Message,
-            DeterministicKey = $"{request.SpecPath}|{request.FrameIndex}|{renderResult.SceneCount}|{renderResult.ObjectCount}|{exportResult.DeterministicKey}"
+            DeterministicKey = $"{frameState.DeterministicKey}|{string.Join(';', renderResult.Operations)}|{exportResult.DeterministicKey}"
         };
     }
 }
