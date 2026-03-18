@@ -178,6 +178,21 @@ public sealed class SpecProcessingPipeline : ISpecProcessingPipeline
             {
                 issues.Add(new ValidationIssue(ValidationGate.Schema, $"$.timeline.cameraTrack.keyframes[{keyframeIndex}].zoom", ValidationSeverity.Error, "schema.camera_keyframe.zoom.invalid", "Camera keyframe zoom must be greater than zero."));
             }
+
+            if (!IsSupportedCameraInterpolation(keyframe.Interpolation))
+            {
+                issues.Add(new ValidationIssue(ValidationGate.Schema, $"$.timeline.cameraTrack.keyframes[{keyframeIndex}].interpolation", ValidationSeverity.Error, "schema.camera_keyframe.interpolation.unsupported", "Camera keyframe interpolation must be 'step' or 'linear'."));
+            }
+
+            if (keyframe.Easing != EasingType.Linear)
+            {
+                issues.Add(new ValidationIssue(ValidationGate.Schema, $"$.timeline.cameraTrack.keyframes[{keyframeIndex}].easing", ValidationSeverity.Error, "schema.camera_keyframe.easing.unsupported", "Camera keyframe easing must remain 'linear' until non-linear easing is implemented."));
+            }
+
+            if (keyframe.Interpolation == EasingType.Step && keyframe.Easing != EasingType.Linear)
+            {
+                issues.Add(new ValidationIssue(ValidationGate.Schema, $"$.timeline.cameraTrack.keyframes[{keyframeIndex}]", ValidationSeverity.Error, "schema.camera_keyframe.policy.invalid", "Step camera interpolation cannot be combined with non-linear easing."));
+            }
         }
 
         for (var cueIndex = 0; cueIndex < parsedProject.Timeline.AudioCues.Count; cueIndex++)
@@ -359,12 +374,15 @@ public sealed class SpecProcessingPipeline : ISpecProcessingPipeline
                         TimeSeconds = keyframe.TimeSeconds,
                         Position = keyframe.Position,
                         Zoom = keyframe.Zoom,
+                        Interpolation = keyframe.Interpolation,
                         Easing = keyframe.Easing
                     })
                     .OrderBy(keyframe => keyframe.TimeSeconds)
                     .ThenBy(keyframe => keyframe.Position.X)
                     .ThenBy(keyframe => keyframe.Position.Y)
                     .ThenBy(keyframe => keyframe.Zoom)
+                    .ThenBy(keyframe => keyframe.Interpolation)
+                    .ThenBy(keyframe => keyframe.Easing)
                     .ToList()
             },
             AudioCues = timeline.AudioCues
@@ -501,6 +519,11 @@ public sealed class SpecProcessingPipeline : ISpecProcessingPipeline
                 duplicateIndex++;
             }
         }
+    }
+
+    private static bool IsSupportedCameraInterpolation(EasingType interpolation)
+    {
+        return interpolation is EasingType.Step or EasingType.Linear;
     }
 
     private static ValidationGateResult CreateGateResult(ValidationGate gate, IEnumerable<ValidationIssue> issues)

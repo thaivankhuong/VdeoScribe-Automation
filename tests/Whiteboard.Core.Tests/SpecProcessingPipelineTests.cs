@@ -1,5 +1,7 @@
 using System.Text.Json;
+using Whiteboard.Core.Enums;
 using Whiteboard.Core.Validation;
+using Whiteboard.Core.ValueObjects;
 using Xunit;
 
 namespace Whiteboard.Core.Tests;
@@ -249,6 +251,58 @@ public sealed class SpecProcessingPipelineTests
             """;
     }
 
+    [Fact]
+    public void Camera_KeyframesRejectUnsupportedInterpolationAndEasingPolicies()
+    {
+        var result = _pipeline.Process(CreateCameraPolicyInvalidJson(), "specs/invalid-camera-policy.json");
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(
+            new[]
+            {
+                "schema.camera_keyframe.easing.unsupported",
+                "schema.camera_keyframe.interpolation.unsupported",
+                "schema.camera_keyframe.policy.invalid",
+                "schema.camera_keyframe.easing.unsupported"
+            },
+            result.Issues.Select(issue => issue.Code).ToArray());
+    }
+
+    [Fact]
+    public void Camera_NormalizationOrdersDuplicateTimestampsDeterministically()
+    {
+        var result = _pipeline.Process(CreateCameraDuplicateTimeJson(), "specs/camera-duplicates.json");
+
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.Project);
+
+        var keyframes = result.Project.Project.Timeline.CameraTrack.Keyframes;
+        Assert.Equal(3, keyframes.Count);
+        Assert.Collection(
+            keyframes,
+            keyframe =>
+            {
+                Assert.Equal(0.5, keyframe.TimeSeconds);
+                Assert.Equal(new Position2D(0, 0), keyframe.Position);
+                Assert.Equal(1.0, keyframe.Zoom);
+                Assert.Equal(EasingType.Linear, keyframe.Interpolation);
+            },
+            keyframe =>
+            {
+                Assert.Equal(0.5, keyframe.TimeSeconds);
+                Assert.Equal(new Position2D(10, 0), keyframe.Position);
+                Assert.Equal(1.1, keyframe.Zoom);
+                Assert.Equal(EasingType.Linear, keyframe.Interpolation);
+            },
+            keyframe =>
+            {
+                Assert.Equal(0.5, keyframe.TimeSeconds);
+                Assert.Equal(new Position2D(10, 10), keyframe.Position);
+                Assert.Equal(1.1, keyframe.Zoom);
+                Assert.Equal(EasingType.Step, keyframe.Interpolation);
+            });
+    }
+
     private static string CreateNormalizationVariantOne()
     {
         return """
@@ -342,6 +396,174 @@ public sealed class SpecProcessingPipelineTests
                     }
                   }
                 ]
+              }
+            }
+            """;
+    }
+
+    private static string CreateCameraPolicyInvalidJson()
+    {
+        return """
+            {
+              "meta": {
+                "projectId": "camera-policy",
+                "name": "Camera Policy"
+              },
+              "output": {
+                "width": 1280,
+                "height": 720,
+                "frameRate": 30
+              },
+              "assets": {
+                "svgAssets": [
+                  {
+                    "id": "svg-1",
+                    "name": "Bulb",
+                    "sourcePath": "assets/bulb.svg",
+                    "type": "svg"
+                  }
+                ]
+              },
+              "scenes": [
+                {
+                  "id": "scene-1",
+                  "name": "Intro",
+                  "durationSeconds": 5,
+                  "objects": [
+                    {
+                      "id": "object-1",
+                      "name": "Bulb",
+                      "type": "svg",
+                      "assetRefId": "svg-1",
+                      "layer": 1
+                    }
+                  ]
+                }
+              ],
+              "timeline": {
+                "events": [
+                  {
+                    "id": "event-1",
+                    "sceneId": "scene-1",
+                    "sceneObjectId": "object-1",
+                    "actionType": "draw",
+                    "startSeconds": 0,
+                    "durationSeconds": 1
+                  }
+                ],
+                "cameraTrack": {
+                  "keyframes": [
+                    {
+                      "timeSeconds": 0,
+                      "position": {
+                        "x": 0,
+                        "y": 0
+                      },
+                      "zoom": 1.0,
+                      "interpolation": "easeInOut",
+                      "easing": "easeIn"
+                    },
+                    {
+                      "timeSeconds": 1,
+                      "position": {
+                        "x": 10,
+                        "y": 5
+                      },
+                      "zoom": 1.2,
+                      "interpolation": "step",
+                      "easing": "easeOut"
+                    }
+                  ]
+                }
+              }
+            }
+            """;
+    }
+
+    private static string CreateCameraDuplicateTimeJson()
+    {
+        return """
+            {
+              "meta": {
+                "projectId": "camera-duplicates",
+                "name": "Camera Duplicates"
+              },
+              "output": {
+                "width": 1280,
+                "height": 720,
+                "frameRate": 30
+              },
+              "assets": {
+                "svgAssets": [
+                  {
+                    "id": "svg-1",
+                    "name": "Bulb",
+                    "sourcePath": "assets/bulb.svg",
+                    "type": "svg"
+                  }
+                ]
+              },
+              "scenes": [
+                {
+                  "id": "scene-1",
+                  "name": "Intro",
+                  "durationSeconds": 5,
+                  "objects": [
+                    {
+                      "id": "object-1",
+                      "name": "Bulb",
+                      "type": "svg",
+                      "assetRefId": "svg-1",
+                      "layer": 1
+                    }
+                  ]
+                }
+              ],
+              "timeline": {
+                "events": [
+                  {
+                    "id": "event-1",
+                    "sceneId": "scene-1",
+                    "sceneObjectId": "object-1",
+                    "actionType": "draw",
+                    "startSeconds": 0,
+                    "durationSeconds": 1
+                  }
+                ],
+                "cameraTrack": {
+                  "keyframes": [
+                    {
+                      "timeSeconds": 0.5,
+                      "position": {
+                        "x": 10,
+                        "y": 10
+                      },
+                      "zoom": 1.1,
+                      "interpolation": "step",
+                      "easing": "linear"
+                    },
+                    {
+                      "timeSeconds": 0.5,
+                      "position": {
+                        "x": 0,
+                        "y": 0
+                      },
+                      "zoom": 1.0,
+                      "interpolation": "linear",
+                      "easing": "linear"
+                    },
+                    {
+                      "timeSeconds": 0.5,
+                      "position": {
+                        "x": 10,
+                        "y": 0
+                      },
+                      "zoom": 1.1,
+                      "interpolation": "linear",
+                      "easing": "linear"
+                    }
+                  ]
+                }
               }
             }
             """;
