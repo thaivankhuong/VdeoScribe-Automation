@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using Whiteboard.Core.Models;
@@ -53,13 +54,17 @@ public sealed class FrameStateResolver : IFrameStateResolver
         var builder = new StringBuilder();
         builder.Append(frameState.FrameContext.FrameIndex)
             .Append('|')
-            .Append(frameState.FrameContext.FrameRate)
+            .Append(FormatDeterministicDouble(frameState.FrameContext.FrameRate))
             .Append('|')
-            .Append(frameState.Camera.Position.X)
+            .Append(FormatDeterministicDouble(frameState.Camera.FrameTimeSeconds))
+            .Append('|')
+            .Append(frameState.Camera.Interpolation)
+            .Append('|')
+            .Append(FormatDeterministicDouble(frameState.Camera.Position.X))
             .Append(',')
-            .Append(frameState.Camera.Position.Y)
+            .Append(FormatDeterministicDouble(frameState.Camera.Position.Y))
             .Append('|')
-            .Append(frameState.Camera.Zoom);
+            .Append(FormatDeterministicDouble(frameState.Camera.Zoom));
 
         foreach (var scene in frameState.Scenes)
         {
@@ -77,9 +82,9 @@ public sealed class FrameStateResolver : IFrameStateResolver
                     .Append(':')
                     .Append(obj.IsVisible)
                     .Append(':')
-                    .Append(obj.RevealProgress.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture))
+                    .Append(obj.RevealProgress.ToString("0.###", CultureInfo.InvariantCulture))
                     .Append(':')
-                    .Append(obj.DrawProgress.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture))
+                    .Append(obj.DrawProgress.ToString("0.###", CultureInfo.InvariantCulture))
                     .Append(':')
                     .Append(obj.DrawPathCount)
                     .Append(':')
@@ -102,7 +107,7 @@ public sealed class FrameStateResolver : IFrameStateResolver
                     builder.Append(":path:")
                         .Append(drawPath.PathIndex)
                         .Append(':')
-                        .Append(drawPath.Progress.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture))
+                        .Append(drawPath.Progress.ToString("0.###", CultureInfo.InvariantCulture))
                         .Append(':')
                         .Append(drawPath.IsActive)
                         .Append(':')
@@ -128,5 +133,10 @@ public sealed class FrameStateResolver : IFrameStateResolver
         }
 
         return builder.ToString();
+    }
+
+    private static string FormatDeterministicDouble(double value)
+    {
+        return value.ToString("0.######", CultureInfo.InvariantCulture);
     }
 }

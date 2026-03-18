@@ -76,7 +76,7 @@ public sealed class FrameStateResolverContractTests
     }
 
     [Fact]
-    public void Resolver_UsesNearestCameraKeyframe_AtOrBeforeCurrentTime()
+    public void Camera_InterpolatedStateIsIncludedInResolvedFrameOutput()
     {
         var project = CreateProject();
         var frameContext = FrameContext.FromFrameIndex(frameIndex: 45, frameRate: 30);
@@ -84,8 +84,10 @@ public sealed class FrameStateResolverContractTests
 
         var resolved = resolver.Resolve(project, frameContext);
 
-        Assert.Equal(new Position2D(10, 10), resolved.Camera.Position);
-        Assert.Equal(1.2, resolved.Camera.Zoom);
+        Assert.Equal(1.5, resolved.Camera.FrameTimeSeconds);
+        Assert.Equal(new Position2D(15, 15), resolved.Camera.Position);
+        Assert.Equal(1.3, resolved.Camera.Zoom, 3);
+        Assert.Equal(EasingType.Linear, resolved.Camera.Interpolation);
     }
 
     [Fact]
@@ -221,6 +223,60 @@ public sealed class FrameStateResolverContractTests
                 Assert.Equal(0.5, path.Progress, 3);
                 Assert.True(path.IsActive);
             });
+    }
+
+    [Fact]
+    public void Camera_ContractExposesRendererReadyResolvedCameraPayload()
+    {
+        var project = CreateProject();
+        var frameContext = FrameContext.FromFrameIndex(frameIndex: 12, frameRate: 30);
+        var expectedCamera = new ResolvedCameraState
+        {
+            FrameTimeSeconds = 0.4,
+            Position = new Position2D(12.5, -3.25),
+            Zoom = 1.125,
+            Interpolation = EasingType.Step
+        };
+
+        var resolver = new FrameStateResolver(
+            cameraStateResolver: new StubCameraStateResolver(expectedCamera));
+
+        var resolved = resolver.Resolve(project, frameContext);
+
+        Assert.Equal(expectedCamera, resolved.Camera);
+    }
+
+    [Fact]
+    public void Deterministic_CameraPayloadChangesKeyWhenResolvedCameraChanges()
+    {
+        var project = CreateProject();
+        var frameContext = FrameContext.FromFrameIndex(frameIndex: 15, frameRate: 30);
+        var baselineResolver = new FrameStateResolver(
+            cameraStateResolver: new StubCameraStateResolver(
+                new ResolvedCameraState
+                {
+                    FrameTimeSeconds = 0.5,
+                    Position = new Position2D(5, 5),
+                    Zoom = 1.2,
+                    Interpolation = EasingType.Linear
+                }));
+        var changedResolver = new FrameStateResolver(
+            cameraStateResolver: new StubCameraStateResolver(
+                new ResolvedCameraState
+                {
+                    FrameTimeSeconds = 0.5,
+                    Position = new Position2D(5, 5),
+                    Zoom = 1.2,
+                    Interpolation = EasingType.Step
+                }));
+
+        var baseline = baselineResolver.Resolve(project, frameContext);
+        var changed = changedResolver.Resolve(project, frameContext);
+
+        Assert.Equal(baseline.Camera.Position, changed.Camera.Position);
+        Assert.Equal(baseline.Camera.Zoom, changed.Camera.Zoom);
+        Assert.NotEqual(baseline.Camera.Interpolation, changed.Camera.Interpolation);
+        Assert.NotEqual(baseline.DeterministicKey, changed.DeterministicKey);
     }
 
     [Fact]
@@ -467,6 +523,17 @@ public sealed class FrameStateResolverContractTests
             IReadOnlyList<ResolvedTimelineEvent> timelineEvents)
         {
             return scenes;
+        }
+    }
+
+    private sealed class StubCameraStateResolver(ResolvedCameraState state) : ICameraStateResolver
+    {
+        public ResolvedCameraState Resolve(
+            VideoProject project,
+            FrameContext frameContext,
+            IReadOnlyList<ResolvedTimelineEvent> timelineEvents)
+        {
+            return state;
         }
     }
 }
