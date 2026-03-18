@@ -56,7 +56,7 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 03-01: Implement path-based draw progression model
+- [x] 03-01: Implement path-based draw progression model
 - [ ] 03-02: Implement camera keyframe interpolation/state integration
 - [ ] 03-03: Add deterministic tests for draw/camera frame-state behavior
 
@@ -108,9 +108,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Bootstrap and Architecture Baseline | 3/3 | Complete | 01-01, 01-02, 01-03 |
 | 2. Spec Schema and Deterministic Timeline Core | 3/3 | Complete | 02-01, 02-02, 02-03 |
-| 3. Draw Progression and Camera State Resolution | 0/3 | Not started | - |
+| 3. Draw Progression and Camera State Resolution | 1/3 | In Progress | 03-01 |
 | 4. SVG Draw Rendering Adapter | 0/2 | Not started | - |
 | 5. Export Pipeline Integration | 0/2 | Not started | - |
 | 6. CLI Batch Orchestration and End-to-End Validation | 0/2 | Not started | - |
-
-

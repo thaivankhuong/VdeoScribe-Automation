@@ -19,9 +19,9 @@
 
 ### Draw and Camera Behavior
 
-- [ ] **DRAW-01**: Path-based draw progression supports handwriting-like reveal as timeline-driven progress.
+- [x] **DRAW-01**: Path-based draw progression supports handwriting-like reveal as timeline-driven progress.
 - [ ] **DRAW-02**: Camera pan/zoom state is evaluated per frame from explicit keyframes and interpolation policy.
-- [ ] **DRAW-03**: Camera behavior is integrated in frame state, not post-process side effects.
+- [x] **DRAW-03**: Camera behavior is integrated in frame state, not post-process side effects.
 
 ### Rendering and Export Pipeline
 
@@ -61,9 +61,9 @@
 | TIME-01 | Phase 2 | Complete |
 | TIME-02 | Phase 2 | Complete |
 | TIME-03 | Phase 2 | Complete |
-| DRAW-01 | Phase 3 | Pending |
+| DRAW-01 | Phase 3 | Complete |
 | DRAW-02 | Phase 3 | Pending |
-| DRAW-03 | Phase 3 | Pending |
+| DRAW-03 | Phase 3 | Complete |
 | PIPE-01 | Phase 4 | Pending |
 | PIPE-02 | Phase 5 | Pending |
 | PIPE-03 | Phase 5 | Pending |
@@ -77,5 +77,5 @@
 
 ---
 *Requirements defined: 2026-03-17*
-*Last updated: 2026-03-18 after completing Phase 2*
+*Last updated: 2026-03-18 after completing Phase 3 Plan 03-01*
 
