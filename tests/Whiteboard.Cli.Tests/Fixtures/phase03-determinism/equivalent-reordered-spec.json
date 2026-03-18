@@ -1,0 +1,126 @@
+{
+  "meta": {
+    "projectId": "cli-project-003",
+    "name": "Phase 03 Determinism Primary"
+  },
+  "output": {
+    "width": 1280,
+    "height": 720,
+    "frameRate": 30
+  },
+  "assets": {
+    "svgAssets": [
+      {
+        "id": "svg-1",
+        "name": "Idea Bulb",
+        "sourcePath": "assets/idea.svg",
+        "type": "svg"
+      },
+      {
+        "id": "svg-2",
+        "name": "Arrow",
+        "sourcePath": "assets/arrow.svg",
+        "type": "svg"
+      }
+    ]
+  },
+  "scenes": [
+    {
+      "id": "scene-1",
+      "name": "Intro",
+      "durationSeconds": 5,
+      "objects": [
+        {
+          "id": "object-1",
+          "name": "Bulb",
+          "type": "svg",
+          "assetRefId": "svg-1",
+          "layer": 1,
+          "isVisible": false,
+          "transform": {
+            "position": {
+              "x": 100,
+              "y": 200
+            },
+            "size": {
+              "width": 300,
+              "height": 300
+            }
+          }
+        },
+        {
+          "id": "object-2",
+          "name": "Arrow",
+          "type": "svg",
+          "assetRefId": "svg-2",
+          "layer": 2,
+          "isVisible": true,
+          "transform": {
+            "position": {
+              "x": 300,
+              "y": 220
+            },
+            "size": {
+              "width": 120,
+              "height": 120
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "timeline": {
+    "events": [
+      {
+        "id": "event-1",
+        "sceneId": "scene-1",
+        "sceneObjectId": "object-1",
+        "actionType": "draw",
+        "startSeconds": 0,
+        "durationSeconds": 2,
+        "parameters": {
+          "pathOrder": "0"
+        }
+      },
+      {
+        "id": "event-2",
+        "sceneId": "scene-1",
+        "sceneObjectId": "object-2",
+        "actionType": "reveal",
+        "startSeconds": 0,
+        "durationSeconds": 2
+      }
+    ],
+    "cameraTrack": {
+      "keyframes": [
+        {
+          "timeSeconds": 2,
+          "position": {
+            "x": 20,
+            "y": 15
+          },
+          "zoom": 1.4,
+          "interpolation": "linear"
+        },
+        {
+          "timeSeconds": 0,
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "zoom": 1,
+          "interpolation": "linear"
+        },
+        {
+          "timeSeconds": 1,
+          "position": {
+            "x": 10,
+            "y": 10
+          },
+          "zoom": 1.2,
+          "interpolation": "step"
+        }
+      ]
+    }
+  }
+}

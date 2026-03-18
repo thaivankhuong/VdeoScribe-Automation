@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Whiteboard.Cli.Models;
 using Whiteboard.Cli.Services;
@@ -120,12 +121,12 @@ public sealed class PipelineOrchestratorIntegrationTests
 
     private static string CreatePrimarySpecFile()
     {
-        return CreateSpecFile(GetPrimarySpecJson());
+        return CreateSpecFile(ReadFixtureJson("primary-spec.json"));
     }
 
     private static string CreateReorderedEquivalentSpecFile()
     {
-        return CreateSpecFile(GetReorderedEquivalentSpecJson());
+        return CreateSpecFile(ReadFixtureJson("equivalent-reordered-spec.json"));
     }
 
     private static string CreateSpecFile(string json)
@@ -138,222 +139,40 @@ public sealed class PipelineOrchestratorIntegrationTests
         return specPath;
     }
 
-    private static string GetPrimarySpecJson()
+    private static string ReadFixtureJson(string fileName)
     {
-        return """
-            {
-              "meta": {
-                "projectId": "cli-project-001",
-                "name": "CLI Integration Test"
-              },
-              "output": {
-                "width": 1280,
-                "height": 720,
-                "frameRate": 30
-              },
-              "assets": {
-                "svgAssets": [
-                  {
-                    "id": "svg-2",
-                    "name": "Arrow",
-                    "sourcePath": "assets/arrow.svg",
-                    "type": "svg"
-                  },
-                  {
-                    "id": "svg-1",
-                    "name": "Idea Bulb",
-                    "sourcePath": "assets/idea.svg",
-                    "type": "svg"
-                  }
-                ]
-              },
-              "scenes": [
-                {
-                  "id": "scene-1",
-                  "name": "Intro",
-                  "durationSeconds": 5,
-                  "objects": [
-                    {
-                      "id": "object-2",
-                      "name": "Arrow",
-                      "type": "svg",
-                      "assetRefId": "svg-2",
-                      "layer": 2,
-                      "transform": {
-                        "position": {
-                          "x": 300,
-                          "y": 220
-                        },
-                        "size": {
-                          "width": 120,
-                          "height": 120
-                        }
-                      }
-                    },
-                    {
-                      "id": "object-1",
-                      "name": "Bulb",
-                      "type": "svg",
-                      "assetRefId": "svg-1",
-                      "layer": 1,
-                      "isVisible": false,
-                      "transform": {
-                        "position": {
-                          "x": 100,
-                          "y": 200
-                        },
-                        "size": {
-                          "width": 300,
-                          "height": 300
-                        }
-                      }
-                    }
-                  ]
-                }
-              ],
-              "timeline": {
-                "events": [
-                  {
-                    "id": "event-2",
-                    "sceneId": "scene-1",
-                    "sceneObjectId": "object-2",
-                    "actionType": "reveal",
-                    "startSeconds": 0,
-                    "durationSeconds": 2
-                  },
-                  {
-                    "id": "event-1",
-                    "sceneId": "scene-1",
-                    "sceneObjectId": "object-1",
-                    "actionType": "draw",
-                    "startSeconds": 0,
-                    "durationSeconds": 2
-                  }
-                ],
-                "cameraTrack": {
-                  "keyframes": [
-                    {
-                      "timeSeconds": 0,
-                      "position": {
-                        "x": 0,
-                        "y": 0
-                      },
-                      "zoom": 1
-                    }
-                  ]
-                }
-              }
-            }
-            """;
+        var fixturePath = ResolveFixturePath(fileName);
+        return File.ReadAllText(fixturePath);
     }
 
-    private static string GetReorderedEquivalentSpecJson()
+    private static string ResolveFixturePath(string fileName)
     {
-        return """
+        var baseDirectory = new DirectoryInfo(AppContext.BaseDirectory);
+        var candidateRoots = new List<DirectoryInfo>();
+
+        for (var current = baseDirectory; current is not null; current = current.Parent)
+        {
+            candidateRoots.Add(current);
+        }
+
+        foreach (var candidate in candidateRoots)
+        {
+            var fixturePath = Path.Combine(
+                candidate.FullName,
+                "tests",
+                "Whiteboard.Cli.Tests",
+                "Fixtures",
+                "phase03-determinism",
+                fileName);
+
+            if (File.Exists(fixturePath))
             {
-              "meta": {
-                "projectId": "cli-project-001",
-                "name": "CLI Integration Test"
-              },
-              "output": {
-                "width": 1280,
-                "height": 720,
-                "frameRate": 30
-              },
-              "assets": {
-                "svgAssets": [
-                  {
-                    "id": "svg-1",
-                    "name": "Idea Bulb",
-                    "sourcePath": "assets/idea.svg",
-                    "type": "svg"
-                  },
-                  {
-                    "id": "svg-2",
-                    "name": "Arrow",
-                    "sourcePath": "assets/arrow.svg",
-                    "type": "svg"
-                  }
-                ]
-              },
-              "scenes": [
-                {
-                  "id": "scene-1",
-                  "name": "Intro",
-                  "durationSeconds": 5,
-                  "objects": [
-                    {
-                      "id": "object-1",
-                      "name": "Bulb",
-                      "type": "svg",
-                      "assetRefId": "svg-1",
-                      "layer": 1,
-                      "isVisible": false,
-                      "transform": {
-                        "position": {
-                          "x": 100,
-                          "y": 200
-                        },
-                        "size": {
-                          "width": 300,
-                          "height": 300
-                        }
-                      }
-                    },
-                    {
-                      "id": "object-2",
-                      "name": "Arrow",
-                      "type": "svg",
-                      "assetRefId": "svg-2",
-                      "layer": 2,
-                      "transform": {
-                        "position": {
-                          "x": 300,
-                          "y": 220
-                        },
-                        "size": {
-                          "width": 120,
-                          "height": 120
-                        }
-                      }
-                    }
-                  ]
-                }
-              ],
-              "timeline": {
-                "events": [
-                  {
-                    "id": "event-1",
-                    "sceneId": "scene-1",
-                    "sceneObjectId": "object-1",
-                    "actionType": "draw",
-                    "startSeconds": 0,
-                    "durationSeconds": 2
-                  },
-                  {
-                    "id": "event-2",
-                    "sceneId": "scene-1",
-                    "sceneObjectId": "object-2",
-                    "actionType": "reveal",
-                    "startSeconds": 0,
-                    "durationSeconds": 2
-                  }
-                ],
-                "cameraTrack": {
-                  "keyframes": [
-                    {
-                      "timeSeconds": 0,
-                      "position": {
-                        "x": 0,
-                        "y": 0
-                      },
-                      "zoom": 1
-                    }
-                  ]
-                }
-              }
+                return fixturePath;
             }
-            """;
+        }
+
+        throw new FileNotFoundException(
+            $"Fixture '{fileName}' was not found under tests/Whiteboard.Cli.Tests/Fixtures/phase03-determinism.");
     }
 
     private static void DeleteSpecFile(string specPath)
@@ -372,4 +191,3 @@ public sealed class PipelineOrchestratorIntegrationTests
         }
     }
 }
-
