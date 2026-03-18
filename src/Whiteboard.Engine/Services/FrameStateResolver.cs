@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using Whiteboard.Core.Models;
 using Whiteboard.Engine.Context;
@@ -27,14 +27,14 @@ public sealed class FrameStateResolver : IFrameStateResolver
     {
         ArgumentNullException.ThrowIfNull(project);
 
-        var resolvedTimelineEvents = _timelineResolver.Resolve(project, frameContext).ToList();
+        var resolvedTimelineEvents = _timelineResolver.Resolve(project, frameContext);
         var resolvedScenes = _objectStateResolver.Resolve(project, frameContext, resolvedTimelineEvents).ToList();
         var resolvedCamera = _cameraStateResolver.Resolve(project, frameContext, resolvedTimelineEvents);
 
         return new ResolvedFrameState
         {
             FrameContext = frameContext,
-            TimelineEvents = resolvedTimelineEvents,
+            TimelineEvents = resolvedTimelineEvents.ToList(),
             Scenes = resolvedScenes,
             Camera = resolvedCamera
         };

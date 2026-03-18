@@ -5,6 +5,8 @@ using Whiteboard.Core.Scene;
 using Whiteboard.Core.Timeline;
 using Whiteboard.Core.ValueObjects;
 using Whiteboard.Engine.Context;
+using Whiteboard.Engine.Models;
+using Whiteboard.Engine.Resolvers;
 using Whiteboard.Engine.Services;
 using Xunit;
 
@@ -127,6 +129,27 @@ public sealed class FrameStateResolverContractTests
         Assert.Equal(firstObject.Transform.Size, secondObject.Transform.Size);
     }
 
+    [Fact]
+    public void Resolver_PreservesTimelineResolverOrderingContract()
+    {
+        var project = CreateProject();
+        var frameContext = FrameContext.FromFrameIndex(frameIndex: 0, frameRate: 30);
+        var orderedEvents = new[]
+        {
+            CreateResolvedTimelineEvent("event-2", TimelineActionType.Reveal),
+            CreateResolvedTimelineEvent("event-1", TimelineActionType.Draw)
+        };
+
+        var resolver = new FrameStateResolver(
+            timelineResolver: new StubTimelineResolver(orderedEvents));
+
+        var resolved = resolver.Resolve(project, frameContext);
+
+        Assert.Equal(
+            orderedEvents.Select(evt => evt.EventId).ToArray(),
+            resolved.TimelineEvents.Select(evt => evt.EventId).ToArray());
+    }
+
     private static VideoProject CreateProject()
     {
         return new VideoProject
@@ -220,5 +243,27 @@ public sealed class FrameStateResolverContractTests
                 }
             }
         };
+    }
+
+    private static ResolvedTimelineEvent CreateResolvedTimelineEvent(string eventId, TimelineActionType actionType)
+    {
+        return new ResolvedTimelineEvent
+        {
+            EventId = eventId,
+            SceneId = "scene-1",
+            SceneObjectId = "object-1",
+            ActionType = actionType,
+            StartFrameIndex = 0,
+            EndFrameIndexExclusive = 60,
+            IsActive = true
+        };
+    }
+
+    private sealed class StubTimelineResolver(IReadOnlyList<ResolvedTimelineEvent> events) : ITimelineResolver
+    {
+        public IReadOnlyList<ResolvedTimelineEvent> Resolve(VideoProject project, FrameContext frameContext)
+        {
+            return events;
+        }
     }
 }
