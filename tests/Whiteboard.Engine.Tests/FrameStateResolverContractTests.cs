@@ -55,10 +55,11 @@ public sealed class FrameStateResolverContractTests
         Assert.Equal(2, firstObject.Layer);
         Assert.Equal(ObjectLifecycleState.Enter, firstObject.LifecycleState);
         Assert.Equal(0.5, firstObject.RevealProgress, 3);
-        Assert.Equal(0, firstObject.DrawProgress);
-        Assert.Equal(0, firstObject.DrawPathCount);
-        Assert.Equal(-1, firstObject.ActiveDrawPathIndex);
-        Assert.Empty(firstObject.DrawPaths);
+        Assert.Equal(0.5, firstObject.DrawProgress, 3);
+        Assert.Equal(1, firstObject.DrawPathCount);
+        Assert.Equal(0, firstObject.ActiveDrawPathIndex);
+        Assert.Equal("scene-1:2:object-1", firstObject.DrawOrderingKey);
+        Assert.Single(firstObject.DrawPaths);
     }
 
     [Fact]
@@ -96,6 +97,8 @@ public sealed class FrameStateResolverContractTests
 
         var first = resolver.Resolve(project, frameContext);
         var second = resolver.Resolve(project, frameContext);
+        var firstObject = first.Scenes[0].Objects[0];
+        var secondObject = second.Scenes[0].Objects[0];
 
         Assert.Equal(first.FrameContext, second.FrameContext);
         Assert.Equal(first.Scenes.Count, second.Scenes.Count);
@@ -104,11 +107,17 @@ public sealed class FrameStateResolverContractTests
         Assert.Equal(first.TimelineEvents[0].EventId, second.TimelineEvents[0].EventId);
         Assert.Equal(first.Camera.Position, second.Camera.Position);
         Assert.Equal(first.Camera.Zoom, second.Camera.Zoom);
-        Assert.Equal(first.Scenes[0].Objects[0].SceneObjectId, second.Scenes[0].Objects[0].SceneObjectId);
-        Assert.Equal(first.Scenes[0].Objects[0].Transform.Position, second.Scenes[0].Objects[0].Transform.Position);
-        Assert.Equal(first.Scenes[0].Objects[0].Transform.Size, second.Scenes[0].Objects[0].Transform.Size);
-        Assert.Equal(first.Scenes[0].Objects[0].IsVisible, second.Scenes[0].Objects[0].IsVisible);
-        Assert.Equal(first.Scenes[0].Objects[0].LifecycleState, second.Scenes[0].Objects[0].LifecycleState);
+        Assert.Equal(firstObject.SceneObjectId, secondObject.SceneObjectId);
+        Assert.Equal(firstObject.Transform.Position, secondObject.Transform.Position);
+        Assert.Equal(firstObject.Transform.Size, secondObject.Transform.Size);
+        Assert.Equal(firstObject.IsVisible, secondObject.IsVisible);
+        Assert.Equal(firstObject.LifecycleState, secondObject.LifecycleState);
+        Assert.Equal(firstObject.RevealProgress, secondObject.RevealProgress);
+        Assert.Equal(firstObject.DrawProgress, secondObject.DrawProgress);
+        Assert.Equal(firstObject.DrawPathCount, secondObject.DrawPathCount);
+        Assert.Equal(firstObject.ActiveDrawPathIndex, secondObject.ActiveDrawPathIndex);
+        Assert.Equal(firstObject.DrawOrderingKey, secondObject.DrawOrderingKey);
+        Assert.Equal(firstObject.DrawPaths, secondObject.DrawPaths);
         Assert.Equal(first.TimelineEvents[0].ActionType, second.TimelineEvents[0].ActionType);
         Assert.Equal(first.TimelineEvents[0].IsActive, second.TimelineEvents[0].IsActive);
         Assert.Equal(first.DeterministicKey, second.DeterministicKey);
@@ -136,6 +145,11 @@ public sealed class FrameStateResolverContractTests
         Assert.Equal(firstObject.IsVisible, secondObject.IsVisible);
         Assert.Equal(firstObject.LifecycleState, secondObject.LifecycleState);
         Assert.Equal(firstObject.RevealProgress, secondObject.RevealProgress);
+        Assert.Equal(firstObject.DrawProgress, secondObject.DrawProgress);
+        Assert.Equal(firstObject.DrawPathCount, secondObject.DrawPathCount);
+        Assert.Equal(firstObject.ActiveDrawPathIndex, secondObject.ActiveDrawPathIndex);
+        Assert.Equal(firstObject.DrawOrderingKey, secondObject.DrawOrderingKey);
+        Assert.Equal(firstObject.DrawPaths, secondObject.DrawPaths);
         Assert.Equal(firstObject.Transform.Position, secondObject.Transform.Position);
         Assert.Equal(firstObject.Transform.Size, secondObject.Transform.Size);
         Assert.Equal(first.DeterministicKey, second.DeterministicKey);
@@ -180,41 +194,7 @@ public sealed class FrameStateResolverContractTests
     {
         var project = CreateProject();
         var frameContext = FrameContext.FromFrameIndex(frameIndex: 15, frameRate: 30);
-        var objectState = new ResolvedObjectState
-        {
-            SceneObjectId = "object-1",
-            Type = SceneObjectType.Svg,
-            AssetRefId = "svg-1",
-            Layer = 2,
-            IsVisible = true,
-            LifecycleState = ObjectLifecycleState.Draw,
-            RevealProgress = 0.5,
-            DrawProgress = 0.75,
-            DrawPathCount = 2,
-            ActiveDrawPathIndex = 1,
-            DrawOrderingKey = "scene-1:2:object-1",
-            DrawPaths =
-            [
-                new ResolvedDrawPathState
-                {
-                    PathIndex = 0,
-                    Progress = 1,
-                    OrderingKey = "scene-1:2:object-1:path-0"
-                },
-                new ResolvedDrawPathState
-                {
-                    PathIndex = 1,
-                    Progress = 0.5,
-                    IsActive = true,
-                    OrderingKey = "scene-1:2:object-1:path-1"
-                }
-            ],
-            Transform = new TransformSpec
-            {
-                Position = new Position2D(100, 100),
-                Size = new Size2D(200, 200)
-            }
-        };
+        var objectState = CreateStubResolvedObject(drawProgress: 0.75, activePathIndex: 1);
 
         var resolver = new FrameStateResolver(
             objectStateResolver: new StubObjectStateResolver(
@@ -243,6 +223,65 @@ public sealed class FrameStateResolverContractTests
             });
     }
 
+    [Fact]
+    public void Deterministic_DrawProgressionPayloadChangesKeyWhenRendererFieldsChange()
+    {
+        var project = CreateProject();
+        var frameContext = FrameContext.FromFrameIndex(frameIndex: 15, frameRate: 30);
+        var baseResolver = new FrameStateResolver(
+            objectStateResolver: new StubObjectStateResolver(
+                [new ResolvedSceneState { SceneId = "scene-1", Objects = [CreateStubResolvedObject(drawProgress: 0.75, activePathIndex: 1)] }]));
+        var changedResolver = new FrameStateResolver(
+            objectStateResolver: new StubObjectStateResolver(
+                [new ResolvedSceneState { SceneId = "scene-1", Objects = [CreateStubResolvedObject(drawProgress: 0.5, activePathIndex: 0)] }]));
+
+        var baseline = baseResolver.Resolve(project, frameContext);
+        var changed = changedResolver.Resolve(project, frameContext);
+
+        Assert.NotEqual(baseline.Scenes[0].Objects[0].DrawProgress, changed.Scenes[0].Objects[0].DrawProgress);
+        Assert.NotEqual(baseline.DeterministicKey, changed.DeterministicKey);
+    }
+
+    private static ResolvedObjectState CreateStubResolvedObject(double drawProgress, int activePathIndex)
+    {
+        return new ResolvedObjectState
+        {
+            SceneObjectId = "object-1",
+            Type = SceneObjectType.Svg,
+            AssetRefId = "svg-1",
+            Layer = 2,
+            IsVisible = true,
+            LifecycleState = ObjectLifecycleState.Draw,
+            RevealProgress = drawProgress,
+            DrawProgress = drawProgress,
+            DrawPathCount = 2,
+            ActiveDrawPathIndex = activePathIndex,
+            DrawOrderingKey = "scene-1:2:object-1",
+            DrawPaths =
+            [
+                new ResolvedDrawPathState
+                {
+                    PathIndex = 0,
+                    Progress = activePathIndex == 0 ? 0.5 : 1,
+                    IsActive = activePathIndex == 0,
+                    OrderingKey = "scene-1:2:object-1:path:0"
+                },
+                new ResolvedDrawPathState
+                {
+                    PathIndex = 1,
+                    Progress = activePathIndex == 1 ? 0.5 : 0,
+                    IsActive = activePathIndex == 1,
+                    OrderingKey = "scene-1:2:object-1:path:1"
+                }
+            ],
+            Transform = new TransformSpec
+            {
+                Position = new Position2D(100, 100),
+                Size = new Size2D(200, 200)
+            }
+        };
+    }
+
     private static VideoProject CreateProject(bool initiallyVisible = true)
     {
         return CreateProjectCore(
@@ -256,7 +295,8 @@ public sealed class FrameStateResolverContractTests
                     SceneObjectId = "object-1",
                     ActionType = TimelineActionType.Draw,
                     StartSeconds = 0,
-                    DurationSeconds = 2d / 30d
+                    DurationSeconds = 2d / 30d,
+                    Parameters = new Dictionary<string, string> { ["pathOrder"] = "0" }
                 }
             });
     }
