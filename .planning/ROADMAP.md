@@ -8,7 +8,7 @@ Build a deterministic .NET whiteboard video engine that reproduces core VideoScr
 
 - [x] **Phase 1: Bootstrap and Architecture Baseline** - lock planning artifacts, module contracts, and deterministic rules.
 - [x] **Phase 2: Spec Schema and Deterministic Timeline Core** - define schema, normalization, validation, and frame-state evaluation semantics.
-- [ ] **Phase 3: Draw Progression and Camera State Resolution** - implement and verify draw/camera behavior in frame-state outputs.
+- [x] **Phase 3: Draw Progression and Camera State Resolution** - implement and verify draw/camera behavior in frame-state outputs. (completed 2026-03-18)
 - [ ] **Phase 4: SVG Draw Rendering Adapter** - consume resolved frame state and generate deterministic frame visuals.
 - [ ] **Phase 5: Export Pipeline Integration** - package frame outputs into final video with timing/audio alignment.
 - [ ] **Phase 6: CLI Batch Orchestration and End-to-End Validation** - execute repeatable scenario jobs and verify deterministic outputs.
@@ -58,7 +58,7 @@ Plans:
 Plans:
 - [x] 03-01: Implement path-based draw progression model
 - [x] 03-02: Implement camera keyframe interpolation/state integration
-- [ ] 03-03: Add deterministic tests for draw/camera frame-state behavior
+- [x] 03-03: Add deterministic tests for draw/camera frame-state behavior
 
 ### Phase 4: SVG Draw Rendering Adapter
 **Goal**: Render deterministic frame visuals from resolved frame state via SVG adapter.
@@ -108,7 +108,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Bootstrap and Architecture Baseline | 3/3 | Complete | 01-01, 01-02, 01-03 |
 | 2. Spec Schema and Deterministic Timeline Core | 3/3 | Complete | 02-01, 02-02, 02-03 |
-| 3. Draw Progression and Camera State Resolution | 2/3 | In Progress | 03-01, 03-02 |
+| 3. Draw Progression and Camera State Resolution | 3/3 | Complete | 2026-03-18 |
 | 4. SVG Draw Rendering Adapter | 0/2 | Not started | - |
 | 5. Export Pipeline Integration | 0/2 | Not started | - |
 | 6. CLI Batch Orchestration and End-to-End Validation | 0/2 | Not started | - |
