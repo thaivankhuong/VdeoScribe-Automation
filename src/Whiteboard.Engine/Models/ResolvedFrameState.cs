@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Whiteboard.Engine.Context;
 
 namespace Whiteboard.Engine.Models;
@@ -9,4 +9,5 @@ public record ResolvedFrameState
     public List<ResolvedSceneState> Scenes { get; init; } = [];
     public ResolvedCameraState Camera { get; init; } = new();
     public List<ResolvedTimelineEvent> TimelineEvents { get; init; } = [];
+    public string DeterministicKey { get; init; } = string.Empty;
 }
