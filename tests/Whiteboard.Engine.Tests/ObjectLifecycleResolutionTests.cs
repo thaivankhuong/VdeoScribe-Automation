@@ -29,18 +29,23 @@ public sealed class ObjectLifecycleResolutionTests
         Assert.Equal(ObjectLifecycleState.Enter, enter.LifecycleState);
         Assert.True(enter.IsVisible);
         Assert.Equal(0.5, enter.RevealProgress, 3);
+        Assert.Equal(0.5, enter.DrawProgress, 3);
+        Assert.Single(enter.DrawPaths);
 
         Assert.Equal(ObjectLifecycleState.Draw, draw.LifecycleState);
         Assert.True(draw.IsVisible);
         Assert.Equal(1, draw.RevealProgress, 3);
+        Assert.Equal(1, draw.DrawProgress, 3);
 
         Assert.Equal(ObjectLifecycleState.Hold, hold.LifecycleState);
         Assert.True(hold.IsVisible);
         Assert.Equal(1, hold.RevealProgress, 3);
+        Assert.Equal(1, hold.DrawProgress, 3);
 
         Assert.Equal(ObjectLifecycleState.Exit, exit.LifecycleState);
         Assert.False(exit.IsVisible);
         Assert.Equal(0, exit.RevealProgress);
+        Assert.Equal(0, exit.DrawProgress);
     }
 
     [Fact]
@@ -54,6 +59,8 @@ public sealed class ObjectLifecycleResolutionTests
         Assert.Equal(ObjectLifecycleState.Hold, resolved.LifecycleState);
         Assert.True(resolved.IsVisible);
         Assert.Equal(1, resolved.RevealProgress);
+        Assert.Equal(1, resolved.DrawProgress);
+        Assert.Empty(resolved.DrawPaths);
     }
 
     [Fact]
@@ -67,6 +74,7 @@ public sealed class ObjectLifecycleResolutionTests
         Assert.Equal(ObjectLifecycleState.Hold, afterRevealCompletes.LifecycleState);
         Assert.True(afterRevealCompletes.IsVisible);
         Assert.Equal(1, afterRevealCompletes.RevealProgress);
+        Assert.Equal(1, afterRevealCompletes.DrawProgress);
     }
 
     [Fact]
@@ -82,6 +90,7 @@ public sealed class ObjectLifecycleResolutionTests
 
         Assert.Equal(ObjectLifecycleState.Enter, resolvedObject.LifecycleState);
         Assert.True(resolvedObject.IsVisible);
+        Assert.Equal(0.5, resolvedObject.DrawProgress, 3);
     }
 
     [Fact]
@@ -97,7 +106,57 @@ public sealed class ObjectLifecycleResolutionTests
 
         Assert.Equal(first.Single().Objects.Single().LifecycleState, second.Single().Objects.Single().LifecycleState);
         Assert.Equal(first.Single().Objects.Single().RevealProgress, second.Single().Objects.Single().RevealProgress);
+        Assert.Equal(first.Single().Objects.Single().DrawProgress, second.Single().Objects.Single().DrawProgress);
         Assert.Equal(first.Single().Objects.Single().IsVisible, second.Single().Objects.Single().IsVisible);
+    }
+
+    [Fact]
+    public void Transitions_RedrawAfterHide_StartsFreshDrawCycle()
+    {
+        var project = CreateProject(
+            initiallyVisible: false,
+            new TimelineEvent
+            {
+                Id = "draw-1",
+                SceneId = "scene-1",
+                SceneObjectId = "object-1",
+                ActionType = TimelineActionType.Draw,
+                StartSeconds = 0,
+                DurationSeconds = 2d / 30d,
+                Parameters = new Dictionary<string, string> { ["pathOrder"] = "0" }
+            },
+            new TimelineEvent
+            {
+                Id = "hide-1",
+                SceneId = "scene-1",
+                SceneObjectId = "object-1",
+                ActionType = TimelineActionType.Hide,
+                StartSeconds = 2d / 30d,
+                DurationSeconds = 1d / 30d
+            },
+            new TimelineEvent
+            {
+                Id = "draw-2",
+                SceneId = "scene-1",
+                SceneObjectId = "object-1",
+                ActionType = TimelineActionType.Draw,
+                StartSeconds = 3d / 30d,
+                DurationSeconds = 2d / 30d,
+                Parameters = new Dictionary<string, string> { ["pathOrder"] = "0" }
+            });
+        var resolver = new ObjectStateResolver();
+
+        var hidden = ResolveObject(project, resolver, frameIndex: 2);
+        var redraw = ResolveObject(project, resolver, frameIndex: 3);
+
+        Assert.Equal(ObjectLifecycleState.Exit, hidden.LifecycleState);
+        Assert.False(hidden.IsVisible);
+        Assert.Equal(0, hidden.DrawProgress);
+
+        Assert.Equal(ObjectLifecycleState.Enter, redraw.LifecycleState);
+        Assert.True(redraw.IsVisible);
+        Assert.Equal(0.5, redraw.DrawProgress, 3);
+        Assert.Single(redraw.DrawPaths);
     }
 
     private static ResolvedObjectState ResolveObject(VideoProject project, ObjectStateResolver resolver, int frameIndex)

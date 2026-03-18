@@ -41,7 +41,8 @@ public sealed class TimelineResolver : ITimelineResolver
             ActionType = timelineEvent.ActionType,
             StartFrameIndex = startFrameIndex,
             EndFrameIndexExclusive = endFrameIndexExclusive,
-            IsActive = IsFrameActive(frameIndex, startFrameIndex, endFrameIndexExclusive)
+            IsActive = IsFrameActive(frameIndex, startFrameIndex, endFrameIndexExclusive),
+            Parameters = new Dictionary<string, string>(timelineEvent.Parameters, StringComparer.Ordinal)
         };
     }
 
@@ -82,4 +83,3 @@ public sealed class TimelineResolver : ITimelineResolver
             : $"1:{timelineEvent.SceneObjectId}";
     }
 }
-

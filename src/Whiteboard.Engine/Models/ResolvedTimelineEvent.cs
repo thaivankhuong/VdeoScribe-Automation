@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Whiteboard.Core.Enums;
 
 namespace Whiteboard.Engine.Models;
@@ -11,4 +12,5 @@ public record ResolvedTimelineEvent
     public int StartFrameIndex { get; init; }
     public int EndFrameIndexExclusive { get; init; }
     public bool IsActive { get; init; }
+    public IReadOnlyDictionary<string, string> Parameters { get; init; } = new Dictionary<string, string>();
 }
