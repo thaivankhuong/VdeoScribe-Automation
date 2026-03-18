@@ -79,6 +79,14 @@ public sealed class FrameStateResolver : IFrameStateResolver
                     .Append(':')
                     .Append(obj.RevealProgress.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture))
                     .Append(':')
+                    .Append(obj.DrawProgress.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture))
+                    .Append(':')
+                    .Append(obj.DrawPathCount)
+                    .Append(':')
+                    .Append(obj.ActiveDrawPathIndex)
+                    .Append(':')
+                    .Append(obj.DrawOrderingKey)
+                    .Append(':')
                     .Append(obj.Transform.Position.X)
                     .Append(',')
                     .Append(obj.Transform.Position.Y)
@@ -86,6 +94,20 @@ public sealed class FrameStateResolver : IFrameStateResolver
                     .Append(obj.Transform.Size.Width)
                     .Append(',')
                     .Append(obj.Transform.Size.Height);
+
+                foreach (var drawPath in obj.DrawPaths
+                             .OrderBy(path => path.PathIndex)
+                             .ThenBy(path => path.OrderingKey, StringComparer.Ordinal))
+                {
+                    builder.Append(":path:")
+                        .Append(drawPath.PathIndex)
+                        .Append(':')
+                        .Append(drawPath.Progress.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture))
+                        .Append(':')
+                        .Append(drawPath.IsActive)
+                        .Append(':')
+                        .Append(drawPath.OrderingKey);
+                }
             }
         }
 

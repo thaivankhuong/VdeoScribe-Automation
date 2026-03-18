@@ -1,7 +1,16 @@
+using System.Collections.Generic;
 using Whiteboard.Core.Enums;
 using Whiteboard.Core.ValueObjects;
 
 namespace Whiteboard.Engine.Models;
+
+public record ResolvedDrawPathState
+{
+    public int PathIndex { get; init; }
+    public double Progress { get; init; }
+    public bool IsActive { get; init; }
+    public string OrderingKey { get; init; } = string.Empty;
+}
 
 public enum ObjectLifecycleState
 {
@@ -21,5 +30,10 @@ public record ResolvedObjectState
     public bool IsVisible { get; init; }
     public ObjectLifecycleState LifecycleState { get; init; } = ObjectLifecycleState.Exit;
     public double RevealProgress { get; init; }
+    public double DrawProgress { get; init; }
+    public int DrawPathCount { get; init; }
+    public int ActiveDrawPathIndex { get; init; } = -1;
+    public string DrawOrderingKey { get; init; } = string.Empty;
+    public IReadOnlyList<ResolvedDrawPathState> DrawPaths { get; init; } = [];
     public TransformSpec Transform { get; init; } = new();
 }
