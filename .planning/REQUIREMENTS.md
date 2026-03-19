@@ -28,11 +28,19 @@
 - [x] **PIPE-01**: Engine emits resolved frame-state contract consumable by renderer adapters.
 - [x] **PIPE-02**: Renderer/export pipeline preserves scene semantics and timing metadata without nondeterministic changes.
 - [x] **PIPE-03**: Export flow supports repeatable export-package generation with synchronized timeline/audio metadata.
+- [ ] **PIPE-04**: Full-timeline render/export flow generates ordered frame artifacts for the entire project duration.
+- [ ] **PIPE-05**: Export can encode a playable video artifact from generated frame outputs.
+- [ ] **PIPE-06**: Audio cues are synchronized and muxed into final output media.
 
 ### CLI and Batch Orchestration
 
 - [x] **CLI-01**: CLI can run spec-driven generation jobs without embedding domain logic.
 - [x] **CLI-02**: CLI supports repeatable scenario runs with consistent outputs and deterministic checks.
+- [ ] **CLI-03**: Batch CLI guarantees finished media artifacts per job and reports artifact paths/status deterministically.
+
+### Production Validation
+
+- [ ] **QA-01**: End-to-end validation proves single-run and batch spec-to-playable-media flows.
 
 ## v2 Requirements
 
@@ -67,14 +75,19 @@
 | PIPE-01 | Phase 4 | Complete |
 | PIPE-02 | Phase 5 | Complete |
 | PIPE-03 | Phase 5 | Complete |
+| PIPE-04 | Phase 7 | Pending |
+| PIPE-05 | Phase 8 | Pending |
+| PIPE-06 | Phase 8 | Pending |
 | CLI-01 | Phase 6 | Complete |
 | CLI-02 | Phase 6 | Complete |
+| CLI-03 | Phase 9 | Pending |
+| QA-01 | Phase 9 | Pending |
 
 **Coverage:**
-- v1 requirements: 14 total
-- Mapped to phases: 14
+- v1 requirements: 19 total
+- Mapped to phases: 19
 - Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-17*
-*Last updated: 2026-03-19 after completing Phase 6*
+*Last updated: 2026-03-19 after adding gap-closure Phases 7-9*

@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: completed
-stopped_at: Milestone v1 complete after Phase 6 execution
-last_updated: "2026-03-19T11:29:32.8218171Z"
-last_activity: 2026-03-19 - Completed Phase 6 CLI Batch Orchestration and End-to-End Validation
+status: planning
+stopped_at: Gap-closure Phases 7-9 added after milestone audit
+last_updated: "2026-03-19T15:53:53.7268578Z"
+last_activity: 2026-03-19 - Added gap-closure Phases 7-9 after milestone audit
 progress:
-  total_phases: 6
+  total_phases: 9
   completed_phases: 6
-  total_plans: 15
+  total_plans: 23
   completed_plans: 15
-  percent: 100
+  percent: 65
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-17)
 
 **Core value:** Given the same spec, assets, and settings, the engine must always produce the same frame/video output.
-**Current focus:** Milestone v1 complete - await next roadmap or milestone planning
+**Current focus:** Phase 7 - Full-Timeline Render Sequence and Frame Artifact Generation
 
 ## Current Position
 
-Phase: 6 of 6 complete (CLI Batch Orchestration and End-to-End Validation)
-Plan: 06-01 and 06-02 completed
-Status: Milestone v1 complete
-Last activity: 2026-03-19 - Completed Phase 6 CLI Batch Orchestration and End-to-End Validation
+Phase: 7 of 9 (Full-Timeline Render Sequence and Frame Artifact Generation)
+Plan: Gap-closure phases 07-09 added; Phase 07 is ready for planning
+Status: Planning gap closure after milestone audit
+Last activity: 2026-03-19 - Added gap-closure Phases 7-9 after milestone audit
 
-Progress: [##########] 100%
+Progress: [######----] 65%
 
 ## Accumulated Context
 
@@ -55,6 +55,14 @@ Progress: [##########] 100%
 - [Phase 6]: Batch orchestration is a serial deterministic wrapper over repeated `IPipelineOrchestrator.Run(CliRunRequest)` calls ordered by normalized `jobId`.
 - [Phase 6]: Batch mode requires `--summary-output <path>` and always persists a stable camelCase JSON summary artifact for success and validation-failure outcomes.
 - [Phase 6]: Duplicate normalized `jobId` values fail deterministically, while per-job execution exceptions aggregate into ordered failure results instead of aborting artifact generation.
+- [Audit]: Milestone v1 satisfies internal deterministic-contract requirements but does not yet satisfy the business goal of automated VideoScribe-like video generation.
+- [Audit]: Gap closure requires moving from single-frame/package scope to full-timeline frame artifacts, playable media encoding, audio muxing, and production-output validation.
+
+### Roadmap Evolution
+
+- 2026-03-19: Added Phase 7 to close full-timeline frame generation and frame-artifact gaps from the milestone audit.
+- 2026-03-19: Added Phase 8 to close playable video encoding and audio muxing gaps from the milestone audit.
+- 2026-03-19: Added Phase 9 to close batch media output and production-validation gaps from the milestone audit.
 
 ### Pending Todos
 
@@ -65,9 +73,10 @@ None yet.
 - Parallel `dotnet test` runs in this workspace still intermittently lock build outputs under `src/*/obj`; serial execution remains the reliable verification path.
 - The local .NET 10 RC SDK build/test wrapper intermittently fails project-reference builds with workload resolver errors (`MSB4276`), so the stable verification path is `dotnet build whiteboard-engine.sln --no-restore -v minimal /m:1` followed by targeted `dotnet test --no-build` commands.
 - The local VSTest runner does not reliably honor combined `FullyQualifiedName~A|FullyQualifiedName~B` filter forms in every context, so splitting targeted test invocations remains the safer fallback when filters misbehave.
+- Phase 03 still lacks `VALIDATION.md`, so Nyquist coverage for the roadmap remains incomplete until that validation gap is addressed or intentionally waived.
 
 ## Session Continuity
 
 Last session: 2026-03-19
-Stopped at: Milestone v1 complete after Phase 6 execution
+Stopped at: Gap-closure Phases 7-9 added after milestone audit
 Resume file: .planning/ROADMAP.md

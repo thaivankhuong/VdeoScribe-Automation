@@ -2,7 +2,7 @@
 
 ## Overview
 
-Build a deterministic .NET whiteboard video engine that reproduces core VideoScribe-style behavior through a spec-driven pipeline, progressing from contracts and state resolution to rendering/export and CLI batch orchestration.
+Build a deterministic .NET whiteboard video engine that reproduces core VideoScribe-style behavior through a spec-driven pipeline, progressing from contracts and state resolution to rendering/export, CLI batch orchestration, and business-ready media output.
 
 ## Phases
 
@@ -12,6 +12,9 @@ Build a deterministic .NET whiteboard video engine that reproduces core VideoScr
 - [x] **Phase 4: SVG Draw Rendering Adapter** - consume resolved frame state and generate deterministic frame visuals. (completed 2026-03-19)
 - [x] **Phase 5: Export Pipeline Integration** - package deterministic frame outputs into repeatable export packages with timing/audio alignment. (completed 2026-03-19)
 - [x] **Phase 6: CLI Batch Orchestration and End-to-End Validation** - execute repeatable scenario jobs and verify deterministic outputs. (completed 2026-03-19)
+- [ ] **Phase 7: Full-Timeline Render Sequence and Frame Artifact Generation** - extend the pipeline from one-frame evaluation to deterministic full-sequence frame generation and render artifacts. (gap-closure)
+- [ ] **Phase 8: Playable Video Encoding and Audio Muxing** - turn deterministic frame and audio artifacts into final playable media output. (gap-closure)
+- [ ] **Phase 9: Batch Media Output and Production Validation** - guarantee finished media artifacts per batch job and re-verify end-to-end production flows. (gap-closure)
 
 ## Phase Details
 
@@ -102,6 +105,50 @@ Plans:
 - [x] 06-01: Implement CLI orchestration commands and job pipeline wiring
 - [x] 06-02: Add integration tests for repeatable end-to-end batch workflows
 
+### Phase 7: Full-Timeline Render Sequence and Frame Artifact Generation
+**Goal**: Expand single-frame pipeline execution into deterministic full-timeline frame sequence generation with user-visible frame artifacts.
+**Depends on**: Phase 6
+**Requirements**: PIPE-04
+**Success Criteria** (what must be TRUE):
+1. CLI single-run can evaluate the complete project timeline into an ordered frame sequence.
+2. Renderer/export generate deterministic frame artifacts for every frame rather than only operation metadata.
+3. Equivalent inputs produce identical frame artifact sets across repeated runs.
+**Plans**: 3 plans
+
+Plans:
+- [ ] 07-01: Expand timeline execution from single-frame to ordered full-sequence generation
+- [ ] 07-02: Emit deterministic frame artifacts for full-sequence export handoff
+- [ ] 07-03: Add repeatability tests for full-timeline frame generation
+
+### Phase 8: Playable Video Encoding and Audio Muxing
+**Goal**: Convert deterministic frame and audio artifacts into final playable media output with synchronized audio.
+**Depends on**: Phase 7
+**Requirements**: PIPE-05, PIPE-06
+**Success Criteria** (what must be TRUE):
+1. Export can encode a playable video artifact from generated frame outputs.
+2. Audio cues are synchronized and muxed into the final media output.
+3. Re-running media generation on identical inputs yields stable media package witnesses and deterministic validation evidence.
+**Plans**: 3 plans
+
+Plans:
+- [ ] 08-01: Integrate playable video encoding from ordered frame artifacts
+- [ ] 08-02: Add synchronized audio muxing into final media output
+- [ ] 08-03: Verify deterministic playable-media outputs and failure handling
+
+### Phase 9: Batch Media Output and Production Validation
+**Goal**: Guarantee finished media artifacts per batch job and re-validate the full production flow for single and batch runs.
+**Depends on**: Phase 8
+**Requirements**: CLI-03, QA-01
+**Success Criteria** (what must be TRUE):
+1. Batch CLI guarantees completed media artifacts per job and reports artifact paths/status deterministically.
+2. End-to-end validation proves spec-to-playable-media flows for single and batch runs.
+3. Production-focused verification catches regressions in media output rather than only metadata/package parity.
+**Plans**: 2 plans
+
+Plans:
+- [ ] 09-01: Extend batch CLI to guarantee final media artifacts per job
+- [ ] 09-02: Add production-style end-to-end validation for single and batch media outputs
+
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
@@ -112,3 +159,6 @@ Plans:
 | 4. SVG Draw Rendering Adapter | 2/2 | Complete | 2026-03-19 |
 | 5. Export Pipeline Integration | 2/2 | Complete | 2026-03-19 |
 | 6. CLI Batch Orchestration and End-to-End Validation | 2/2 | Complete | 2026-03-19 |
+| 7. Full-Timeline Render Sequence and Frame Artifact Generation | 0/3 | Not started | - |
+| 8. Playable Video Encoding and Audio Muxing | 0/3 | Not started | - |
+| 9. Batch Media Output and Production Validation | 0/2 | Not started | - |
