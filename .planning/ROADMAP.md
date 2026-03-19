@@ -9,7 +9,7 @@ Build a deterministic .NET whiteboard video engine that reproduces core VideoScr
 - [x] **Phase 1: Bootstrap and Architecture Baseline** - lock planning artifacts, module contracts, and deterministic rules.
 - [x] **Phase 2: Spec Schema and Deterministic Timeline Core** - define schema, normalization, validation, and frame-state evaluation semantics.
 - [x] **Phase 3: Draw Progression and Camera State Resolution** - implement and verify draw/camera behavior in frame-state outputs. (completed 2026-03-18)
-- [ ] **Phase 4: SVG Draw Rendering Adapter** - consume resolved frame state and generate deterministic frame visuals.
+- [x] **Phase 4: SVG Draw Rendering Adapter** - consume resolved frame state and generate deterministic frame visuals. (completed 2026-03-19)
 - [ ] **Phase 5: Export Pipeline Integration** - package frame outputs into final video with timing/audio alignment.
 - [ ] **Phase 6: CLI Batch Orchestration and End-to-End Validation** - execute repeatable scenario jobs and verify deterministic outputs.
 
@@ -71,8 +71,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 04-01: Implement renderer adapter interfaces and SVG rendering path
-- [ ] 04-02: Validate visual output determinism and adapter boundaries
+- [x] 04-01: Implement renderer adapter interfaces and SVG rendering path
+- [x] 04-02: Validate visual output determinism and adapter boundaries
 
 ### Phase 5: Export Pipeline Integration
 **Goal**: Integrate deterministic frame outputs into final video packaging with synchronized timing.
@@ -85,7 +85,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 05-01: Implement export contracts and frame/audio packaging flow
+- [x] 05-01: Implement export contracts and frame/audio packaging flow
 - [ ] 05-02: Add repeatability checks for export outputs
 
 ### Phase 6: CLI Batch Orchestration and End-to-End Validation
@@ -109,6 +109,6 @@ Plans:
 | 1. Bootstrap and Architecture Baseline | 3/3 | Complete | 01-01, 01-02, 01-03 |
 | 2. Spec Schema and Deterministic Timeline Core | 3/3 | Complete | 02-01, 02-02, 02-03 |
 | 3. Draw Progression and Camera State Resolution | 3/3 | Complete | 2026-03-18 |
-| 4. SVG Draw Rendering Adapter | 0/2 | Not started | - |
-| 5. Export Pipeline Integration | 0/2 | Not started | - |
+| 4. SVG Draw Rendering Adapter | 2/2 | Complete | 2026-03-19 |
+| 5. Export Pipeline Integration | 1/2 | In progress | 05-01 |
 | 6. CLI Batch Orchestration and End-to-End Validation | 0/2 | Not started | - |

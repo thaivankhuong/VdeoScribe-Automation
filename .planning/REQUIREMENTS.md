@@ -25,9 +25,9 @@
 
 ### Rendering and Export Pipeline
 
-- [ ] **PIPE-01**: Engine emits resolved frame-state contract consumable by renderer adapters.
-- [ ] **PIPE-02**: Renderer/export pipeline preserves scene semantics and timing metadata without nondeterministic changes.
-- [ ] **PIPE-03**: Export flow supports repeatable frame-to-video packaging with synchronized timeline/audio metadata.
+- [x] **PIPE-01**: Engine emits resolved frame-state contract consumable by renderer adapters.
+- [x] **PIPE-02**: Renderer/export pipeline preserves scene semantics and timing metadata without nondeterministic changes.
+- [x] **PIPE-03**: Export flow supports repeatable frame-to-video packaging with synchronized timeline/audio metadata.
 
 ### CLI and Batch Orchestration
 
@@ -64,9 +64,9 @@
 | DRAW-01 | Phase 3 | Complete |
 | DRAW-02 | Phase 3 | Complete |
 | DRAW-03 | Phase 3 | Complete |
-| PIPE-01 | Phase 4 | Pending |
-| PIPE-02 | Phase 5 | Pending |
-| PIPE-03 | Phase 5 | Pending |
+| PIPE-01 | Phase 4 | Complete |
+| PIPE-02 | Phase 5 | Complete |
+| PIPE-03 | Phase 5 | Complete |
 | CLI-01 | Phase 6 | Pending |
 | CLI-02 | Phase 6 | Pending |
 
@@ -77,5 +77,4 @@
 
 ---
 *Requirements defined: 2026-03-17*
-*Last updated: 2026-03-18 after completing Phase 3 Plan 03-02*
-
+*Last updated: 2026-03-19 after completing Phase 5 Plan 05-01*
