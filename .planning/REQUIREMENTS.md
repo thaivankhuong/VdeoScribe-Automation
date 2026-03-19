@@ -31,8 +31,8 @@
 
 ### CLI and Batch Orchestration
 
-- [ ] **CLI-01**: CLI can run spec-driven generation jobs without embedding domain logic.
-- [ ] **CLI-02**: CLI supports repeatable scenario runs with consistent outputs and deterministic checks.
+- [x] **CLI-01**: CLI can run spec-driven generation jobs without embedding domain logic.
+- [x] **CLI-02**: CLI supports repeatable scenario runs with consistent outputs and deterministic checks.
 
 ## v2 Requirements
 
@@ -67,8 +67,8 @@
 | PIPE-01 | Phase 4 | Complete |
 | PIPE-02 | Phase 5 | Complete |
 | PIPE-03 | Phase 5 | Complete |
-| CLI-01 | Phase 6 | Pending |
-| CLI-02 | Phase 6 | Pending |
+| CLI-01 | Phase 6 | Complete |
+| CLI-02 | Phase 6 | Complete |
 
 **Coverage:**
 - v1 requirements: 14 total
@@ -77,5 +77,4 @@
 
 ---
 *Requirements defined: 2026-03-17*
-*Last updated: 2026-03-19 after completing Phase 5*
-
+*Last updated: 2026-03-19 after completing Phase 6*

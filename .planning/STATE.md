@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: planning
-stopped_at: Phase 6 planned, ready for execution
-last_updated: "2026-03-19T11:30:00.000Z"
-last_activity: 2026-03-19 - Completed Phase 5 Export Pipeline Integration
+status: completed
+stopped_at: Milestone v1 complete after Phase 6 execution
+last_updated: "2026-03-19T11:29:32.8218171Z"
+last_activity: 2026-03-19 - Completed Phase 6 CLI Batch Orchestration and End-to-End Validation
 progress:
   total_phases: 6
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 15
-  completed_plans: 13
-  percent: 87
+  completed_plans: 15
+  percent: 100
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-17)
 
 **Core value:** Given the same spec, assets, and settings, the engine must always produce the same frame/video output.
-**Current focus:** Phase 6 - CLI Batch Orchestration and End-to-End Validation
+**Current focus:** Milestone v1 complete - await next roadmap or milestone planning
 
 ## Current Position
 
-Phase: 6 of 6 (CLI Batch Orchestration and End-to-End Validation)
-Plan: 06-01 and 06-02 planned
-Status: Ready to execute Phase 6
-Last activity: 2026-03-19 - Completed Phase 5 Export Pipeline Integration
+Phase: 6 of 6 complete (CLI Batch Orchestration and End-to-End Validation)
+Plan: 06-01 and 06-02 completed
+Status: Milestone v1 complete
+Last activity: 2026-03-19 - Completed Phase 6 CLI Batch Orchestration and End-to-End Validation
 
-Progress: [#########-] 87%
+Progress: [##########] 100%
 
 ## Accumulated Context
 
@@ -51,6 +51,10 @@ Progress: [#########-] 87%
 - [Phase 5]: Export deterministic keys include logical export metadata and package contents, not machine-specific resolved audio asset paths.
 - [Phase 5]: CLI passes explicit frame timing and normalized audio asset inputs into Export and surfaces export summaries and export-level deterministic keys separately from the combined pipeline key.
 - [Phase 5]: `PIPE-03` is satisfied in this repository by deterministic export-package output with synchronized timeline/audio metadata; external encoder integration remains deferred.
+- [Phase 6]: CLI parsing is split into explicit `run` and `batch` modes while preserving the legacy `--spec` single-run shortcut.
+- [Phase 6]: Batch orchestration is a serial deterministic wrapper over repeated `IPipelineOrchestrator.Run(CliRunRequest)` calls ordered by normalized `jobId`.
+- [Phase 6]: Batch mode requires `--summary-output <path>` and always persists a stable camelCase JSON summary artifact for success and validation-failure outcomes.
+- [Phase 6]: Duplicate normalized `jobId` values fail deterministically, while per-job execution exceptions aggregate into ordered failure results instead of aborting artifact generation.
 
 ### Pending Todos
 
@@ -65,6 +69,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-19
-Stopped at: Phase 6 planned, ready for execution
+Stopped at: Milestone v1 complete after Phase 6 execution
 Resume file: .planning/ROADMAP.md
-

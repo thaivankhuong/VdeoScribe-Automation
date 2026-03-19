@@ -11,7 +11,7 @@ Build a deterministic .NET whiteboard video engine that reproduces core VideoScr
 - [x] **Phase 3: Draw Progression and Camera State Resolution** - implement and verify draw/camera behavior in frame-state outputs. (completed 2026-03-18)
 - [x] **Phase 4: SVG Draw Rendering Adapter** - consume resolved frame state and generate deterministic frame visuals. (completed 2026-03-19)
 - [x] **Phase 5: Export Pipeline Integration** - package deterministic frame outputs into repeatable export packages with timing/audio alignment. (completed 2026-03-19)
-- [ ] **Phase 6: CLI Batch Orchestration and End-to-End Validation** - execute repeatable scenario jobs and verify deterministic outputs.
+- [x] **Phase 6: CLI Batch Orchestration and End-to-End Validation** - execute repeatable scenario jobs and verify deterministic outputs. (completed 2026-03-19)
 
 ## Phase Details
 
@@ -99,8 +99,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 06-01: Implement CLI orchestration commands and job pipeline wiring
-- [ ] 06-02: Add integration tests for repeatable end-to-end batch workflows
+- [x] 06-01: Implement CLI orchestration commands and job pipeline wiring
+- [x] 06-02: Add integration tests for repeatable end-to-end batch workflows
 
 ## Progress
 
@@ -111,5 +111,4 @@ Plans:
 | 3. Draw Progression and Camera State Resolution | 3/3 | Complete | 2026-03-18 |
 | 4. SVG Draw Rendering Adapter | 2/2 | Complete | 2026-03-19 |
 | 5. Export Pipeline Integration | 2/2 | Complete | 2026-03-19 |
-| 6. CLI Batch Orchestration and End-to-End Validation | 0/2 | Not started | - |
-
+| 6. CLI Batch Orchestration and End-to-End Validation | 2/2 | Complete | 2026-03-19 |
