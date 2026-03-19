@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Whiteboard.Cli.Models;
 using Whiteboard.Cli.Services;
 using Xunit;
@@ -12,7 +13,7 @@ public sealed class PipelineOrchestratorIntegrationTests
     [Fact]
     public void PipelineOrchestrator_CanRunEndToEnd_WithJsonSpec()
     {
-        var specPath = CreatePrimarySpecFile();
+        var specPath = CreateSpecFile("phase03-determinism", "primary-spec.json");
 
         try
         {
@@ -32,9 +33,21 @@ public sealed class PipelineOrchestratorIntegrationTests
             Assert.Equal(1, result.SceneCount);
             Assert.Equal(2, result.ObjectCount);
             Assert.Equal(1, result.ExportedFrameCount);
+            Assert.Equal(0, result.ExportedAudioCueCount);
             Assert.Equal("out/video.mp4", result.OutputPath);
             Assert.False(string.IsNullOrWhiteSpace(result.ExportStatus));
+            Assert.False(string.IsNullOrWhiteSpace(result.ExportDeterministicKey));
             Assert.False(string.IsNullOrWhiteSpace(result.DeterministicKey));
+            Assert.NotEmpty(result.Operations);
+            Assert.Single(result.ExportFrames);
+            Assert.Empty(result.ExportAudioCues);
+            Assert.Equal("mp4", result.ExportSummary.Format);
+            Assert.Equal(1280, result.ExportSummary.Width);
+            Assert.Equal(720, result.ExportSummary.Height);
+            Assert.Equal(30, result.ExportSummary.FrameRate, 6);
+            Assert.StartsWith("camera:", result.Operations[0], StringComparison.Ordinal);
+            Assert.Contains(result.Operations, operation => operation.Contains("svg-path:", StringComparison.Ordinal));
+            Assert.Equal(result.Operations, result.ExportFrames[0].Operations);
         }
         finally
         {
@@ -45,7 +58,7 @@ public sealed class PipelineOrchestratorIntegrationTests
     [Fact]
     public void PipelineOrchestrator_WithSameSpec_ProducesDeterministicStructure()
     {
-        var specPath = CreatePrimarySpecFile();
+        var specPath = CreateSpecFile("phase03-determinism", "primary-spec.json");
 
         try
         {
@@ -67,10 +80,13 @@ public sealed class PipelineOrchestratorIntegrationTests
             Assert.Equal(first.ObjectCount, second.ObjectCount);
             Assert.Equal(first.OperationCount, second.OperationCount);
             Assert.Equal(first.ExportedFrameCount, second.ExportedFrameCount);
+            Assert.Equal(first.ExportedAudioCueCount, second.ExportedAudioCueCount);
             Assert.Equal(first.OutputPath, second.OutputPath);
             Assert.Equal(first.ExportStatus, second.ExportStatus);
+            Assert.Equal(first.ExportDeterministicKey, second.ExportDeterministicKey);
             Assert.Equal(first.DeterministicKey, second.DeterministicKey);
             Assert.Equal(first.Operations, second.Operations);
+            Assert.Equal(first.ExportFrames.Select(frame => frame.FrameIndex).ToArray(), second.ExportFrames.Select(frame => frame.FrameIndex).ToArray());
         }
         finally
         {
@@ -81,8 +97,8 @@ public sealed class PipelineOrchestratorIntegrationTests
     [Fact]
     public void PipelineOrchestrator_WithEquivalentSpecsUsingDifferentSourceOrdering_ProducesEquivalentDeterministicOutput()
     {
-        var firstSpecPath = CreatePrimarySpecFile();
-        var secondSpecPath = CreateReorderedEquivalentSpecFile();
+        var firstSpecPath = CreateSpecFile("phase03-determinism", "primary-spec.json");
+        var secondSpecPath = CreateSpecFile("phase03-determinism", "equivalent-reordered-spec.json");
 
         try
         {
@@ -109,7 +125,10 @@ public sealed class PipelineOrchestratorIntegrationTests
             Assert.Equal(first.SceneCount, second.SceneCount);
             Assert.Equal(first.ObjectCount, second.ObjectCount);
             Assert.Equal(first.OperationCount, second.OperationCount);
+            Assert.Equal(first.ExportedFrameCount, second.ExportedFrameCount);
+            Assert.Equal(first.ExportedAudioCueCount, second.ExportedAudioCueCount);
             Assert.Equal(first.Operations, second.Operations);
+            Assert.Equal(first.ExportDeterministicKey, second.ExportDeterministicKey);
             Assert.Equal(first.DeterministicKey, second.DeterministicKey);
         }
         finally
@@ -119,33 +138,206 @@ public sealed class PipelineOrchestratorIntegrationTests
         }
     }
 
-    private static string CreatePrimarySpecFile()
+    [Fact]
+    public void PipelineOrchestrator_WithPhase04SvgFixtures_ProducesEquivalentDeterministicOutput()
     {
-        return CreateSpecFile(ReadFixtureJson("primary-spec.json"));
+        var firstSpecPath = CreateSpecFile("phase04-svg-rendering", "primary-spec.json");
+        var secondSpecPath = CreateSpecFile("phase04-svg-rendering", "equivalent-reordered-spec.json");
+
+        try
+        {
+            var orchestrator = new PipelineOrchestrator();
+            var first = orchestrator.Run(new CliRunRequest
+            {
+                SpecPath = firstSpecPath,
+                OutputPath = "out/video.mp4",
+                FrameIndex = 15
+            });
+            var second = orchestrator.Run(new CliRunRequest
+            {
+                SpecPath = secondSpecPath,
+                OutputPath = "out/video.mp4",
+                FrameIndex = 15
+            });
+
+            Assert.True(first.Success);
+            Assert.True(second.Success);
+            Assert.Equal(first.Operations, second.Operations);
+            Assert.Equal(first.ExportDeterministicKey, second.ExportDeterministicKey);
+            Assert.Equal(first.DeterministicKey, second.DeterministicKey);
+            Assert.Contains(first.Operations, operation => operation.Contains("svg-path:mode:partial", StringComparison.Ordinal));
+        }
+        finally
+        {
+            DeleteSpecFile(firstSpecPath);
+            DeleteSpecFile(secondSpecPath);
+        }
     }
 
-    private static string CreateReorderedEquivalentSpecFile()
+    [Fact]
+    public void PipelineOrchestrator_WithAudioCue_SurfacesExportPackageMetadata()
     {
-        return CreateSpecFile(ReadFixtureJson("equivalent-reordered-spec.json"));
+        var specPath = CreateSpecFileFromJson(
+            """
+            {
+              "meta": {
+                "projectId": "cli-export-audio",
+                "name": "CLI Export Audio"
+              },
+              "output": {
+                "width": 1280,
+                "height": 720,
+                "frameRate": 30
+              },
+              "assets": {
+                "svgAssets": [
+                  {
+                    "id": "svg-1",
+                    "name": "Idea Bulb",
+                    "sourcePath": "assets/idea.svg",
+                    "type": "svg"
+                  }
+                ],
+                "audioAssets": [
+                  {
+                    "id": "audio-1",
+                    "name": "Narration",
+                    "sourcePath": "assets/narration.mp3",
+                    "type": "audio",
+                    "defaultVolume": 0.6
+                  }
+                ]
+              },
+              "scenes": [
+                {
+                  "id": "scene-1",
+                  "name": "Intro",
+                  "durationSeconds": 5,
+                  "objects": [
+                    {
+                      "id": "object-1",
+                      "name": "Bulb",
+                      "type": "svg",
+                      "assetRefId": "svg-1",
+                      "layer": 1,
+                      "isVisible": true,
+                      "transform": {
+                        "position": {
+                          "x": 100,
+                          "y": 200
+                        },
+                        "size": {
+                          "width": 300,
+                          "height": 300
+                        }
+                      }
+                    }
+                  ]
+                }
+              ],
+              "timeline": {
+                "events": [
+                  {
+                    "id": "event-1",
+                    "sceneId": "scene-1",
+                    "sceneObjectId": "object-1",
+                    "actionType": "draw",
+                    "startSeconds": 0,
+                    "durationSeconds": 2,
+                    "parameters": {
+                      "pathOrder": "0"
+                    }
+                  }
+                ],
+                "cameraTrack": {
+                  "keyframes": [
+                    {
+                      "timeSeconds": 0,
+                      "position": {
+                        "x": 0,
+                        "y": 0
+                      },
+                      "zoom": 1,
+                      "interpolation": "linear"
+                    }
+                  ]
+                },
+                "audioCues": [
+                  {
+                    "id": "cue-1",
+                    "audioAssetId": "audio-1",
+                    "startSeconds": 0.5,
+                    "durationSeconds": 2.25,
+                    "volume": 0.8
+                  }
+                ]
+              }
+            }
+            """,
+            includeAudioAssets: true);
+
+        try
+        {
+            var orchestrator = new PipelineOrchestrator();
+            var result = orchestrator.Run(new CliRunRequest
+            {
+                SpecPath = specPath,
+                OutputPath = "out/video.mp4",
+                FrameIndex = 0
+            });
+
+            Assert.True(result.Success);
+            Assert.Equal(1, result.ExportedFrameCount);
+            Assert.Equal(1, result.ExportedAudioCueCount);
+            Assert.Single(result.ExportFrames);
+            Assert.Single(result.ExportAudioCues);
+            Assert.Equal("cue-1", result.ExportAudioCues[0].CueId);
+            Assert.Equal("assets/narration.mp3", result.ExportAudioCues[0].SourcePath);
+            Assert.Equal("mp4", result.ExportSummary.Format);
+            Assert.Equal(1, result.ExportSummary.FrameCount);
+            Assert.Equal(1, result.ExportSummary.AudioCueCount);
+            Assert.Equal(30, result.ExportSummary.FrameRate, 6);
+            Assert.Equal(0, result.ExportFrames[0].StartSeconds, 6);
+            Assert.Equal(result.Operations, result.ExportFrames[0].Operations);
+            Assert.False(string.IsNullOrWhiteSpace(result.ExportDeterministicKey));
+            Assert.Contains("audio:", result.ExportDeterministicKey, StringComparison.Ordinal);
+        }
+        finally
+        {
+            DeleteSpecFile(specPath);
+        }
     }
 
-    private static string CreateSpecFile(string json)
+    private static string CreateSpecFile(string fixtureFolder, string fileName)
+    {
+        return CreateSpecFileFromJson(ReadFixtureJson(fixtureFolder, fileName));
+    }
+
+    private static string CreateSpecFileFromJson(string json, bool includeAudioAssets = false)
     {
         var directoryPath = Path.Combine(Path.GetTempPath(), "whiteboard-cli-tests", Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(directoryPath);
+        Directory.CreateDirectory(Path.Combine(directoryPath, "assets"));
+
+        WriteSvgAssets(directoryPath);
+
+        if (includeAudioAssets)
+        {
+            WriteAudioAssets(directoryPath);
+        }
 
         var specPath = Path.Combine(directoryPath, "project.json");
         File.WriteAllText(specPath, json);
         return specPath;
     }
 
-    private static string ReadFixtureJson(string fileName)
+    private static string ReadFixtureJson(string fixtureFolder, string fileName)
     {
-        var fixturePath = ResolveFixturePath(fileName);
+        var fixturePath = ResolveFixturePath(fixtureFolder, fileName);
         return File.ReadAllText(fixturePath);
     }
 
-    private static string ResolveFixturePath(string fileName)
+    private static string ResolveFixturePath(string fixtureFolder, string fileName)
     {
         var baseDirectory = new DirectoryInfo(AppContext.BaseDirectory);
         var candidateRoots = new List<DirectoryInfo>();
@@ -162,7 +354,7 @@ public sealed class PipelineOrchestratorIntegrationTests
                 "tests",
                 "Whiteboard.Cli.Tests",
                 "Fixtures",
-                "phase03-determinism",
+                fixtureFolder,
                 fileName);
 
             if (File.Exists(fixturePath))
@@ -172,7 +364,32 @@ public sealed class PipelineOrchestratorIntegrationTests
         }
 
         throw new FileNotFoundException(
-            $"Fixture '{fileName}' was not found under tests/Whiteboard.Cli.Tests/Fixtures/phase03-determinism.");
+            $"Fixture '{fileName}' was not found under tests/Whiteboard.Cli.Tests/Fixtures/{fixtureFolder}.");
+    }
+
+    private static void WriteSvgAssets(string directoryPath)
+    {
+        File.WriteAllText(
+            Path.Combine(directoryPath, "assets", "idea.svg"),
+            """
+            <svg xmlns="http://www.w3.org/2000/svg">
+              <path d="M 0 0 L 10 0" />
+              <path d="M 10 0 L 10 10" />
+            </svg>
+            """);
+
+        File.WriteAllText(
+            Path.Combine(directoryPath, "assets", "arrow.svg"),
+            """
+            <svg xmlns="http://www.w3.org/2000/svg">
+              <path d="M 0 5 L 12 5" />
+            </svg>
+            """);
+    }
+
+    private static void WriteAudioAssets(string directoryPath)
+    {
+        File.WriteAllText(Path.Combine(directoryPath, "assets", "narration.mp3"), "placeholder-audio");
     }
 
     private static void DeleteSpecFile(string specPath)
