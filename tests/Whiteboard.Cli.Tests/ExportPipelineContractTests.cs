@@ -1,5 +1,10 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using Whiteboard.Core.Timeline;
 using Whiteboard.Export.Models;
+using Whiteboard.Export.Services;
 using Whiteboard.Renderer.Models;
 using Xunit;
 
@@ -150,5 +155,204 @@ public sealed class ExportPipelineContractTests
         Assert.Equal("demo-project", result.Summary.ProjectId);
         Assert.Equal(4.5, result.Summary.TotalDurationSeconds, 6);
         Assert.Equal("demo-project|mp4|2|1|3|4.5", result.DeterministicKey);
+    }
+
+    [Fact]
+    public void ExportPipeline_FramePackaging_OrdersFramesAndPreservesTimingMetadata()
+    {
+        var pipeline = new ExportPipeline();
+        var request = new ExportRequest
+        {
+            ProjectId = "demo-project",
+            Frames =
+            [
+                CreateFrame(8, "camera:0,0:1", "svg-path:idea:mode:complete"),
+                CreateFrame(3, "camera:0,0:1", "svg-path:idea:mode:partial")
+            ],
+            FrameTimings =
+            [
+                new ExportFrameTiming { FrameIndex = 8, StartSeconds = 0.266667, DurationSeconds = 0.033333 },
+                new ExportFrameTiming { FrameIndex = 3, StartSeconds = 0.1, DurationSeconds = 0.033333 }
+            ],
+            Target = new ExportTarget
+            {
+                OutputPath = "out/video.mp4",
+                Format = "mp4",
+                Width = 1280,
+                Height = 720,
+                FrameRate = 30
+            }
+        };
+
+        var reorderedRequest = request with
+        {
+            Frames = request.Frames.Reverse().ToArray(),
+            FrameTimings = request.FrameTimings.Reverse().ToArray()
+        };
+
+        var first = pipeline.Export(request);
+        var second = pipeline.Export(reorderedRequest);
+
+        Assert.True(first.Success);
+        Assert.Equal([3, 8], first.Frames.Select(frame => frame.FrameIndex).ToArray());
+        Assert.Equal(0.1, first.Frames[0].StartSeconds, 6);
+        Assert.Equal(0.033333, first.Frames[0].DurationSeconds, 6);
+        Assert.Equal(["camera:0,0:1", "svg-path:idea:mode:partial"], first.Frames[0].Operations);
+        Assert.Equal(2, first.ExportedFrameCount);
+        Assert.Equal(4, first.TotalOperations);
+        Assert.Equal(first.DeterministicKey, second.DeterministicKey);
+        Assert.Equal(first.Frames.Select(frame => frame.FrameIndex).ToArray(), second.Frames.Select(frame => frame.FrameIndex).ToArray());
+        Assert.Equal(first.Frames.SelectMany(frame => frame.Operations).ToArray(), second.Frames.SelectMany(frame => frame.Operations).ToArray());
+    }
+
+    [Fact]
+    public void ExportPipeline_AudioPackaging_OrdersCueMetadataAndUsesLogicalSourcePaths()
+    {
+        var firstAudioPath = CreateTempAudioAsset();
+        var secondAudioPath = CreateTempAudioAsset();
+
+        try
+        {
+            var pipeline = new ExportPipeline();
+            var result = pipeline.Export(new ExportRequest
+            {
+                ProjectId = "demo-project",
+                Frames = [CreateFrame(0, "camera:0,0:1")],
+                FrameTimings = [new ExportFrameTiming { FrameIndex = 0, StartSeconds = 0, DurationSeconds = 0.033333 }],
+                AudioCues =
+                [
+                    new AudioCue { Id = "cue-late", AudioAssetId = "audio-2", StartSeconds = 2.25, DurationSeconds = 1.5, Volume = 0.5 },
+                    new AudioCue { Id = "cue-early", AudioAssetId = "audio-1", StartSeconds = 0.25, DurationSeconds = 2, Volume = 0.8 }
+                ],
+                AudioAssets =
+                [
+                    new ExportAudioAssetInput
+                    {
+                        AssetId = "audio-2",
+                        Name = "Music",
+                        DeclaredSourcePath = "assets/music.mp3",
+                        ResolvedSourcePath = secondAudioPath,
+                        DefaultVolume = 0.4
+                    },
+                    new ExportAudioAssetInput
+                    {
+                        AssetId = "audio-1",
+                        Name = "Narration",
+                        DeclaredSourcePath = "assets/narration.mp3",
+                        ResolvedSourcePath = firstAudioPath,
+                        DefaultVolume = 0.6
+                    }
+                ],
+                Target = new ExportTarget
+                {
+                    OutputPath = "out/video.mp4",
+                    Format = "mp4",
+                    Width = 1280,
+                    Height = 720,
+                    FrameRate = 30
+                }
+            });
+
+            Assert.True(result.Success);
+            Assert.Equal(["cue-early", "cue-late"], result.AudioCues.Select(cue => cue.CueId).ToArray());
+            Assert.Equal("assets/narration.mp3", result.AudioCues[0].SourcePath);
+            Assert.Equal(2, result.ExportedAudioCueCount);
+            Assert.Equal(2.25, result.AudioCues[1].StartSeconds, 6);
+            Assert.Equal(3.75, result.Summary.TotalDurationSeconds, 6);
+        }
+        finally
+        {
+            DeleteTempAsset(firstAudioPath);
+            DeleteTempAsset(secondAudioPath);
+        }
+    }
+
+    [Fact]
+    public void ExportPipeline_AudioPackaging_FailsFastWhenReferencedAssetIsMissing()
+    {
+        var pipeline = new ExportPipeline();
+        var missingPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"), "missing.mp3");
+
+        var result = pipeline.Export(new ExportRequest
+        {
+            ProjectId = "demo-project",
+            Frames = [CreateFrame(0, "camera:0,0:1")],
+            FrameTimings = [new ExportFrameTiming { FrameIndex = 0, StartSeconds = 0, DurationSeconds = 0.033333 }],
+            AudioCues =
+            [
+                new AudioCue
+                {
+                    Id = "cue-missing",
+                    AudioAssetId = "audio-missing",
+                    StartSeconds = 0.5,
+                    DurationSeconds = 1,
+                    Volume = 0.7
+                }
+            ],
+            AudioAssets =
+            [
+                new ExportAudioAssetInput
+                {
+                    AssetId = "audio-missing",
+                    Name = "Missing",
+                    DeclaredSourcePath = "assets/missing.mp3",
+                    ResolvedSourcePath = missingPath,
+                    DefaultVolume = 0.5
+                }
+            ],
+            Target = new ExportTarget
+            {
+                OutputPath = "out/video.mp4",
+                Format = "mp4",
+                Width = 1280,
+                Height = 720,
+                FrameRate = 30
+            }
+        });
+
+        Assert.False(result.Success);
+        Assert.Equal(0, result.ExportedFrameCount);
+        Assert.Equal(0, result.ExportedAudioCueCount);
+        Assert.Empty(result.Frames);
+        Assert.Empty(result.AudioCues);
+        Assert.Contains("cue-missing", result.Message, StringComparison.Ordinal);
+        Assert.Contains("audio-missing", result.DeterministicKey, StringComparison.Ordinal);
+    }
+
+    private static RenderFrameResult CreateFrame(int frameIndex, params string[] operations)
+    {
+        return new RenderFrameResult
+        {
+            FrameIndex = frameIndex,
+            Success = true,
+            SceneCount = 1,
+            ObjectCount = 2,
+            Operations = operations
+        };
+    }
+
+    private static string CreateTempAudioAsset()
+    {
+        var directory = Path.Combine(Path.GetTempPath(), "whiteboard-export-tests", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(directory);
+        var filePath = Path.Combine(directory, "audio.mp3");
+        File.WriteAllText(filePath, "placeholder-audio");
+        return filePath;
+    }
+
+    private static void DeleteTempAsset(string filePath)
+    {
+        if (!File.Exists(filePath))
+        {
+            return;
+        }
+
+        var directoryPath = Path.GetDirectoryName(filePath);
+        File.Delete(filePath);
+
+        if (!string.IsNullOrWhiteSpace(directoryPath) && Directory.Exists(directoryPath))
+        {
+            Directory.Delete(directoryPath, recursive: true);
+        }
     }
 }
