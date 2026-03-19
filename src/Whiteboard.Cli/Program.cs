@@ -16,23 +16,15 @@ public static class Program
                 return args.Length == 0 ? 1 : 0;
             }
 
-            var request = ParseArguments(args);
-            var orchestrator = new PipelineOrchestrator();
-            var result = orchestrator.Run(request);
+            var parser = new CliCommandParser();
+            var command = parser.Parse(args);
 
-            Console.WriteLine($"Success: {result.Success}");
-            Console.WriteLine($"Message: {result.Message}");
-            Console.WriteLine($"SpecPath: {result.SpecPath}");
-            Console.WriteLine($"FrameIndex: {result.FrameIndex}");
-            Console.WriteLine($"SceneCount: {result.SceneCount}");
-            Console.WriteLine($"ObjectCount: {result.ObjectCount}");
-            Console.WriteLine($"OperationCount: {result.OperationCount}");
-            Console.WriteLine($"ExportedFrameCount: {result.ExportedFrameCount}");
-            Console.WriteLine($"OutputPath: {result.OutputPath}");
-            Console.WriteLine($"ExportStatus: {result.ExportStatus}");
-            Console.WriteLine($"DeterministicKey: {result.DeterministicKey}");
-
-            return result.Success ? 0 : 1;
+            return command.Mode switch
+            {
+                CliCommandMode.Run => ExecuteRun(command.RunRequest!),
+                CliCommandMode.Batch => ExecuteBatch(command.BatchRequest!),
+                _ => throw new ArgumentOutOfRangeException()
+            };
         }
         catch (Exception ex)
         {
@@ -41,66 +33,39 @@ public static class Program
         }
     }
 
-    private static CliRunRequest ParseArguments(string[] args)
+    private static int ExecuteRun(CliRunRequest request)
     {
-        string? specPath = null;
-        string? outputPath = null;
-        var frameIndex = 0;
+        var orchestrator = new PipelineOrchestrator();
+        var result = orchestrator.Run(request);
 
-        for (var i = 0; i < args.Length; i++)
-        {
-            var arg = args[i];
+        Console.WriteLine($"Success: {result.Success}");
+        Console.WriteLine($"Message: {result.Message}");
+        Console.WriteLine($"SpecPath: {result.SpecPath}");
+        Console.WriteLine($"FrameIndex: {result.FrameIndex}");
+        Console.WriteLine($"SceneCount: {result.SceneCount}");
+        Console.WriteLine($"ObjectCount: {result.ObjectCount}");
+        Console.WriteLine($"OperationCount: {result.OperationCount}");
+        Console.WriteLine($"ExportedFrameCount: {result.ExportedFrameCount}");
+        Console.WriteLine($"OutputPath: {result.OutputPath}");
+        Console.WriteLine($"ExportStatus: {result.ExportStatus}");
+        Console.WriteLine($"DeterministicKey: {result.DeterministicKey}");
 
-            switch (arg)
-            {
-                case "--spec":
-                    specPath = ReadRequiredValue(args, ref i, arg);
-                    break;
-                case "--output":
-                    outputPath = ReadRequiredValue(args, ref i, arg);
-                    break;
-                case "--frame-index":
-                    var value = ReadRequiredValue(args, ref i, arg);
-                    if (!int.TryParse(value, out frameIndex))
-                    {
-                        throw new ArgumentException("'--frame-index' must be a valid integer.");
-                    }
-
-                    if (frameIndex < 0)
-                    {
-                        frameIndex = 0;
-                    }
-
-                    break;
-                default:
-                    throw new ArgumentException($"Unknown argument '{arg}'. Use --help for usage.");
-            }
-        }
-
-        if (string.IsNullOrWhiteSpace(specPath))
-        {
-            throw new ArgumentException("'--spec' is required.");
-        }
-
-        return new CliRunRequest
-        {
-            SpecPath = specPath,
-            OutputPath = outputPath,
-            FrameIndex = frameIndex
-        };
+        return result.Success ? 0 : 1;
     }
 
-    private static string ReadRequiredValue(string[] args, ref int index, string option)
+    private static int ExecuteBatch(CliBatchRunRequest request)
     {
-        var valueIndex = index + 1;
+        var orchestrator = new BatchPipelineOrchestrator();
+        var result = orchestrator.Run(request);
 
-        if (valueIndex >= args.Length)
-        {
-            throw new ArgumentException($"Missing value for '{option}'.");
-        }
+        Console.WriteLine($"Success: {result.Success}");
+        Console.WriteLine($"JobCount: {result.JobCount}");
+        Console.WriteLine($"SuccessCount: {result.SuccessCount}");
+        Console.WriteLine($"FailureCount: {result.FailureCount}");
+        Console.WriteLine($"SummaryOutputPath: {result.SummaryOutputPath}");
+        Console.WriteLine($"DeterministicKey: {result.DeterministicKey}");
 
-        index = valueIndex;
-        return args[valueIndex];
+        return result.Success ? 0 : 1;
     }
 
     private static bool HasHelpFlag(string[] args)
@@ -118,7 +83,10 @@ public static class Program
 
     private static void PrintUsage()
     {
-        Console.WriteLine("Usage: whiteboard-cli --spec <path> [--output <path>] [--frame-index <int>]");
-        Console.WriteLine("Step 12 scope: deterministic Core -> Engine -> Renderer -> Export -> CLI placeholder pipeline.");
+        Console.WriteLine("Usage:");
+        Console.WriteLine("  whiteboard-cli run --spec <path> [--output <path>] [--frame-index <int>]");
+        Console.WriteLine("  whiteboard-cli batch --manifest <path> --summary-output <path>");
+        Console.WriteLine("  whiteboard-cli --spec <path> [--output <path>] [--frame-index <int>]  # legacy run shortcut");
+        Console.WriteLine("Phase 6 scope: deterministic CLI orchestration over the existing Core -> Engine -> Renderer -> Export pipeline.");
     }
 }

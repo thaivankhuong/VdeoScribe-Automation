@@ -1,0 +1,149 @@
+{
+  "meta": {
+    "projectId": "cli-project-005",
+    "name": "Phase 06 Job A"
+  },
+  "output": {
+    "width": 1280,
+    "height": 720,
+    "frameRate": 30
+  },
+  "assets": {
+    "svgAssets": [
+      {
+        "id": "svg-2",
+        "name": "Arrow",
+        "sourcePath": "assets/arrow.svg",
+        "type": "svg"
+      },
+      {
+        "id": "svg-1",
+        "name": "Idea",
+        "sourcePath": "assets/idea.svg",
+        "type": "svg"
+      }
+    ],
+    "audioAssets": [
+      {
+        "id": "audio-2",
+        "name": "Music",
+        "sourcePath": "assets/music.mp3",
+        "type": "audio",
+        "defaultVolume": 0.4
+      },
+      {
+        "id": "audio-1",
+        "name": "Narration",
+        "sourcePath": "assets/narration.mp3",
+        "type": "audio",
+        "defaultVolume": 0.6
+      }
+    ]
+  },
+  "scenes": [
+    {
+      "id": "scene-1",
+      "name": "Export",
+      "durationSeconds": 5,
+      "objects": [
+        {
+          "id": "object-2",
+          "name": "Arrow",
+          "type": "svg",
+          "assetRefId": "svg-2",
+          "layer": 2,
+          "isVisible": true,
+          "transform": {
+            "position": {
+              "x": 320,
+              "y": 240
+            },
+            "size": {
+              "width": 120,
+              "height": 80
+            }
+          }
+        },
+        {
+          "id": "object-1",
+          "name": "Idea",
+          "type": "svg",
+          "assetRefId": "svg-1",
+          "layer": 1,
+          "isVisible": true,
+          "transform": {
+            "position": {
+              "x": 120,
+              "y": 180
+            },
+            "size": {
+              "width": 300,
+              "height": 240
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "timeline": {
+    "events": [
+      {
+        "id": "event-2",
+        "sceneId": "scene-1",
+        "sceneObjectId": "object-2",
+        "actionType": "reveal",
+        "startSeconds": 0,
+        "durationSeconds": 1
+      },
+      {
+        "id": "event-1",
+        "sceneId": "scene-1",
+        "sceneObjectId": "object-1",
+        "actionType": "draw",
+        "startSeconds": 0,
+        "durationSeconds": 2,
+        "parameters": {
+          "pathOrder": "0,1"
+        }
+      }
+    ],
+    "cameraTrack": {
+      "keyframes": [
+        {
+          "timeSeconds": 0,
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "zoom": 1,
+          "interpolation": "linear"
+        },
+        {
+          "timeSeconds": 1,
+          "position": {
+            "x": 12,
+            "y": 8
+          },
+          "zoom": 1.15,
+          "interpolation": "linear"
+        }
+      ]
+    },
+    "audioCues": [
+      {
+        "id": "cue-music",
+        "audioAssetId": "audio-2",
+        "startSeconds": 1.5,
+        "durationSeconds": 2.5,
+        "volume": 0.5
+      },
+      {
+        "id": "cue-voice",
+        "audioAssetId": "audio-1",
+        "startSeconds": 0.5,
+        "durationSeconds": 2.25,
+        "volume": 0.8
+      }
+    ]
+  }
+}

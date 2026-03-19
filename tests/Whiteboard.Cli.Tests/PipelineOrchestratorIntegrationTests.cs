@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using Whiteboard.Cli.Models;
 using Whiteboard.Cli.Services;
 using Xunit;
@@ -352,6 +353,76 @@ public sealed class PipelineOrchestratorIntegrationTests
         }
     }
 
+    [Fact]
+    public void BatchPipelineOrchestrator_WithPhase06Fixtures_ProducesEquivalentSummaryArtifacts()
+    {
+        var firstManifestPath = CreateBatchFixtureManifest("primary-manifest.json");
+        var secondManifestPath = CreateBatchFixtureManifest("equivalent-reordered-manifest.json");
+        var firstSummaryPath = Path.Combine(Path.GetDirectoryName(firstManifestPath)!, "summary.json");
+        var secondSummaryPath = Path.Combine(Path.GetDirectoryName(secondManifestPath)!, "summary.json");
+
+        try
+        {
+            var orchestrator = new BatchPipelineOrchestrator();
+            var first = orchestrator.Run(new CliBatchRunRequest
+            {
+                ManifestPath = firstManifestPath,
+                SummaryOutputPath = firstSummaryPath
+            });
+            var second = orchestrator.Run(new CliBatchRunRequest
+            {
+                ManifestPath = secondManifestPath,
+                SummaryOutputPath = secondSummaryPath
+            });
+
+            Assert.True(first.Success);
+            Assert.True(second.Success);
+            Assert.Equal(2, first.JobCount);
+            Assert.Equal(2, first.SuccessCount);
+            Assert.Equal(0, first.FailureCount);
+            Assert.Equal(new[] { "job-a", "job-b" }, first.Jobs.Select(job => job.JobId).ToArray());
+            Assert.Equal(first.DeterministicKey, second.DeterministicKey);
+            Assert.Equal(first.Jobs.Select(job => job.DeterministicKey).ToArray(), second.Jobs.Select(job => job.DeterministicKey).ToArray());
+            Assert.True(File.Exists(firstSummaryPath));
+            Assert.True(File.Exists(secondSummaryPath));
+            Assert.Equal(File.ReadAllText(firstSummaryPath), File.ReadAllText(secondSummaryPath));
+
+            var summary = JsonSerializer.Deserialize<CliBatchRunResult>(File.ReadAllText(firstSummaryPath), new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+
+            Assert.NotNull(summary);
+            Assert.Equal(first.JobCount, summary!.JobCount);
+            Assert.Equal(first.DeterministicKey, summary.DeterministicKey);
+            Assert.Equal(first.Jobs.Select(job => job.JobId).ToArray(), summary.Jobs.Select(job => job.JobId).ToArray());
+        }
+        finally
+        {
+            DeleteSpecFile(firstManifestPath);
+            DeleteSpecFile(secondManifestPath);
+        }
+    }
+
+    private static string CreateBatchFixtureManifest(string manifestFileName)
+    {
+        var directoryPath = Path.Combine(Path.GetTempPath(), "whiteboard-cli-batch-tests", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(directoryPath);
+        Directory.CreateDirectory(Path.Combine(directoryPath, "assets"));
+
+        WriteSvgAssets(directoryPath);
+        WriteAudioAssets(directoryPath);
+
+        foreach (var fileName in new[] { "job-a-spec.json", "job-b-spec.json", manifestFileName })
+        {
+            File.WriteAllText(
+                Path.Combine(directoryPath, fileName),
+                ReadFixtureJson("phase06-cli-batch", fileName));
+        }
+
+        return Path.Combine(directoryPath, manifestFileName);
+    }
+
     private static string CreateSpecFile(string fixtureFolder, string fileName)
     {
         return CreateSpecFileFromJson(
@@ -439,6 +510,8 @@ public sealed class PipelineOrchestratorIntegrationTests
         File.WriteAllText(Path.Combine(directoryPath, "assets", "music.mp3"), "placeholder-audio");
     }
 
+
+
     private static void DeleteSpecFile(string specPath)
     {
         if (!File.Exists(specPath))
@@ -455,3 +528,5 @@ public sealed class PipelineOrchestratorIntegrationTests
         }
     }
 }
+
+

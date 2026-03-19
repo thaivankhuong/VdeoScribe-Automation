@@ -1,0 +1,16 @@
+{
+  "jobs": [
+    {
+      "jobId": "job-a",
+      "specPath": "job-a-spec.json",
+      "outputPath": "out/job-a.mp4",
+      "frameIndex": 15
+    },
+    {
+      "jobId": "job-b",
+      "specPath": "job-b-spec.json",
+      "outputPath": "out/job-b.mp4",
+      "frameIndex": 15
+    }
+  ]
+}
