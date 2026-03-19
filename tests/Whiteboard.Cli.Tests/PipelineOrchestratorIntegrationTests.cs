@@ -308,9 +308,55 @@ public sealed class PipelineOrchestratorIntegrationTests
         }
     }
 
+    [Fact]
+    public void PipelineOrchestrator_WithPhase05ExportFixtures_ProducesEquivalentExportPackages()
+    {
+        var firstSpecPath = CreateSpecFile("phase05-export-packaging", "primary-spec.json");
+        var secondSpecPath = CreateSpecFile("phase05-export-packaging", "equivalent-reordered-spec.json");
+
+        try
+        {
+            var orchestrator = new PipelineOrchestrator();
+            var first = orchestrator.Run(new CliRunRequest
+            {
+                SpecPath = firstSpecPath,
+                OutputPath = "out/video.mp4",
+                FrameIndex = 15
+            });
+            var second = orchestrator.Run(new CliRunRequest
+            {
+                SpecPath = secondSpecPath,
+                OutputPath = "out/video.mp4",
+                FrameIndex = 15
+            });
+
+            Assert.True(first.Success);
+            Assert.True(second.Success);
+            Assert.Equal(1, first.ExportedFrameCount);
+            Assert.Equal(2, first.ExportedAudioCueCount);
+            Assert.Equal(first.Operations, second.Operations);
+            Assert.Equal(first.ExportDeterministicKey, second.ExportDeterministicKey);
+            Assert.Equal(first.DeterministicKey, second.DeterministicKey);
+            Assert.Equal(first.ExportSummary.FrameCount, second.ExportSummary.FrameCount);
+            Assert.Equal(first.ExportSummary.AudioCueCount, second.ExportSummary.AudioCueCount);
+            Assert.Equal(first.ExportSummary.TotalDurationSeconds, second.ExportSummary.TotalDurationSeconds, 6);
+            Assert.Equal(first.ExportFrames[0].Operations, second.ExportFrames[0].Operations);
+            Assert.Equal(first.ExportAudioCues.Select(cue => cue.CueId).ToArray(), second.ExportAudioCues.Select(cue => cue.CueId).ToArray());
+            Assert.Equal(["cue-voice", "cue-music"], first.ExportAudioCues.Select(cue => cue.CueId).ToArray());
+            Assert.Equal(["assets/narration.mp3", "assets/music.mp3"], first.ExportAudioCues.Select(cue => cue.SourcePath).ToArray());
+        }
+        finally
+        {
+            DeleteSpecFile(firstSpecPath);
+            DeleteSpecFile(secondSpecPath);
+        }
+    }
+
     private static string CreateSpecFile(string fixtureFolder, string fileName)
     {
-        return CreateSpecFileFromJson(ReadFixtureJson(fixtureFolder, fileName));
+        return CreateSpecFileFromJson(
+            ReadFixtureJson(fixtureFolder, fileName),
+            includeAudioAssets: string.Equals(fixtureFolder, "phase05-export-packaging", StringComparison.Ordinal));
     }
 
     private static string CreateSpecFileFromJson(string json, bool includeAudioAssets = false)
@@ -390,6 +436,7 @@ public sealed class PipelineOrchestratorIntegrationTests
     private static void WriteAudioAssets(string directoryPath)
     {
         File.WriteAllText(Path.Combine(directoryPath, "assets", "narration.mp3"), "placeholder-audio");
+        File.WriteAllText(Path.Combine(directoryPath, "assets", "music.mp3"), "placeholder-audio");
     }
 
     private static void DeleteSpecFile(string specPath)

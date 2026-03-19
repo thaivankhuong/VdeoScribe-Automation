@@ -226,6 +226,45 @@ public sealed class FrameStateResolverContractTests
     }
 
     [Fact]
+    public void Contract_PreservesSvgAssetReferenceAndTransformDataNeededByRenderer()
+    {
+        var project = CreateProject();
+        var frameContext = FrameContext.FromFrameIndex(frameIndex: 15, frameRate: 30);
+        var resolver = new FrameStateResolver(
+            objectStateResolver: new StubObjectStateResolver(
+                [new ResolvedSceneState { SceneId = "scene-1", Objects = [CreateStubResolvedObject(drawProgress: 0.75, activePathIndex: 1)] }]));
+
+        var resolved = resolver.Resolve(project, frameContext);
+        var resolvedObject = resolved.Scenes.Single().Objects.Single();
+
+        Assert.Equal("svg-1", resolvedObject.AssetRefId);
+        Assert.Equal(new Position2D(100, 100), resolvedObject.Transform.Position);
+        Assert.Equal(new Size2D(200, 200), resolvedObject.Transform.Size);
+        Assert.Equal(
+            new[] { "scene-1:2:object-1:path:0", "scene-1:2:object-1:path:1" },
+            resolvedObject.DrawPaths.Select(path => path.OrderingKey).ToArray());
+    }
+
+    [Fact]
+    public void Contract_PreservesFrameTimingEvidenceNeededByExport()
+    {
+        var project = CreateProject();
+        var frameContext = FrameContext.FromFrameIndex(frameIndex: 12, frameRate: 24);
+        var resolver = new FrameStateResolver(
+            objectStateResolver: new StubObjectStateResolver(
+                [new ResolvedSceneState { SceneId = "scene-1", Objects = [CreateStubResolvedObject(drawProgress: 0.75, activePathIndex: 1)] }]));
+
+        var first = resolver.Resolve(project, frameContext);
+        var second = resolver.Resolve(project, frameContext);
+
+        Assert.Equal(12, first.FrameContext.FrameIndex);
+        Assert.Equal(24, first.FrameContext.FrameRate);
+        Assert.Equal(0.5, first.FrameContext.CurrentTimeSeconds, 6);
+        Assert.Equal(first.FrameContext, second.FrameContext);
+        Assert.Equal(first.DeterministicKey, second.DeterministicKey);
+    }
+
+    [Fact]
     public void Camera_ContractExposesRendererReadyResolvedCameraPayload()
     {
         var project = CreateProject();
@@ -575,3 +614,5 @@ public sealed class FrameStateResolverContractTests
         }
     }
 }
+
+
