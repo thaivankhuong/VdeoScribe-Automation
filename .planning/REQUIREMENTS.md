@@ -27,7 +27,7 @@
 
 - [x] **PIPE-01**: Engine emits resolved frame-state contract consumable by renderer adapters.
 - [x] **PIPE-02**: Renderer/export pipeline preserves scene semantics and timing metadata without nondeterministic changes.
-- [x] **PIPE-03**: Export flow supports repeatable frame-to-video packaging with synchronized timeline/audio metadata.
+- [x] **PIPE-03**: Export flow supports repeatable export-package generation with synchronized timeline/audio metadata.
 
 ### CLI and Batch Orchestration
 
@@ -77,4 +77,5 @@
 
 ---
 *Requirements defined: 2026-03-17*
-*Last updated: 2026-03-19 after completing Phase 5 Plan 05-01*
+*Last updated: 2026-03-19 after completing Phase 5*
+
