@@ -26,6 +26,7 @@
 
   <ItemGroup>
     <Compile Include="ProjectSpecLoaderTests.cs" />
+    <Compile Include="ExportPipelineContractTests.cs" />
     <Compile Include="PipelineOrchestratorIntegrationTests.cs" />
     <Compile Include="..\..\src\Whiteboard.Cli\Models\CliRunRequest.cs" Link="Cli\Models\CliRunRequest.cs" />
     <Compile Include="..\..\src\Whiteboard.Cli\Models\CliRunResult.cs" Link="Cli\Models\CliRunResult.cs" />
