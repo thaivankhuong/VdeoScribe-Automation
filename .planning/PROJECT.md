@@ -2,54 +2,71 @@
 
 ## What This Is
 
-whiteboard-engine is a .NET engine-first system that generates VideoScribe-like whiteboard videos from JSON specs. It focuses on deterministic frame-by-frame behavior for draw progression, camera motion, and export-ready sequencing. It is built for repeatable batch generation across many scripts/scenarios, not for interactive authoring.
+whiteboard-engine is a .NET engine-first system that generates VideoScribe-like whiteboard videos from JSON specs. It now ships deterministic full-sequence rendering, playable media encoding, batch output, traced draw behavior, and real hand/text rendering; the next milestone is focused on closing source-parity gaps against reference samples.
 
 ## Core Value
 
 Given the same spec, assets, and settings, the engine must always produce the same frame/video output.
 
+## Current State
+
+Shipped v1.0 Engine Core on 2026-03-21 with Phases 1-11 completed. The codebase now covers deterministic spec loading, frame-state resolution, SVG/text/image rendering, hand assets, playable video encoding, and batch media generation.
+
+## Current Milestone: v1.1 Source Parity
+
+**Goal:** Close the remaining gap between deterministic engine output and target VideoScribe/reference-sample visuals without falling back to whole-frame source crops.
+
+**Target features:**
+- Per-object authored asset decomposition for parity samples
+- Source-like object motion, hand sequencing, and timing polish
+- Higher-fidelity text and illustration rendering for reference scenes
+- Witness-based parity regression workflow for sample videos
+
 ## Requirements
 
 ### Validated
 
-- [x] SPEC-01 JSON spec single-source contract established - Phase 1
-- [x] SPEC-02 Schema versioning and normalization gates documented - Phase 1
-- [x] SPEC-03 Validation error contract and deterministic ordering documented - Phase 1
+- [x] Deterministic JSON spec ingestion and normalization - v1.0
+- [x] Deterministic timeline, lifecycle, draw progression, and camera state resolution - v1.0
+- [x] Deterministic full-timeline frame artifact generation - v1.0
+- [x] Playable media encoding and audio muxing through the CLI pipeline - v1.0
+- [x] Batch media output with deterministic summary artifacts - v1.0
+- [x] VideoScribe-like traced strokes, hand guidance, real hand assets, and deterministic text rendering - v1.0
 
 ### Active
 
-- [ ] Reproduce core VideoScribe-like timeline-driven draw behavior from JSON specs.
-- [ ] Produce deterministic frame-state output suitable for renderer/export adapters.
-- [ ] Support camera timing (pan/zoom) integrated into frame-state evaluation.
-- [ ] Enable repeatable CLI-driven generation workflows for future batch scenarios.
+- [ ] Reproduce target sample scenes through authored object assets rather than whole-frame source crops.
+- [ ] Match source-like object motion, timing, and hand-follow behavior for parity samples.
+- [ ] Improve text and illustration fidelity so sample outputs look materially closer to the reference video.
+- [ ] Lock parity witnesses with deterministic frame/video comparison artifacts.
 
 ### Out of Scope
 
-- Editor UI / drag-and-drop authoring - engine behavior must stabilize first.
-- Realtime interactive editing experience - this project is offline/batch generation first.
-- Plugin ecosystem and advanced visual effects - defer until core parity is stable.
+- Interactive editor UI - engine-first delivery remains the priority.
+- Whole-frame screenshot/video-crop reconstruction as the primary rendering strategy - parity must come from engine semantics and authored assets.
+- Realtime collaborative editing - this project remains offline/batch-first.
+- Plugin ecosystem and advanced non-core effects - defer until parity and production reliability are stable.
 
 ## Context
 
-The repository already defines architecture documents under `docs/architecture/` with strict module boundaries: Core, Engine, Renderer, Export, CLI. The current objective is to clone core VideoScribe behavior at engine level: timeline reveal, path-based draw progression, camera timing, and stable frame-output flow. This initialization establishes GSD planning artifacts for phased execution without introducing UI/editor scope.
+The repository now contains a completed v1.0 milestone under `.planning/milestones/` plus a parity demo area under `artifacts/source-parity-demo/`. Current user feedback is pushing the project toward higher visual similarity to reference videos, especially object-by-object draw order, hand behavior, and motion quality.
 
 ## Constraints
 
-- **Architecture**: Strict module boundaries (Core, Engine, Renderer, Export, CLI) - maintain clean dependency direction.
-- **Determinism**: Frame-based deterministic evaluation is non-negotiable - repeatability is a system-level contract.
-- **Input Model**: Spec-driven JSON only - no hardcoded storyboard logic.
-- **Current Phase**: Doc-first bootstrap and architecture alignment - no business/rendering implementation code in this step.
+- **Architecture**: Keep strict module boundaries (Core, Engine, Renderer, Export, CLI) - parity work cannot collapse business logic into the CLI or renderer.
+- **Determinism**: Frame-based deterministic evaluation remains non-negotiable - parity improvements must preserve repeatability.
+- **Input Model**: Stay spec-driven - no hardcoded storyboard logic and no whole-frame crop shortcuts as the main authoring path.
+- **Verification**: Serial build/test remains the reliable path in this workspace because parallel test runs still hit intermittent obj-lock issues.
 
 ## Key Decisions
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Engine-first delivery before any UI/editor | Protect deterministic core from premature UI coupling | Adopted in Phase 1 |
-| JSON spec as single source of truth for scenes/timeline/output intent | Enables reusable batch generation and stable contracts | Adopted in Phase 1 |
-| Deterministic frame-state as central handoff contract | Keeps renderer/export replaceable while preserving semantics | Baseline contracts defined in Phase 1 |
-| Start with roadmap phases from existing architecture docs | Align GSD planning with current repository intent | Completed in Phase 1 |
+| Engine-first delivery before any UI/editor | Protect deterministic core from premature UI coupling | Good |
+| JSON spec as single source of truth for scenes/timeline/output intent | Enables reusable batch generation and stable contracts | Good |
+| Deterministic frame-state as central handoff contract | Keeps renderer/export replaceable while preserving semantics | Good |
+| Full-timeline rendering, playable media, and hand assets were added before source-parity polish | Closed the business-output gap before pursuing final visual similarity | Good |
+| v1.1 will target source parity without relying on whole-frame crops | Aligns new milestone with current user demand and engine-first rules | Pending |
 
 ---
-*Last updated: 2026-03-17 after Phase 1*
-
-
+*Last updated: 2026-03-21 after starting v1.1 Source Parity milestone*

@@ -2,163 +2,92 @@
 
 ## Overview
 
-Build a deterministic .NET whiteboard video engine that reproduces core VideoScribe-style behavior through a spec-driven pipeline, progressing from contracts and state resolution to rendering/export, CLI batch orchestration, and business-ready media output.
+Continue from the shipped v1.0 engine/media baseline into a parity-focused milestone that makes authored sample scenes look materially closer to target VideoScribe/reference videos while preserving strict determinism and spec-driven architecture.
+
+## Milestones
+
+- [x] **v1.0 Engine Core** - Phases 1-11 (shipped 2026-03-21)
+- [ ] **v1.1 Source Parity** - Phases 12-15 (planned)
+
+## Archived Milestones
+
+- v1.0 details: `.planning/milestones/v1.0-ROADMAP.md`
+- v1.0 requirements: `.planning/milestones/v1.0-REQUIREMENTS.md`
 
 ## Phases
 
-- [x] **Phase 1: Bootstrap and Architecture Baseline** - lock planning artifacts, module contracts, and deterministic rules.
-- [x] **Phase 2: Spec Schema and Deterministic Timeline Core** - define schema, normalization, validation, and frame-state evaluation semantics.
-- [x] **Phase 3: Draw Progression and Camera State Resolution** - implement and verify draw/camera behavior in frame-state outputs. (completed 2026-03-18)
-- [x] **Phase 4: SVG Draw Rendering Adapter** - consume resolved frame state and generate deterministic frame visuals. (completed 2026-03-19)
-- [x] **Phase 5: Export Pipeline Integration** - package deterministic frame outputs into repeatable export packages with timing/audio alignment. (completed 2026-03-19)
-- [x] **Phase 6: CLI Batch Orchestration and End-to-End Validation** - execute repeatable scenario jobs and verify deterministic outputs. (completed 2026-03-19)
-- [ ] **Phase 7: Full-Timeline Render Sequence and Frame Artifact Generation** - extend the pipeline from one-frame evaluation to deterministic full-sequence frame generation and render artifacts. (gap-closure)
-- [ ] **Phase 8: Playable Video Encoding and Audio Muxing** - turn deterministic frame and audio artifacts into final playable media output. (gap-closure)
-- [ ] **Phase 9: Batch Media Output and Production Validation** - guarantee finished media artifacts per batch job and re-verify end-to-end production flows. (gap-closure)
+- [ ] **Phase 12: Source Sample Decomposition and Asset Authoring** - replace crop-based parity shortcuts with authored scene assets and object decomposition for the reference sample set.
+- [ ] **Phase 13: Object Motion and Hand Sequencing Parity** - make object transforms and hand-follow timing behave like the reference sample while staying in engine semantics.
+- [ ] **Phase 14: Text and Illustration Fidelity for Parity Scenes** - improve authored text and illustration fidelity so parity scenes look materially closer to the reference output.
+- [ ] **Phase 15: Parity Witness and Regression Validation** - lock the parity workflow with reviewable witnesses and deterministic regression coverage.
 
 ## Phase Details
 
-### Phase 1: Bootstrap and Architecture Baseline
-**Goal**: Establish validated planning, architecture boundaries, and deterministic contracts as the foundation for all implementation.
-**Depends on**: Nothing (first phase)
-**Requirements**: SPEC-01, SPEC-02, SPEC-03
+### Phase 12: Source Sample Decomposition and Asset Authoring
+**Goal**: Replace crop-based parity shortcuts with authored scene assets and object decomposition for the reference sample set.
+**Depends on**: Phase 11
+**Requirements**: PAR-01, AST-01
 **Success Criteria** (what must be TRUE):
-1. Project planning artifacts exist and align with repository architecture docs.
-2. Module boundaries and dependency direction are explicitly defined and agreed.
-3. Deterministic rendering rule and JSON-driven rule are codified as non-negotiable constraints.
+1. The target sample scene is represented as separate authored objects/assets in the spec instead of a whole-frame crop.
+2. The parity asset set includes the left illustration, arrow, title, clock group, body, footer, and hand references needed for iteration.
+3. The authored parity sample remains deterministic across repeated runs.
 **Plans**: 3 plans
 
 Plans:
-- [x] 01-01: Finalize module contracts and dependency boundaries
-- [x] 01-02: Define JSON spec schema/versioning and validation strategy
-- [x] 01-03: Define deterministic evaluation and verification strategy
+- [ ] 12-01: Define authored parity asset set and sample-scene object decomposition
+- [ ] 12-02: Wire parity sample specs and asset manifests through the existing pipeline
+- [ ] 12-03: Validate authored sample determinism and remove crop-based fallback usage from the main parity path
 
-### Phase 2: Spec Schema and Deterministic Timeline Core
-**Goal**: Build the schema normalization + deterministic timeline/frame-state evaluation core.
-**Depends on**: Phase 1
-**Requirements**: TIME-01, TIME-02, TIME-03
+### Phase 13: Object Motion and Hand Sequencing Parity
+**Goal**: Make object transforms and hand-follow timing behave like the reference sample while staying in engine semantics.
+**Depends on**: Phase 12
+**Requirements**: PAR-02, PAR-03
 **Success Criteria** (what must be TRUE):
-1. Timeline time maps to frame indices deterministically at fixed FPS.
-2. Object lifecycle state is resolved per frame with stable ordering rules.
-3. Equivalent inputs produce equivalent frame-state outputs across runs.
+1. Object-level move/scale/rotate/fade events are sufficient to drive source-like transitions for parity scenes.
+2. Hand sequencing tracks the active object/path for the parity sample through the full draw order.
+3. Motion updates keep deterministic frame-state and render witnesses stable across repeated runs.
 **Plans**: 3 plans
 
 Plans:
-- [x] 02-01: Implement schema validation and normalization pipeline
-- [x] 02-02: Implement timeline-to-frame index conversion and ordering rules
-- [x] 02-03: Implement frame-state resolution for object lifecycle
+- [ ] 13-01: Finalize object transform event semantics and parity-oriented timeline usage
+- [ ] 13-02: Improve hand-follow behavior and object-to-object sequencing for parity scenes
+- [ ] 13-03: Validate motion and hand timing parity through frame/video witnesses
 
-### Phase 3: Draw Progression and Camera State Resolution
-**Goal**: Add VideoScribe-like draw reveal and camera timing behavior into resolved frame state.
-**Depends on**: Phase 2
-**Requirements**: DRAW-01, DRAW-02, DRAW-03
+### Phase 14: Text and Illustration Fidelity for Parity Scenes
+**Goal**: Improve authored text and illustration fidelity so parity scenes look materially closer to the reference output.
+**Depends on**: Phase 13
+**Requirements**: PAR-04, TXT-01
 **Success Criteria** (what must be TRUE):
-1. Path draw progression is timeline-driven and deterministic.
-2. Camera keyframes interpolate predictably by policy.
-3. Frame state fully includes draw and camera outputs for rendering handoff.
+1. Title, body, and footer content render from authored text/vector assets rather than video crops.
+2. The composed parity scene matches the intended object order and final layout of the reference sample closely enough for review.
+3. Illustration fidelity improvements do not regress deterministic rendering or hand behavior.
 **Plans**: 3 plans
 
 Plans:
-- [x] 03-01: Implement path-based draw progression model
-- [x] 03-02: Implement camera keyframe interpolation/state integration
-- [x] 03-03: Add deterministic tests for draw/camera frame-state behavior
+- [ ] 14-01: Improve authored text asset generation and reveal behavior for parity samples
+- [ ] 14-02: Refine illustration/vector fidelity for the reference scene object set
+- [ ] 14-03: Tune composition, spacing, and object ordering against parity witnesses
 
-### Phase 4: SVG Draw Rendering Adapter
-**Goal**: Render deterministic frame visuals from resolved frame state via SVG adapter.
-**Depends on**: Phase 3
-**Requirements**: PIPE-01
+### Phase 15: Parity Witness and Regression Validation
+**Goal**: Lock the parity workflow with reviewable witnesses and deterministic regression coverage.
+**Depends on**: Phase 14
+**Requirements**: AST-02, VAL-01
 **Success Criteria** (what must be TRUE):
-1. Renderer consumes only stable frame-state contracts from engine.
-2. SVG draw outputs match expected reveal progression from frame states.
-3. Rendering remains deterministic for identical inputs.
+1. The parity workflow emits stable witness frames and final video outputs for review.
+2. Repeated and equivalent parity runs preserve deterministic frame/video evidence.
+3. The milestone closes with a review-friendly witness set for the target reference sample.
 **Plans**: 2 plans
 
 Plans:
-- [x] 04-01: Implement renderer adapter interfaces and SVG rendering path
-- [x] 04-02: Validate visual output determinism and adapter boundaries
-
-### Phase 5: Export Pipeline Integration
-**Goal**: Integrate deterministic frame outputs into repeatable export-package output with synchronized timing/audio metadata.
-**Depends on**: Phase 4
-**Requirements**: PIPE-02, PIPE-03
-**Success Criteria** (what must be TRUE):
-1. Export pipeline packages frame sequences without altering semantics.
-2. Timing/audio metadata remains synchronized with timeline behavior.
-3. Re-running export on identical inputs yields equivalent outputs.
-**Plans**: 2 plans
-
-Plans:
-- [x] 05-01: Implement export contracts and frame/audio packaging flow
-- [x] 05-02: Add repeatability checks for export outputs
-
-### Phase 6: CLI Batch Orchestration and End-to-End Validation
-**Goal**: Provide CLI workflow for repeatable spec-driven generation at scale and verify end-to-end reliability.
-**Depends on**: Phase 5
-**Requirements**: CLI-01, CLI-02
-**Success Criteria** (what must be TRUE):
-1. CLI runs single and batch scenarios without embedding business/rendering logic.
-2. End-to-end runs are repeatable with deterministic validation checks.
-3. Pipeline execution results are easy to inspect and automate in CI.
-**Plans**: 2 plans
-
-Plans:
-- [x] 06-01: Implement CLI orchestration commands and job pipeline wiring
-- [x] 06-02: Add integration tests for repeatable end-to-end batch workflows
-
-### Phase 7: Full-Timeline Render Sequence and Frame Artifact Generation
-**Goal**: Expand single-frame pipeline execution into deterministic full-timeline frame sequence generation with user-visible frame artifacts.
-**Depends on**: Phase 6
-**Requirements**: PIPE-04
-**Success Criteria** (what must be TRUE):
-1. CLI single-run can evaluate the complete project timeline into an ordered frame sequence.
-2. Renderer/export generate deterministic frame artifacts for every frame rather than only operation metadata.
-3. Equivalent inputs produce identical frame artifact sets across repeated runs.
-**Plans**: 3 plans
-
-Plans:
-- [ ] 07-01: Expand timeline execution from single-frame to ordered full-sequence generation
-- [ ] 07-02: Emit deterministic frame artifacts for full-sequence export handoff
-- [ ] 07-03: Add repeatability tests for full-timeline frame generation
-
-### Phase 8: Playable Video Encoding and Audio Muxing
-**Goal**: Convert deterministic frame and audio artifacts into final playable media output with synchronized audio.
-**Depends on**: Phase 7
-**Requirements**: PIPE-05, PIPE-06
-**Success Criteria** (what must be TRUE):
-1. Export can encode a playable video artifact from generated frame outputs.
-2. Audio cues are synchronized and muxed into the final media output.
-3. Re-running media generation on identical inputs yields stable media package witnesses and deterministic validation evidence.
-**Plans**: 3 plans
-
-Plans:
-- [ ] 08-01: Integrate playable video encoding from ordered frame artifacts
-- [ ] 08-02: Add synchronized audio muxing into final media output
-- [ ] 08-03: Verify deterministic playable-media outputs and failure handling
-
-### Phase 9: Batch Media Output and Production Validation
-**Goal**: Guarantee finished media artifacts per batch job and re-validate the full production flow for single and batch runs.
-**Depends on**: Phase 8
-**Requirements**: CLI-03, QA-01
-**Success Criteria** (what must be TRUE):
-1. Batch CLI guarantees completed media artifacts per job and reports artifact paths/status deterministically.
-2. End-to-end validation proves spec-to-playable-media flows for single and batch runs.
-3. Production-focused verification catches regressions in media output rather than only metadata/package parity.
-**Plans**: 2 plans
-
-Plans:
-- [ ] 09-01: Extend batch CLI to guarantee final media artifacts per job
-- [ ] 09-02: Add production-style end-to-end validation for single and batch media outputs
+- [ ] 15-01: Produce witness-generation and review artifacts for parity samples
+- [ ] 15-02: Add deterministic regression checks for parity frame/video outputs
 
 ## Progress
 
-| Phase | Plans Complete | Status | Completed |
-|-------|----------------|--------|-----------|
-| 1. Bootstrap and Architecture Baseline | 3/3 | Complete | 01-01, 01-02, 01-03 |
-| 2. Spec Schema and Deterministic Timeline Core | 3/3 | Complete | 02-01, 02-02, 02-03 |
-| 3. Draw Progression and Camera State Resolution | 3/3 | Complete | 2026-03-18 |
-| 4. SVG Draw Rendering Adapter | 2/2 | Complete | 2026-03-19 |
-| 5. Export Pipeline Integration | 2/2 | Complete | 2026-03-19 |
-| 6. CLI Batch Orchestration and End-to-End Validation | 2/2 | Complete | 2026-03-19 |
-| 7. Full-Timeline Render Sequence and Frame Artifact Generation | 0/3 | Not started | - |
-| 8. Playable Video Encoding and Audio Muxing | 0/3 | Not started | - |
-| 9. Batch Media Output and Production Validation | 0/2 | Not started | - |
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|----------------|--------|-----------|
+| 1-11 | v1.0 Engine Core | 29/29 | Complete | 2026-03-21 |
+| 12 | v1.1 Source Parity | 0/3 | Not started | - |
+| 13 | v1.1 Source Parity | 0/3 | Not started | - |
+| 14 | v1.1 Source Parity | 0/3 | Not started | - |
+| 15 | v1.1 Source Parity | 0/2 | Not started | - |
