@@ -7,7 +7,7 @@
 
 ### Parity Structure
 
-- [ ] **PAR-01**: A reference scene can be represented as separate authored scene objects and assets instead of a whole-frame source crop.
+- [x] **PAR-01**: A reference scene can be represented as separate authored scene objects and assets instead of a whole-frame source crop.
 - [ ] **PAR-02**: Object-level move/scale/rotate/fade timeline events drive final frame transforms deterministically for parity scenes.
 - [ ] **PAR-03**: Hand draw sequencing follows the active object/path deterministically across the full scene timeline.
 - [ ] **PAR-04**: A parity sample can reproduce the intended object order and final composition of the reference scene without crop-based content shortcuts.
@@ -15,7 +15,7 @@
 ### Text and Asset Fidelity
 
 - [ ] **TXT-01**: Title, body, and footer content in parity samples render from authored text/vector assets rather than source-video text crops.
-- [ ] **AST-01**: SVG, text, and hand assets needed for parity scenes load through spec-driven manifests and reusable asset references.
+- [x] **AST-01**: SVG, text, and hand assets needed for parity scenes load through spec-driven manifests and reusable asset references.
 - [ ] **AST-02**: Parity sample workflows emit witness frames and final video outputs that are easy to inspect during iteration.
 
 ### Validation
@@ -42,8 +42,8 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PAR-01 | Phase 12 | Pending |
-| AST-01 | Phase 12 | Pending |
+| PAR-01 | Phase 12 | Complete |
+| AST-01 | Phase 12 | Complete |
 | PAR-02 | Phase 13 | Pending |
 | PAR-03 | Phase 13 | Pending |
 | PAR-04 | Phase 14 | Pending |

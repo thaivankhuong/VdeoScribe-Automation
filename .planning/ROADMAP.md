@@ -34,7 +34,7 @@ Continue from the shipped v1.0 engine/media baseline into a parity-focused miles
 **Plans**: 3 plans
 
 Plans:
-- [ ] 12-01: Define authored parity asset set and sample-scene object decomposition
+- [x] 12-01: Define authored parity asset set and sample-scene object decomposition
 - [ ] 12-02: Wire parity sample specs and asset manifests through the existing pipeline
 - [ ] 12-03: Validate authored sample determinism and remove crop-based fallback usage from the main parity path
 
@@ -87,7 +87,7 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 1-11 | v1.0 Engine Core | 29/29 | Complete | 2026-03-21 |
-| 12 | v1.1 Source Parity | 0/3 | Not started | - |
+| 12 | v1.1 Source Parity | 1/3 | In Progress|  |
 | 13 | v1.1 Source Parity | 0/3 | Not started | - |
 | 14 | v1.1 Source Parity | 0/3 | Not started | - |
 | 15 | v1.1 Source Parity | 0/2 | Not started | - |
