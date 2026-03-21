@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Source Parity
-status: Active milestone initialized; ready to discuss Phase 12
-stopped_at: Milestone v1.1 initialized
-last_updated: "2026-03-21T13:40:00.0000000Z"
+status: Milestone v1.1 initialized; ready to discuss and plan Phase 12
+stopped_at: Phase 12 context gathered
+last_updated: "2026-03-21T15:58:34.740Z"
 last_activity: 2026-03-21 - Started milestone v1.1 Source Parity
 progress:
   total_phases: 4
@@ -57,6 +57,6 @@ None captured yet.
 
 ## Session Continuity
 
-Last session: 2026-03-21
-Stopped at: Milestone v1.1 initialized
-Resume file: .planning/ROADMAP.md
+Last session: 2026-03-21T15:58:34.738Z
+Stopped at: Phase 12 context gathered
+Resume file: .planning/phases/12-source-sample-decomposition-and-asset-authoring/12-CONTEXT.md
