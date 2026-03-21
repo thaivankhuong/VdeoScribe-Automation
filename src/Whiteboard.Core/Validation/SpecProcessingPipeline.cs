@@ -289,6 +289,7 @@ public sealed class SpecProcessingPipeline : ISpecProcessingPipeline
                     Id = asset.Id.Trim(),
                     FamilyName = asset.FamilyName.Trim(),
                     SourcePath = asset.SourcePath.Trim(),
+                    ColorHex = string.IsNullOrWhiteSpace(asset.ColorHex) ? "#111111" : asset.ColorHex.Trim().ToUpperInvariant(),
                     Type = asset.Type
                 })
                 .OrderBy(asset => asset.Id, StringComparer.Ordinal)
@@ -302,6 +303,18 @@ public sealed class SpecProcessingPipeline : ISpecProcessingPipeline
                     SourcePath = asset.SourcePath.Trim(),
                     Type = asset.Type,
                     TipOffset = asset.TipOffset
+                })
+                .OrderBy(asset => asset.Id, StringComparer.Ordinal)
+                .ThenBy(asset => asset.SourcePath, StringComparer.Ordinal)
+                .ToList(),
+            ImageAssets = assets.ImageAssets
+                .Select(asset => new ImageAsset
+                {
+                    Id = asset.Id.Trim(),
+                    Name = asset.Name.Trim(),
+                    SourcePath = asset.SourcePath.Trim(),
+                    Type = asset.Type,
+                    DefaultSize = asset.DefaultSize
                 })
                 .OrderBy(asset => asset.Id, StringComparer.Ordinal)
                 .ThenBy(asset => asset.SourcePath, StringComparer.Ordinal)
@@ -405,16 +418,24 @@ public sealed class SpecProcessingPipeline : ISpecProcessingPipeline
     {
         var issues = new List<ValidationIssue>();
         var assetIds = new HashSet<string>(StringComparer.Ordinal);
+        var svgAssetIds = project.Assets.SvgAssets
+            .Select(asset => asset.Id)
+            .ToHashSet(StringComparer.Ordinal);
+        var imageAssetIds = project.Assets.ImageAssets
+            .Select(asset => asset.Id)
+            .ToHashSet(StringComparer.Ordinal);
 
         AddDuplicateAssetIssues(project.Assets.SvgAssets.Select(asset => asset.Id), "$.assets.svgAssets", "semantic.asset.id.duplicate", "Duplicate SVG asset id.", issues);
         AddDuplicateAssetIssues(project.Assets.AudioAssets.Select(asset => asset.Id), "$.assets.audioAssets", "semantic.asset.id.duplicate", "Duplicate audio asset id.", issues);
         AddDuplicateAssetIssues(project.Assets.FontAssets.Select(asset => asset.Id), "$.assets.fontAssets", "semantic.asset.id.duplicate", "Duplicate font asset id.", issues);
         AddDuplicateAssetIssues(project.Assets.HandAssets.Select(asset => asset.Id), "$.assets.handAssets", "semantic.asset.id.duplicate", "Duplicate hand asset id.", issues);
+        AddDuplicateAssetIssues(project.Assets.ImageAssets.Select(asset => asset.Id), "$.assets.imageAssets", "semantic.asset.id.duplicate", "Duplicate image asset id.", issues);
 
         foreach (var assetId in project.Assets.SvgAssets.Select(asset => asset.Id)
                      .Concat(project.Assets.AudioAssets.Select(asset => asset.Id))
                      .Concat(project.Assets.FontAssets.Select(asset => asset.Id))
-                     .Concat(project.Assets.HandAssets.Select(asset => asset.Id)))
+                     .Concat(project.Assets.HandAssets.Select(asset => asset.Id))
+                     .Concat(project.Assets.ImageAssets.Select(asset => asset.Id)))
         {
             assetIds.Add(assetId);
         }
@@ -437,15 +458,26 @@ public sealed class SpecProcessingPipeline : ISpecProcessingPipeline
                     issues.Add(new ValidationIssue(ValidationGate.Semantic, $"$.scenes[{sceneIndex}].objects[{objectIndex}].id", ValidationSeverity.Error, "semantic.scene_object.id.duplicate", "Scene object ids must be unique within a scene."));
                 }
 
-                if (sceneObject.Type == SceneObjectType.Svg)
+                if (sceneObject.Type == SceneObjectType.Svg || sceneObject.Type == SceneObjectType.Image)
                 {
                     if (string.IsNullOrWhiteSpace(sceneObject.AssetRefId))
                     {
-                        issues.Add(new ValidationIssue(ValidationGate.Semantic, $"$.scenes[{sceneIndex}].objects[{objectIndex}].assetRefId", ValidationSeverity.Error, "semantic.scene_object.asset_ref.required", "SVG scene objects must reference an SVG asset."));
+                        var message = sceneObject.Type == SceneObjectType.Image
+                            ? "Image scene objects must reference an image asset."
+                            : "SVG scene objects must reference an SVG asset.";
+                        issues.Add(new ValidationIssue(ValidationGate.Semantic, $"$.scenes[{sceneIndex}].objects[{objectIndex}].assetRefId", ValidationSeverity.Error, "semantic.scene_object.asset_ref.required", message));
                     }
                     else if (!assetIds.Contains(sceneObject.AssetRefId))
                     {
                         issues.Add(new ValidationIssue(ValidationGate.Semantic, $"$.scenes[{sceneIndex}].objects[{objectIndex}].assetRefId", ValidationSeverity.Error, "semantic.scene_object.asset_ref.missing", "Scene object assetRefId must reference an existing asset."));
+                    }
+                    else if (sceneObject.Type == SceneObjectType.Svg && !svgAssetIds.Contains(sceneObject.AssetRefId))
+                    {
+                        issues.Add(new ValidationIssue(ValidationGate.Semantic, $"$.scenes[{sceneIndex}].objects[{objectIndex}].assetRefId", ValidationSeverity.Error, "semantic.scene_object.asset_ref.type_mismatch", "SVG scene objects must reference an existing SVG asset."));
+                    }
+                    else if (sceneObject.Type == SceneObjectType.Image && !imageAssetIds.Contains(sceneObject.AssetRefId))
+                    {
+                        issues.Add(new ValidationIssue(ValidationGate.Semantic, $"$.scenes[{sceneIndex}].objects[{objectIndex}].assetRefId", ValidationSeverity.Error, "semantic.scene_object.asset_ref.type_mismatch", "Image scene objects must reference an existing image asset."));
                     }
                 }
             }
@@ -537,3 +569,5 @@ public sealed class SpecProcessingPipeline : ISpecProcessingPipeline
         return new SpecProcessingResult(gateResults, issues, project);
     }
 }
+
+

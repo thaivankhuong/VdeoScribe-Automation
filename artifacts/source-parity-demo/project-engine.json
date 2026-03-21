@@ -1,7 +1,7 @@
 {
   "meta": {
-    "projectId": "source-engine-demo",
-    "name": "Source Engine Demo"
+    "projectId": "source-parity-authored-witness",
+    "name": "Source Parity Authored Witness"
   },
   "output": {
     "width": 1280,

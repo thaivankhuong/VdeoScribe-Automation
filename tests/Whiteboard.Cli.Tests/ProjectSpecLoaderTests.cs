@@ -1,5 +1,6 @@
-using System;
+﻿using System;
 using System.IO;
+using System.Linq;
 using Whiteboard.Cli.Services;
 using Xunit;
 
@@ -47,11 +48,64 @@ public sealed class ProjectSpecLoaderTests
             Assert.Equal(new[] { "svg-a", "svg-b" }, project.Assets.SvgAssets.Select(asset => asset.Id).ToArray());
             Assert.Equal("#FFFFFF", project.Output.BackgroundColorHex);
             Assert.Equal(Path.GetFileNameWithoutExtension(specPath), project.Meta.Name);
+            Assert.Equal("#E64A3B", project.Assets.FontAssets.Single().ColorHex);
         }
         finally
         {
             DeleteSpecFile(specPath);
         }
+    }
+
+    [Fact]
+    public void ProjectSpecLoader_Load_RejectsSceneObjectsThatReferenceWrongAssetType()
+    {
+        var specPath = CreateSpecFile("type-mismatch-project.json", CreateTypeMismatchSpecJson());
+
+        try
+        {
+            var loader = new ProjectSpecLoader();
+            var exception = Assert.Throws<InvalidDataException>(() => loader.Load(specPath));
+
+            Assert.Contains("semantic.scene_object.asset_ref.type_mismatch", exception.Message, StringComparison.Ordinal);
+            Assert.Contains("SVG scene objects must reference an existing SVG asset.", exception.Message, StringComparison.Ordinal);
+        }
+        finally
+        {
+            DeleteSpecFile(specPath);
+        }
+    }
+
+    [Fact]
+    public void ProjectSpecLoader_Load_CanReadPhase12AuthoredWitnessSpec()
+    {
+        var specPath = ResolveRepoRelativePath("artifacts", "source-parity-demo", "project-engine.json");
+        var loader = new ProjectSpecLoader();
+
+        var project = loader.Load(specPath);
+
+        Assert.Equal("source-parity-authored-witness", project.Meta.ProjectId);
+        Assert.Equal(6, project.Assets.SvgAssets.Count);
+        Assert.Single(project.Assets.HandAssets);
+        Assert.Empty(project.Assets.ImageAssets);
+        Assert.Equal(new[]
+        {
+            "svg-arrow",
+            "svg-body",
+            "svg-clock-group",
+            "svg-footer",
+            "svg-left",
+            "svg-title"
+        }, project.Assets.SvgAssets.Select(asset => asset.Id).ToArray());
+        Assert.Equal("hand-1", project.Assets.HandAssets.Single().Id);
+        Assert.Equal(new[]
+        {
+            "object-arrow",
+            "object-body",
+            "object-clock-group",
+            "object-footer",
+            "object-left",
+            "object-title"
+        }, project.Scenes.Single().Objects.Select(sceneObject => sceneObject.Id).ToArray());
     }
 
     private static string CreateSpecFile(string fileName, string json)
@@ -78,6 +132,21 @@ public sealed class ProjectSpecLoaderTests
         {
             Directory.Delete(directoryPath, recursive: true);
         }
+    }
+
+    private static string ResolveRepoRelativePath(params string[] segments)
+    {
+        var baseDirectory = new DirectoryInfo(AppContext.BaseDirectory);
+        for (var current = baseDirectory; current is not null; current = current.Parent)
+        {
+            var candidate = Path.Combine(new[] { current.FullName }.Concat(segments).ToArray());
+            if (File.Exists(candidate))
+            {
+                return candidate;
+            }
+        }
+
+        throw new FileNotFoundException($"Could not resolve repo file: {Path.Combine(segments)}");
     }
 
     private static string CreateInvalidSpecJson()
@@ -147,6 +216,15 @@ public sealed class ProjectSpecLoaderTests
                     "sourcePath": "assets/a.svg",
                     "type": "svg"
                   }
+                ],
+                "fontAssets": [
+                  {
+                    "id": "font-a",
+                    "name": "Accent",
+                    "familyName": "Caveat",
+                    "sourcePath": "assets/caveat.ttf",
+                    "colorHex": "#e64a3b"
+                  }
                 ]
               },
               "scenes": [
@@ -202,4 +280,59 @@ public sealed class ProjectSpecLoaderTests
             }
             """;
     }
+
+    private static string CreateTypeMismatchSpecJson()
+    {
+        return """
+            {
+              "meta": {
+                "projectId": "cli-loader-type-mismatch"
+              },
+              "output": {
+                "width": 1280,
+                "height": 720,
+                "frameRate": 24
+              },
+              "assets": {
+                "imageAssets": [
+                  {
+                    "id": "image-1",
+                    "name": "Witness Raster",
+                    "sourcePath": "assets/witness.png",
+                    "type": "image"
+                  }
+                ]
+              },
+              "scenes": [
+                {
+                  "id": "scene-1",
+                  "name": "Mismatch",
+                  "durationSeconds": 3,
+                  "objects": [
+                    {
+                      "id": "object-1",
+                      "name": "Wrong Type",
+                      "type": "svg",
+                      "assetRefId": "image-1",
+                      "layer": 1
+                    }
+                  ]
+                }
+              ],
+              "timeline": {
+                "events": [
+                  {
+                    "id": "event-1",
+                    "sceneId": "scene-1",
+                    "sceneObjectId": "object-1",
+                    "actionType": "draw",
+                    "startSeconds": 0,
+                    "durationSeconds": 1
+                  }
+                ]
+              }
+            }
+            """;
+    }
 }
+
