@@ -1,0 +1,99 @@
+{
+    "phase":  "12-01",
+    "witnessScene":  "project-engine.json",
+    "activePath":  "authored-witness",
+    "generatedBy":  "artifacts/source-parity-demo/build-engine-assets.ps1",
+    "generatedAt":  "2026-03-22T06:31:06.1612570+07:00",
+    "authoredObjectCount":  6,
+    "objects":  [
+                    {
+                        "order":  1,
+                        "objectId":  "object-left",
+                        "assetId":  "svg-left",
+                        "assetFile":  "engine-assets/left-illustration.svg",
+                        "role":  "Left Illustration",
+                        "notes":  "Checklist board and characters remain one authored illustration object for Phase 12.",
+                        "handEmbedded":  false
+                    },
+                    {
+                        "order":  2,
+                        "objectId":  "object-arrow",
+                        "assetId":  "svg-arrow",
+                        "assetFile":  "engine-assets/arrow-main.svg",
+                        "role":  "Arrow",
+                        "notes":  "Connector arrow stays separate so later motion timing can target it directly.",
+                        "handEmbedded":  false
+                    },
+                    {
+                        "order":  3,
+                        "objectId":  "object-title",
+                        "assetId":  "svg-title",
+                        "assetFile":  "engine-assets/title.svg",
+                        "role":  "Title",
+                        "notes":  "Headline text is authored as its own SVG block instead of a source crop.",
+                        "handEmbedded":  false
+                    },
+                    {
+                        "order":  4,
+                        "objectId":  "object-clock-group",
+                        "assetId":  "svg-clock-group",
+                        "assetFile":  "engine-assets/clock-group.svg",
+                        "role":  "Clock Group",
+                        "notes":  "Clock illustration plus nearby text stay grouped as one witness object for this phase.",
+                        "handEmbedded":  false
+                    },
+                    {
+                        "order":  5,
+                        "objectId":  "object-body",
+                        "assetId":  "svg-body",
+                        "assetFile":  "engine-assets/body.svg",
+                        "role":  "Body",
+                        "notes":  "Body copy is its own authored object and remains separate from the title/footer blocks.",
+                        "handEmbedded":  false
+                    },
+                    {
+                        "order":  6,
+                        "objectId":  "object-footer",
+                        "assetId":  "svg-footer",
+                        "assetFile":  "engine-assets/footer.svg",
+                        "role":  "Footer",
+                        "notes":  "Footer text stays separate from the witness background and crop-based references.",
+                        "handEmbedded":  false
+                    }
+                ],
+    "handAsset":  {
+                      "assetId":  "hand-1",
+                      "assetFile":  "assets/hand.svg",
+                      "bakedIntoWitnessObjects":  false,
+                      "notes":  "Hand remains a separate manifest-backed asset for later sequencing work."
+                  },
+    "legacyReferenceOnly":  {
+                                "specs":  [
+                                              "project.json",
+                                              "project-image-hand.json"
+                                          ],
+                                "files":  [
+                                              "assets/footer-crop.png",
+                                              "assets/footer-crop2.png",
+                                              "assets/footer-crop3.png",
+                                              "assets/footer-text-only.png",
+                                              "assets/footer-text-only2.png",
+                                              "assets/hand-crop.png",
+                                              "assets/hand-crop2.png",
+                                              "assets/hand-crop3.png",
+                                              "assets/hand-source.png",
+                                              "assets/hand-transparent.png",
+                                              "assets/source-layout.png",
+                                              "assets/source-layout-full.png",
+                                              "assets/source-layout-full2.png",
+                                              "segmented-assets/arrow.png",
+                                              "segmented-assets/body.png",
+                                              "segmented-assets/clock-group.png",
+                                              "segmented-assets/footer.png",
+                                              "segmented-assets/hand-real.png",
+                                              "segmented-assets/left-illustration.png",
+                                              "segmented-assets/title.png"
+                                          ],
+                                "notes":  "Raster crops and shortcut specs stay available only for comparison/reference, not the main parity path."
+                            }
+}
