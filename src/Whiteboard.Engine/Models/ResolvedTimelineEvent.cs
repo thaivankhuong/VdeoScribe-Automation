@@ -9,6 +9,7 @@ public record ResolvedTimelineEvent
     public string SceneId { get; init; } = string.Empty;
     public string SceneObjectId { get; init; } = string.Empty;
     public TimelineActionType ActionType { get; init; } = TimelineActionType.Draw;
+    public EasingType Easing { get; init; } = EasingType.Linear;
     public int StartFrameIndex { get; init; }
     public int EndFrameIndexExclusive { get; init; }
     public bool IsActive { get; init; }

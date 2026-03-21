@@ -5,6 +5,7 @@ using System.Linq;
 using Whiteboard.Core.Enums;
 using Whiteboard.Core.Models;
 using Whiteboard.Core.Scene;
+using Whiteboard.Core.ValueObjects;
 using Whiteboard.Engine.Context;
 using Whiteboard.Engine.Models;
 using Whiteboard.Engine.Resolvers;
@@ -13,6 +14,8 @@ namespace Whiteboard.Engine.Services;
 
 public sealed class ObjectStateResolver : IObjectStateResolver
 {
+    private const int DeterministicPrecision = 6;
+
     public IReadOnlyList<ResolvedSceneState> Resolve(
         VideoProject project,
         FrameContext frameContext,
@@ -59,8 +62,171 @@ public sealed class ObjectStateResolver : IObjectStateResolver
             ActiveDrawPathIndex = lifecycle.ActiveDrawPathIndex,
             DrawOrderingKey = lifecycle.DrawOrderingKey,
             DrawPaths = lifecycle.DrawPaths,
-            Transform = sceneObject.Transform
+            Transform = ResolveTransformSnapshot(sceneObject.Transform, frameIndex, objectEvents)
         };
+    }
+
+    private static TransformSpec ResolveTransformSnapshot(
+        TransformSpec baseTransform,
+        int frameIndex,
+        IReadOnlyList<ResolvedTimelineEvent> objectEvents)
+    {
+        var transform = NormalizeTransform(baseTransform);
+
+        foreach (var timelineEvent in OrderEvents(objectEvents)
+            .Where(evt => evt.ActionType is TimelineActionType.Move
+                or TimelineActionType.Scale
+                or TimelineActionType.Rotate
+                or TimelineActionType.Fade))
+        {
+            transform = ApplyTransformEvent(transform, timelineEvent, frameIndex);
+        }
+
+        return NormalizeTransform(transform);
+    }
+
+    private static TransformSpec ApplyTransformEvent(
+        TransformSpec currentTransform,
+        ResolvedTimelineEvent timelineEvent,
+        int frameIndex)
+    {
+        var progress = ResolveEasedProgress(timelineEvent, frameIndex);
+        if (progress <= 0)
+        {
+            return currentTransform;
+        }
+
+        return timelineEvent.ActionType switch
+        {
+            TimelineActionType.Move => currentTransform with
+            {
+                Position = new Position2D(
+                    Interpolate(
+                        currentTransform.Position.X,
+                        ResolveDoubleParameter(timelineEvent, currentTransform.Position.X, "x", "positionX"),
+                        progress),
+                    Interpolate(
+                        currentTransform.Position.Y,
+                        ResolveDoubleParameter(timelineEvent, currentTransform.Position.Y, "y", "positionY"),
+                        progress))
+            },
+            TimelineActionType.Scale => currentTransform with
+            {
+                ScaleX = Interpolate(
+                    currentTransform.ScaleX,
+                    ResolveDoubleParameter(timelineEvent, currentTransform.ScaleX, "scaleX"),
+                    progress),
+                ScaleY = Interpolate(
+                    currentTransform.ScaleY,
+                    ResolveDoubleParameter(timelineEvent, currentTransform.ScaleY, "scaleY"),
+                    progress),
+                Size = new Size2D(
+                    Interpolate(
+                        currentTransform.Size.Width,
+                        ResolveDoubleParameter(timelineEvent, currentTransform.Size.Width, "width", "sizeWidth"),
+                        progress),
+                    Interpolate(
+                        currentTransform.Size.Height,
+                        ResolveDoubleParameter(timelineEvent, currentTransform.Size.Height, "height", "sizeHeight"),
+                        progress))
+            },
+            TimelineActionType.Rotate => currentTransform with
+            {
+                RotationDegrees = Interpolate(
+                    currentTransform.RotationDegrees,
+                    ResolveDoubleParameter(timelineEvent, currentTransform.RotationDegrees, "rotation", "rotationDegrees"),
+                    progress)
+            },
+            TimelineActionType.Fade => currentTransform with
+            {
+                Opacity = Clamp01(Interpolate(
+                    currentTransform.Opacity,
+                    ResolveDoubleParameter(timelineEvent, currentTransform.Opacity, "opacity"),
+                    progress))
+            },
+            _ => currentTransform
+        };
+    }
+
+    private static TransformSpec NormalizeTransform(TransformSpec transform)
+    {
+        return transform with
+        {
+            Position = new Position2D(
+                Round(transform.Position.X),
+                Round(transform.Position.Y)),
+            Size = new Size2D(
+                Round(transform.Size.Width),
+                Round(transform.Size.Height)),
+            RotationDegrees = Round(transform.RotationDegrees),
+            ScaleX = Round(transform.ScaleX),
+            ScaleY = Round(transform.ScaleY),
+            Opacity = Round(Clamp01(transform.Opacity))
+        };
+    }
+
+    private static double ResolveDoubleParameter(
+        ResolvedTimelineEvent timelineEvent,
+        double fallbackValue,
+        params string[] parameterNames)
+    {
+        foreach (var parameterName in parameterNames)
+        {
+            if (timelineEvent.Parameters.TryGetValue(parameterName, out var value)
+                && double.TryParse(value, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out var parsed))
+            {
+                return parsed;
+            }
+        }
+
+        return fallbackValue;
+    }
+
+    private static double ResolveEasedProgress(ResolvedTimelineEvent timelineEvent, int frameIndex)
+    {
+        if (frameIndex < timelineEvent.StartFrameIndex)
+        {
+            return 0;
+        }
+
+        if (frameIndex >= timelineEvent.EndFrameIndexExclusive)
+        {
+            return 1;
+        }
+
+        var linearProgress = ResolveWindowProgress(timelineEvent, frameIndex);
+        return ApplyEasing(linearProgress, timelineEvent.Easing);
+    }
+
+    private static double ApplyEasing(double progress, EasingType easing)
+    {
+        var clamped = Clamp01(progress);
+        return easing switch
+        {
+            EasingType.Step => 0,
+            EasingType.Linear => clamped,
+            EasingType.EaseIn => clamped * clamped,
+            EasingType.EaseOut => 1d - Math.Pow(1d - clamped, 2d),
+            EasingType.EaseInOut => clamped < 0.5d
+                ? 2d * clamped * clamped
+                : 1d - (Math.Pow(-2d * clamped + 2d, 2d) / 2d),
+            _ => clamped
+        };
+    }
+
+    private static double Interpolate(double start, double end, double progress)
+    {
+        return Round(start + ((end - start) * Clamp01(progress)));
+    }
+
+    private static double Clamp01(double value)
+    {
+        return Math.Clamp(value, 0d, 1d);
+    }
+
+    private static double Round(double value)
+    {
+        return Math.Round(value, DeterministicPrecision, MidpointRounding.AwayFromZero);
     }
 
     private static LifecycleSnapshot ResolveLifecycleSnapshot(
@@ -84,6 +250,11 @@ public sealed class ObjectStateResolver : IObjectStateResolver
 
         var cycleDrawWindows = drawWindows
             .Where(window => window.Event.StartFrameIndex >= resetFrame)
+            .Select((window, cycleIndex) => window with
+            {
+                OrderedPathIndex = cycleIndex,
+                OrderingKey = BuildPathOrderingKey(sceneId, sceneObject.Layer, sceneObject.Id, window.ExplicitPathOrder, cycleIndex)
+            })
             .ToList();
         var resolvedDrawPaths = cycleDrawWindows
             .Select(window => ResolveDrawPath(window, frameIndex))

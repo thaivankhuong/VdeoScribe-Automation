@@ -1,0 +1,506 @@
+{
+  "meta": {
+    "projectId": "source-engine-demo",
+    "name": "Source Engine Demo"
+  },
+  "output": {
+    "width": 1280,
+    "height": 720,
+    "frameRate": 24
+  },
+  "assets": {
+    "svgAssets": [
+      {
+        "id": "svg-left",
+        "name": "Left Illustration",
+        "sourcePath": "engine-assets/left-illustration.svg",
+        "type": "svg"
+      },
+      {
+        "id": "svg-arrow",
+        "name": "Arrow",
+        "sourcePath": "engine-assets/arrow-main.svg",
+        "type": "svg"
+      },
+      {
+        "id": "svg-title",
+        "name": "Title",
+        "sourcePath": "engine-assets/title.svg",
+        "type": "svg"
+      },
+      {
+        "id": "svg-clock-group",
+        "name": "Clock Group",
+        "sourcePath": "engine-assets/clock-group.svg",
+        "type": "svg"
+      },
+      {
+        "id": "svg-body",
+        "name": "Body",
+        "sourcePath": "engine-assets/body.svg",
+        "type": "svg"
+      },
+      {
+        "id": "svg-footer",
+        "name": "Footer",
+        "sourcePath": "engine-assets/footer.svg",
+        "type": "svg"
+      }
+    ],
+    "handAssets": [
+      {
+        "id": "hand-1",
+        "name": "Marker Hand",
+        "sourcePath": "assets/hand.svg",
+        "type": "hand",
+        "tipOffset": {
+          "x": 74,
+          "y": 4
+        }
+      }
+    ]
+  },
+  "scenes": [
+    {
+      "id": "scene-1",
+      "name": "Source Scene",
+      "durationSeconds": 11,
+      "objects": [
+        {
+          "id": "object-left",
+          "name": "Left Illustration",
+          "type": "svg",
+          "assetRefId": "svg-left",
+          "layer": 1,
+          "isVisible": true,
+          "transform": {
+            "position": { "x": -8, "y": 132 },
+            "size": { "width": 538, "height": 500 },
+            "scaleX": 0.96,
+            "scaleY": 0.96,
+            "rotationDegrees": 0,
+            "opacity": 0.92
+          }
+        },
+        {
+          "id": "object-arrow",
+          "name": "Arrow",
+          "type": "svg",
+          "assetRefId": "svg-arrow",
+          "layer": 2,
+          "isVisible": true,
+          "transform": {
+            "position": { "x": 500, "y": 70 },
+            "size": { "width": 284, "height": 138 },
+            "scaleX": 0.92,
+            "scaleY": 0.92,
+            "rotationDegrees": -7,
+            "opacity": 0.88
+          }
+        },
+        {
+          "id": "object-title",
+          "name": "Title",
+          "type": "svg",
+          "assetRefId": "svg-title",
+          "layer": 3,
+          "isVisible": true,
+          "transform": {
+            "position": { "x": 782, "y": 62 },
+            "size": { "width": 400, "height": 76 },
+            "scaleX": 0.94,
+            "scaleY": 0.94,
+            "rotationDegrees": 0,
+            "opacity": 0.55
+          }
+        },
+        {
+          "id": "object-clock-group",
+          "name": "Clock Group",
+          "type": "svg",
+          "assetRefId": "svg-clock-group",
+          "layer": 4,
+          "isVisible": true,
+          "transform": {
+            "position": { "x": 742, "y": 184 },
+            "size": { "width": 410, "height": 228 },
+            "scaleX": 0.94,
+            "scaleY": 0.94,
+            "rotationDegrees": 3,
+            "opacity": 0.55
+          }
+        },
+        {
+          "id": "object-body",
+          "name": "Body",
+          "type": "svg",
+          "assetRefId": "svg-body",
+          "layer": 5,
+          "isVisible": true,
+          "transform": {
+            "position": { "x": 1012, "y": 334 },
+            "size": { "width": 198, "height": 120 },
+            "scaleX": 0.96,
+            "scaleY": 0.96,
+            "rotationDegrees": 1.5,
+            "opacity": 0.45
+          }
+        },
+        {
+          "id": "object-footer",
+          "name": "Footer",
+          "type": "svg",
+          "assetRefId": "svg-footer",
+          "layer": 6,
+          "isVisible": true,
+          "transform": {
+            "position": { "x": 86, "y": 664 },
+            "size": { "width": 452, "height": 50 },
+            "scaleX": 0.94,
+            "scaleY": 0.94,
+            "rotationDegrees": 0,
+            "opacity": 0.35
+          }
+        }
+      ]
+    }
+  ],
+  "timeline": {
+    "events": [
+      {
+        "id": "draw-left",
+        "sceneId": "scene-1",
+        "sceneObjectId": "object-left",
+        "actionType": "draw",
+        "startSeconds": 0.0,
+        "durationSeconds": 2.8
+      },
+      {
+        "id": "move-left",
+        "sceneId": "scene-1",
+        "sceneObjectId": "object-left",
+        "actionType": "move",
+        "startSeconds": 0.0,
+        "durationSeconds": 2.8,
+        "easing": "easeOut",
+        "parameters": {
+          "x": "18",
+          "y": "120"
+        }
+      },
+      {
+        "id": "scale-left",
+        "sceneId": "scene-1",
+        "sceneObjectId": "object-left",
+        "actionType": "scale",
+        "startSeconds": 0.0,
+        "durationSeconds": 2.8,
+        "easing": "easeOut",
+        "parameters": {
+          "width": "560",
+          "height": "520",
+          "scaleX": "1",
+          "scaleY": "1"
+        }
+      },
+      {
+        "id": "fade-left",
+        "sceneId": "scene-1",
+        "sceneObjectId": "object-left",
+        "actionType": "fade",
+        "startSeconds": 0.0,
+        "durationSeconds": 2.8,
+        "parameters": {
+          "opacity": "1"
+        }
+      },
+      {
+        "id": "draw-arrow",
+        "sceneId": "scene-1",
+        "sceneObjectId": "object-arrow",
+        "actionType": "draw",
+        "startSeconds": 2.8,
+        "durationSeconds": 0.8
+      },
+      {
+        "id": "move-arrow",
+        "sceneId": "scene-1",
+        "sceneObjectId": "object-arrow",
+        "actionType": "move",
+        "startSeconds": 2.8,
+        "durationSeconds": 0.8,
+        "easing": "easeOut",
+        "parameters": {
+          "x": "520",
+          "y": "56"
+        }
+      },
+      {
+        "id": "scale-arrow",
+        "sceneId": "scene-1",
+        "sceneObjectId": "object-arrow",
+        "actionType": "scale",
+        "startSeconds": 2.8,
+        "durationSeconds": 0.8,
+        "easing": "easeOut",
+        "parameters": {
+          "width": "308",
+          "height": "150",
+          "scaleX": "1",
+          "scaleY": "1"
+        }
+      },
+      {
+        "id": "rotate-arrow",
+        "sceneId": "scene-1",
+        "sceneObjectId": "object-arrow",
+        "actionType": "rotate",
+        "startSeconds": 2.8,
+        "durationSeconds": 0.8,
+        "easing": "easeOut",
+        "parameters": {
+          "rotation": "0"
+        }
+      },
+      {
+        "id": "fade-arrow",
+        "sceneId": "scene-1",
+        "sceneObjectId": "object-arrow",
+        "actionType": "fade",
+        "startSeconds": 2.8,
+        "durationSeconds": 0.8,
+        "parameters": {
+          "opacity": "1"
+        }
+      },
+      {
+        "id": "draw-title",
+        "sceneId": "scene-1",
+        "sceneObjectId": "object-title",
+        "actionType": "draw",
+        "startSeconds": 3.6,
+        "durationSeconds": 1.0
+      },
+      {
+        "id": "move-title",
+        "sceneId": "scene-1",
+        "sceneObjectId": "object-title",
+        "actionType": "move",
+        "startSeconds": 3.6,
+        "durationSeconds": 1.0,
+        "easing": "easeOut",
+        "parameters": {
+          "x": "790",
+          "y": "78"
+        }
+      },
+      {
+        "id": "scale-title",
+        "sceneId": "scene-1",
+        "sceneObjectId": "object-title",
+        "actionType": "scale",
+        "startSeconds": 3.6,
+        "durationSeconds": 1.0,
+        "easing": "easeOut",
+        "parameters": {
+          "width": "420",
+          "height": "80",
+          "scaleX": "1",
+          "scaleY": "1"
+        }
+      },
+      {
+        "id": "fade-title",
+        "sceneId": "scene-1",
+        "sceneObjectId": "object-title",
+        "actionType": "fade",
+        "startSeconds": 3.6,
+        "durationSeconds": 1.0,
+        "parameters": {
+          "opacity": "1"
+        }
+      },
+      {
+        "id": "draw-clock",
+        "sceneId": "scene-1",
+        "sceneObjectId": "object-clock-group",
+        "actionType": "draw",
+        "startSeconds": 4.6,
+        "durationSeconds": 2.4
+      },
+      {
+        "id": "move-clock",
+        "sceneId": "scene-1",
+        "sceneObjectId": "object-clock-group",
+        "actionType": "move",
+        "startSeconds": 4.6,
+        "durationSeconds": 2.4,
+        "easing": "easeOut",
+        "parameters": {
+          "x": "730",
+          "y": "170"
+        }
+      },
+      {
+        "id": "scale-clock",
+        "sceneId": "scene-1",
+        "sceneObjectId": "object-clock-group",
+        "actionType": "scale",
+        "startSeconds": 4.6,
+        "durationSeconds": 2.4,
+        "easing": "easeOut",
+        "parameters": {
+          "width": "430",
+          "height": "240",
+          "scaleX": "1",
+          "scaleY": "1"
+        }
+      },
+      {
+        "id": "rotate-clock",
+        "sceneId": "scene-1",
+        "sceneObjectId": "object-clock-group",
+        "actionType": "rotate",
+        "startSeconds": 4.6,
+        "durationSeconds": 2.4,
+        "easing": "easeOut",
+        "parameters": {
+          "rotation": "0"
+        }
+      },
+      {
+        "id": "fade-clock",
+        "sceneId": "scene-1",
+        "sceneObjectId": "object-clock-group",
+        "actionType": "fade",
+        "startSeconds": 4.6,
+        "durationSeconds": 2.4,
+        "parameters": {
+          "opacity": "1"
+        }
+      },
+      {
+        "id": "draw-body",
+        "sceneId": "scene-1",
+        "sceneObjectId": "object-body",
+        "actionType": "draw",
+        "startSeconds": 7.0,
+        "durationSeconds": 1.4
+      },
+      {
+        "id": "move-body",
+        "sceneId": "scene-1",
+        "sceneObjectId": "object-body",
+        "actionType": "move",
+        "startSeconds": 7.0,
+        "durationSeconds": 1.4,
+        "easing": "easeOut",
+        "parameters": {
+          "x": "1008",
+          "y": "320"
+        }
+      },
+      {
+        "id": "scale-body",
+        "sceneId": "scene-1",
+        "sceneObjectId": "object-body",
+        "actionType": "scale",
+        "startSeconds": 7.0,
+        "durationSeconds": 1.4,
+        "easing": "easeOut",
+        "parameters": {
+          "width": "210",
+          "height": "128",
+          "scaleX": "1",
+          "scaleY": "1"
+        }
+      },
+      {
+        "id": "rotate-body",
+        "sceneId": "scene-1",
+        "sceneObjectId": "object-body",
+        "actionType": "rotate",
+        "startSeconds": 7.0,
+        "durationSeconds": 1.4,
+        "easing": "easeOut",
+        "parameters": {
+          "rotation": "0"
+        }
+      },
+      {
+        "id": "fade-body",
+        "sceneId": "scene-1",
+        "sceneObjectId": "object-body",
+        "actionType": "fade",
+        "startSeconds": 7.0,
+        "durationSeconds": 1.4,
+        "parameters": {
+          "opacity": "1"
+        }
+      },
+      {
+        "id": "draw-footer",
+        "sceneId": "scene-1",
+        "sceneObjectId": "object-footer",
+        "actionType": "draw",
+        "startSeconds": 8.4,
+        "durationSeconds": 1.0
+      },
+      {
+        "id": "move-footer",
+        "sceneId": "scene-1",
+        "sceneObjectId": "object-footer",
+        "actionType": "move",
+        "startSeconds": 8.4,
+        "durationSeconds": 1.0,
+        "easing": "easeOut",
+        "parameters": {
+          "x": "76",
+          "y": "648"
+        }
+      },
+      {
+        "id": "scale-footer",
+        "sceneId": "scene-1",
+        "sceneObjectId": "object-footer",
+        "actionType": "scale",
+        "startSeconds": 8.4,
+        "durationSeconds": 1.0,
+        "easing": "easeOut",
+        "parameters": {
+          "width": "470",
+          "height": "54",
+          "scaleX": "1",
+          "scaleY": "1"
+        }
+      },
+      {
+        "id": "fade-footer",
+        "sceneId": "scene-1",
+        "sceneObjectId": "object-footer",
+        "actionType": "fade",
+        "startSeconds": 8.4,
+        "durationSeconds": 1.0,
+        "parameters": {
+          "opacity": "1"
+        }
+      }
+    ],
+    "cameraTrack": {
+      "keyframes": [
+        {
+          "timeSeconds": 0,
+          "position": { "x": 0, "y": 0 },
+          "zoom": 1,
+          "interpolation": "linear"
+        },
+        {
+          "timeSeconds": 11,
+          "position": { "x": 12, "y": 6 },
+          "zoom": 1.04,
+          "interpolation": "linear"
+        }
+      ]
+    }
+  }
+}

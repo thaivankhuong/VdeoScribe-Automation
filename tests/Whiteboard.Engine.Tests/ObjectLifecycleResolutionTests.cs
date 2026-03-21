@@ -159,6 +159,127 @@ public sealed class ObjectLifecycleResolutionTests
         Assert.Single(redraw.DrawPaths);
     }
 
+    [Fact]
+    public void TransformEvents_InterpolateMoveScaleRotateAndFade()
+    {
+        var project = CreateProject(
+            initiallyVisible: true,
+            new TimelineEvent
+            {
+                Id = "move-1",
+                SceneId = "scene-1",
+                SceneObjectId = "object-1",
+                ActionType = TimelineActionType.Move,
+                StartSeconds = 0,
+                DurationSeconds = 4d / 30d,
+                Easing = EasingType.Linear,
+                Parameters = new Dictionary<string, string>
+                {
+                    ["x"] = "180",
+                    ["y"] = "220"
+                }
+            },
+            new TimelineEvent
+            {
+                Id = "scale-1",
+                SceneId = "scene-1",
+                SceneObjectId = "object-1",
+                ActionType = TimelineActionType.Scale,
+                StartSeconds = 0,
+                DurationSeconds = 4d / 30d,
+                Easing = EasingType.Linear,
+                Parameters = new Dictionary<string, string>
+                {
+                    ["scaleX"] = "1.5",
+                    ["scaleY"] = "0.5",
+                    ["width"] = "300",
+                    ["height"] = "150"
+                }
+            },
+            new TimelineEvent
+            {
+                Id = "rotate-1",
+                SceneId = "scene-1",
+                SceneObjectId = "object-1",
+                ActionType = TimelineActionType.Rotate,
+                StartSeconds = 0,
+                DurationSeconds = 4d / 30d,
+                Easing = EasingType.Linear,
+                Parameters = new Dictionary<string, string>
+                {
+                    ["rotation"] = "90"
+                }
+            },
+            new TimelineEvent
+            {
+                Id = "fade-1",
+                SceneId = "scene-1",
+                SceneObjectId = "object-1",
+                ActionType = TimelineActionType.Fade,
+                StartSeconds = 0,
+                DurationSeconds = 4d / 30d,
+                Easing = EasingType.Linear,
+                Parameters = new Dictionary<string, string>
+                {
+                    ["opacity"] = "0.25"
+                }
+            });
+        var resolver = new ObjectStateResolver();
+
+        var mid = ResolveObject(project, resolver, frameIndex: 1);
+        var completed = ResolveObject(project, resolver, frameIndex: 4);
+
+        Assert.Equal(140, mid.Transform.Position.X, 3);
+        Assert.Equal(160, mid.Transform.Position.Y, 3);
+        Assert.Equal(250, mid.Transform.Size.Width, 3);
+        Assert.Equal(175, mid.Transform.Size.Height, 3);
+        Assert.Equal(1.25, mid.Transform.ScaleX, 3);
+        Assert.Equal(0.75, mid.Transform.ScaleY, 3);
+        Assert.Equal(45, mid.Transform.RotationDegrees, 3);
+        Assert.Equal(0.625, mid.Transform.Opacity, 3);
+
+        Assert.Equal(180, completed.Transform.Position.X, 3);
+        Assert.Equal(220, completed.Transform.Position.Y, 3);
+        Assert.Equal(300, completed.Transform.Size.Width, 3);
+        Assert.Equal(150, completed.Transform.Size.Height, 3);
+        Assert.Equal(1.5, completed.Transform.ScaleX, 3);
+        Assert.Equal(0.5, completed.Transform.ScaleY, 3);
+        Assert.Equal(90, completed.Transform.RotationDegrees, 3);
+        Assert.Equal(0.25, completed.Transform.Opacity, 3);
+    }
+
+    [Fact]
+    public void TransformEvents_PreserveStepEasingUntilEventCompletes()
+    {
+        var project = CreateProject(
+            initiallyVisible: true,
+            new TimelineEvent
+            {
+                Id = "move-step",
+                SceneId = "scene-1",
+                SceneObjectId = "object-1",
+                ActionType = TimelineActionType.Move,
+                StartSeconds = 0,
+                DurationSeconds = 4d / 30d,
+                Easing = EasingType.Step,
+                Parameters = new Dictionary<string, string>
+                {
+                    ["x"] = "180",
+                    ["y"] = "220"
+                }
+            });
+        var resolver = new ObjectStateResolver();
+
+        var active = ResolveObject(project, resolver, frameIndex: 2);
+        var completed = ResolveObject(project, resolver, frameIndex: 4);
+
+        Assert.Equal(100, active.Transform.Position.X, 3);
+        Assert.Equal(100, active.Transform.Position.Y, 3);
+
+        Assert.Equal(180, completed.Transform.Position.X, 3);
+        Assert.Equal(220, completed.Transform.Position.Y, 3);
+    }
+
     private static ResolvedObjectState ResolveObject(VideoProject project, ObjectStateResolver resolver, int frameIndex)
     {
         var frameContext = FrameContext.FromFrameIndex(frameIndex, frameRate: 30);

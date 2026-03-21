@@ -39,6 +39,7 @@ public sealed class TimelineResolver : ITimelineResolver
             SceneId = timelineEvent.SceneId,
             SceneObjectId = timelineEvent.SceneObjectId,
             ActionType = timelineEvent.ActionType,
+            Easing = timelineEvent.Easing,
             StartFrameIndex = startFrameIndex,
             EndFrameIndexExclusive = endFrameIndexExclusive,
             IsActive = IsFrameActive(frameIndex, startFrameIndex, endFrameIndexExclusive),
