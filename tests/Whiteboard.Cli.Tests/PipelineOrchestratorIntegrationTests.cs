@@ -1114,6 +1114,54 @@ public sealed class PipelineOrchestratorIntegrationTests
         }
     }
     [Fact]
+    public void PipelineOrchestrator_WithPhase12AuthoredWitnessSpec_TransitionsHandGuidanceAcrossObjectsInAuthoredOrder()
+    {
+        var specPath = ResolveRepoRelativePath("artifacts", "source-parity-demo", "project-engine.json");
+        var outputDirectory = Path.Combine(Path.GetTempPath(), "whiteboard-cli-phase13-hand-tests", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(outputDirectory);
+        var outputPath = Path.Combine(outputDirectory, "phase13-hand-video.mp4");
+
+        try
+        {
+            var orchestrator = new PipelineOrchestrator();
+            var result = orchestrator.Run(new CliRunRequest
+            {
+                SpecPath = specPath,
+                OutputPath = outputPath
+            });
+
+            Assert.True(result.Success);
+            Assert.Equal(264, result.ExportedFrameCount);
+
+            var guidanceSequence = result.ExportFrames
+                .Select(frame => Path.Combine(result.ExportPackageRootPath, frame.ArtifactRelativePath.Replace('/', Path.DirectorySeparatorChar)))
+                .Select(ReadGuidanceObjectId)
+                .Where(objectId => !string.IsNullOrWhiteSpace(objectId))
+                .Distinct()
+                .ToArray();
+
+            Assert.Equal(
+                new[]
+                {
+                    "object-left",
+                    "object-arrow",
+                    "object-title",
+                    "object-clock-group",
+                    "object-body",
+                    "object-footer"
+                },
+                guidanceSequence);
+        }
+        finally
+        {
+            if (Directory.Exists(outputDirectory))
+            {
+                Directory.Delete(outputDirectory, recursive: true);
+            }
+        }
+    }
+
+    [Fact]
     public void PipelineOrchestrator_WithPhase12AuthoredWitnessSpec_ProducesEquivalentArtifactsAcrossRepeatedRuns()
     {
         var specPath = ResolveRepoRelativePath("artifacts", "source-parity-demo", "project-engine.json");
@@ -1184,6 +1232,21 @@ public sealed class PipelineOrchestratorIntegrationTests
         Assert.Contains("legacy", cropLegacy.Meta.Name, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("comparison", cropLegacy.Meta.Name, StringComparison.OrdinalIgnoreCase);
     }
+    private static string? ReadGuidanceObjectId(string artifactPath)
+    {
+        var markup = File.ReadAllText(artifactPath);
+        const string token = "data-guidance-object=\"";
+        var start = markup.IndexOf(token, StringComparison.Ordinal);
+        if (start < 0)
+        {
+            return null;
+        }
+
+        start += token.Length;
+        var end = markup.IndexOf('"', start);
+        return end < 0 ? null : markup[start..end];
+    }
+
     private static void AssertRunResultsEquivalent(CliRunResult expected, CliRunResult actual)
     {
         Assert.Equal(expected.Success, actual.Success);
@@ -1722,6 +1785,7 @@ public sealed class PipelineOrchestratorIntegrationTests
         }
     }
 }
+
 
 
 
