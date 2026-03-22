@@ -1,17 +1,17 @@
-﻿---
+---
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Source Parity
-status: Phase 12 in progress; 12-03 ready to execute
-stopped_at: Completed 12-02-PLAN.md
-last_updated: "2026-03-22T06:52:32+07:00"
-last_activity: 2026-03-22 - Completed Phase 12 plan 02 and advanced to plan 03
+status: Phase 12 complete; Phase 13 ready to start
+stopped_at: Completed 12-03-PLAN.md
+last_updated: "2026-03-22T07:15:48+07:00"
+last_activity: 2026-03-22 - Completed Phase 12 and locked authored witness determinism
 progress:
   total_phases: 4
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 3
-  completed_plans: 2
-  percent: 67
+  completed_plans: 3
+  percent: 100
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-21)
 
 **Core value:** Given the same spec, assets, and settings, the engine must always produce the same frame/video output.
-**Current focus:** Phase 12 - Source Sample Decomposition and Asset Authoring
+**Current focus:** Phase 13 - Object Motion and Hand Sequencing Parity
 
 ## Current Position
 
-Phase: 12 of 15 (Source Sample Decomposition and Asset Authoring)
-Plan: 3 of 3
-status: Phase 12 in progress; 12-03 ready to execute
-Last activity: 2026-03-22 - Completed Phase 12 plan 02 and advanced to plan 03
+Phase: 13 of 15 (Object Motion and Hand Sequencing Parity)
+Plan: planning required
+status: Phase 12 complete; Phase 13 ready to start
+Last activity: 2026-03-22 - Completed Phase 12 and locked authored witness determinism
 
-Progress: [â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–‘â–‘â–‘] 67%
+Progress: [##########] 100%
 
 ## Accumulated Context
 
@@ -43,13 +43,16 @@ Progress: [â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–‘â–‘â�
 - [Phase 12]: Keep assets/hand.svg as the active manifest-backed hand asset and limit legacy reference inventories to raster shortcut files only. This preserves hand separation for later sequencing work and keeps the authored main path unambiguous.
 - [Phase 12]: Semantic validation must enforce object-type-to-asset-type matching so parity scene objects cannot silently bind to the wrong manifest collection.
 - [Phase 12]: The existing CLI-to-Renderer resolved asset handoff is sufficient for the authored witness path; Phase 12-02 locks it with repo-spec integration tests instead of changing renderer semantics.
+- [Phase 12]: Crop-based repo specs are now explicitly marked as legacy comparison fixtures, while project-engine.json remains the only non-legacy parity witness entry point.
+- [Phase 12]: Repeated runs of the authored witness must stay package-equivalent; repo-level CLI integration tests and the committed phase12-authored-witness render witness now lock that baseline.
 
 ### Roadmap Evolution
 
 - 2026-03-19 to 2026-03-20: Expanded v1.0 from deterministic contracts into full-sequence rendering, playable media, batch output, and visual-fidelity phases.
 - 2026-03-21: Archived v1.0 Engine Core and opened v1.1 Source Parity with Phases 12-15.
 - 2026-03-22: Completed Phase 12-01 by locking the authored witness asset inventory and six-object decomposition evidence.
-- 2026-03-22: Completed Phase 12-02 by promoting `project-engine.json` as the authored witness path and adding repo-level pipeline handoff coverage.
+- 2026-03-22: Completed Phase 12-02 by promoting project-engine.json as the authored witness path and adding repo-level pipeline handoff coverage.
+- 2026-03-22: Completed Phase 12-03 by committing a deterministic authored witness render package, demoting crop-based specs to legacy comparison fixtures, and adding repeated-run regression coverage.
 
 ### Pending Todos
 
@@ -57,12 +60,12 @@ None captured yet.
 
 ### Blockers/Concerns
 
-- Parallel `dotnet test` runs in this workspace still intermittently lock build outputs under `src/*/obj`; serial execution remains the reliable verification path.
+- Parallel dotnet test runs in this workspace still intermittently lock build outputs under src/*/obj; serial execution remains the reliable verification path.
 - Source parity work must not regress deterministic behavior or fall back to whole-frame crop-based reconstruction as the main path.
-- `apply_patch` remains unreliable in this Windows workspace due sandbox refresh failures; PowerShell fallback may be needed for file edits.
+- apply_patch remains unreliable in this Windows workspace due sandbox refresh failures; PowerShell fallback may be needed for file edits.
 
 ## Session Continuity
 
-Last session: 2026-03-22T06:52:32+07:00
-Stopped at: Completed 12-02-PLAN.md
-Resume file: .planning/phases/12-source-sample-decomposition-and-asset-authoring/12-03-PLAN.md
+Last session: 2026-03-22T07:15:48+07:00
+Stopped at: Completed 12-03-PLAN.md
+Resume file: .planning/ROADMAP.md

@@ -16,7 +16,7 @@ Continue from the shipped v1.0 engine/media baseline into a parity-focused miles
 
 ## Phases
 
-- [ ] **Phase 12: Source Sample Decomposition and Asset Authoring** - replace crop-based parity shortcuts with authored scene assets and object decomposition for the reference sample set.
+- [x] **Phase 12: Source Sample Decomposition and Asset Authoring** - replace crop-based parity shortcuts with authored scene assets and object decomposition for the reference sample set.
 - [ ] **Phase 13: Object Motion and Hand Sequencing Parity** - make object transforms and hand-follow timing behave like the reference sample while staying in engine semantics.
 - [ ] **Phase 14: Text and Illustration Fidelity for Parity Scenes** - improve authored text and illustration fidelity so parity scenes look materially closer to the reference output.
 - [ ] **Phase 15: Parity Witness and Regression Validation** - lock the parity workflow with reviewable witnesses and deterministic regression coverage.
@@ -36,7 +36,7 @@ Continue from the shipped v1.0 engine/media baseline into a parity-focused miles
 Plans:
 - [x] 12-01: Define authored parity asset set and sample-scene object decomposition
 - [x] 12-02: Wire parity sample specs and asset manifests through the existing pipeline
-- [ ] 12-03: Validate authored sample determinism and remove crop-based fallback usage from the main parity path
+- [x] 12-03: Validate authored sample determinism and remove crop-based fallback usage from the main parity path
 
 ### Phase 13: Object Motion and Hand Sequencing Parity
 **Goal**: Make object transforms and hand-follow timing behave like the reference sample while staying in engine semantics.
@@ -87,7 +87,7 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 1-11 | v1.0 Engine Core | 29/29 | Complete | 2026-03-21 |
-| 12 | v1.1 Source Parity | 2/3 | In Progress|  |
+| 12 | v1.1 Source Parity | 3/3 | Complete | 2026-03-22 |
 | 13 | v1.1 Source Parity | 0/3 | Not started | - |
 | 14 | v1.1 Source Parity | 0/3 | Not started | - |
 | 15 | v1.1 Source Parity | 0/2 | Not started | - |
