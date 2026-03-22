@@ -1160,6 +1160,52 @@ public sealed class PipelineOrchestratorIntegrationTests
             }
         }
     }
+    [Fact]
+    public void PipelineOrchestrator_WithPhase12AuthoredWitnessSpec_EmitsRepresentativeMotionHandWitnessFrames()
+    {
+        var specPath = ResolveRepoRelativePath("artifacts", "source-parity-demo", "project-engine.json");
+        var outputDirectory = Path.Combine(Path.GetTempPath(), "whiteboard-cli-phase13-representative-tests", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(outputDirectory);
+        var outputPath = Path.Combine(outputDirectory, "phase13-representative-video.mp4");
+
+        try
+        {
+            var orchestrator = new PipelineOrchestrator();
+            var result = orchestrator.Run(new CliRunRequest
+            {
+                SpecPath = specPath,
+                OutputPath = outputPath
+            });
+
+            Assert.True(result.Success);
+            Assert.Equal(264, result.ExportedFrameCount);
+
+            var expectedFrames = new Dictionary<int, string>
+            {
+                [27] = "object-left",
+                [72] = "object-arrow",
+                [93] = "object-title",
+                [130] = "object-clock-group",
+                [185] = "object-body",
+                [214] = "object-footer"
+            };
+
+            foreach (var expectedFrame in expectedFrames)
+            {
+                var frame = Assert.Single(result.ExportFrames, entry => entry.FrameIndex == expectedFrame.Key);
+                var artifactPath = Path.Combine(result.ExportPackageRootPath, frame.ArtifactRelativePath.Replace('/', Path.DirectorySeparatorChar));
+                Assert.True(File.Exists(artifactPath));
+                Assert.Equal(expectedFrame.Value, ReadGuidanceObjectId(artifactPath));
+            }
+        }
+        finally
+        {
+            if (Directory.Exists(outputDirectory))
+            {
+                Directory.Delete(outputDirectory, recursive: true);
+            }
+        }
+    }
 
     [Fact]
     public void PipelineOrchestrator_WithPhase12AuthoredWitnessSpec_ProducesEquivalentArtifactsAcrossRepeatedRuns()
@@ -1785,6 +1831,8 @@ public sealed class PipelineOrchestratorIntegrationTests
         }
     }
 }
+
+
 
 
 
