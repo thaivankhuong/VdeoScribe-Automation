@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Source Parity
-status: Phase 13 planned; 13-01 ready to execute
-stopped_at: Planned Phase 13 motion and hand sequencing work
-last_updated: "2026-03-22T07:32:00+07:00"
-last_activity: 2026-03-22 - Added Phase 13 research and execution plans
+status: Phase 13 in progress; 13-02 ready to execute
+stopped_at: Completed 13-01-PLAN.md
+last_updated: "2026-03-22T08:01:03+07:00"
+last_activity: 2026-03-22 - Completed Phase 13 plan 01 and advanced to plan 02
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 3
-  completed_plans: 0
-  percent: 0
+  completed_plans: 1
+  percent: 33
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 ## Current Position
 
 Phase: 13 of 15 (Object Motion and Hand Sequencing Parity)
-Plan: 1 of 3
-status: Phase 13 planned; 13-01 ready to execute
-Last activity: 2026-03-22 - Added Phase 13 research and execution plans
+Plan: 2 of 3
+status: Phase 13 in progress; 13-02 ready to execute
+Last activity: 2026-03-22 - Completed Phase 13 plan 01 and advanced to plan 02
 
-Progress: [----------] 0%
+Progress: [###-------] 33%
 
 ## Accumulated Context
 
@@ -46,6 +46,7 @@ Progress: [----------] 0%
 - [Phase 12]: Crop-based repo specs are now explicitly marked as legacy comparison fixtures, while project-engine.json remains the only non-legacy parity witness entry point.
 - [Phase 12]: Repeated runs of the authored witness must stay package-equivalent; repo-level CLI integration tests and the committed phase12-authored-witness render witness now lock that baseline.
 - [Phase 13]: Motion parity should strengthen existing Move/Scale/Rotate/Fade semantics and hand-follow sequencing on the authored witness path instead of introducing shortcut animation paths or new speculative primitives.
+- [Phase 13]: Frame-state deterministic keys must include the full resolved transform payload, not just position and size, so parity motion regressions surface in engine-level evidence.
 
 ### Roadmap Evolution
 
@@ -55,6 +56,7 @@ Progress: [----------] 0%
 - 2026-03-22: Completed Phase 12-02 by promoting project-engine.json as the authored witness path and adding repo-level pipeline handoff coverage.
 - 2026-03-22: Completed Phase 12-03 by committing a deterministic authored witness render package, demoting crop-based specs to legacy comparison fixtures, and adding repeated-run regression coverage.
 - 2026-03-22: Planned Phase 13 with research and three execution plans covering transform semantics, hand sequencing, and motion witness validation.
+- 2026-03-22: Completed Phase 13-01 by extending frame-state deterministic keys to include full transform payloads and adding repo-level transform handoff coverage for the authored witness scene.
 
 ### Pending Todos
 
@@ -68,6 +70,6 @@ None captured yet.
 
 ## Session Continuity
 
-Last session: 2026-03-22T07:32:00+07:00
-Stopped at: Planned Phase 13 motion and hand sequencing work
-Resume file: .planning/phases/13-object-motion-and-hand-sequencing-parity/13-01-PLAN.md
+Last session: 2026-03-22T08:01:03+07:00
+Stopped at: Completed 13-01-PLAN.md
+Resume file: .planning/phases/13-object-motion-and-hand-sequencing-parity/13-02-PLAN.md
