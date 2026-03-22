@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.Json;
 using Whiteboard.Cli.Models;
 using Whiteboard.Cli.Services;
+using Whiteboard.Core.ValueObjects;
 using Whiteboard.Export.Models;
 using Whiteboard.Export.Services;
 using Whiteboard.Renderer.Contracts;
@@ -982,6 +983,7 @@ public sealed class PipelineOrchestratorIntegrationTests
             DeleteSpecFile(secondSpecPath);
         }
     }
+
     [Fact]
     public void PipelineOrchestrator_WithPhase12AuthoredWitnessSpec_HandsResolvedAssetsToRendererWithoutFallbackImages()
     {
@@ -1047,6 +1049,70 @@ public sealed class PipelineOrchestratorIntegrationTests
         }
     }
 
+    [Fact]
+    public void PipelineOrchestrator_WithPhase12AuthoredWitnessSpec_ResolvesParityMotionTransformsForRenderer()
+    {
+        var specPath = ResolveRepoRelativePath("artifacts", "source-parity-demo", "project-engine.json");
+        var outputDirectory = Path.Combine(Path.GetTempPath(), "whiteboard-cli-phase13-tests", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(outputDirectory);
+        var outputPath = Path.Combine(outputDirectory, "phase13-video.mp4");
+        var recordingRenderer = new RecordingFrameRenderer();
+        var exportPipeline = new RecordingExportPipeline();
+
+        try
+        {
+            var orchestrator = new PipelineOrchestrator(
+                frameRenderer: recordingRenderer,
+                exportPipeline: exportPipeline);
+            var result = orchestrator.Run(new CliRunRequest
+            {
+                SpecPath = specPath,
+                OutputPath = outputPath
+            });
+
+            Assert.True(result.Success);
+            Assert.Equal(264, recordingRenderer.Requests.Count);
+
+            var firstRequest = recordingRenderer.Requests.First(request => request.FrameState.FrameContext.FrameIndex == 0);
+            var lastRequest = recordingRenderer.Requests.Last();
+
+            var firstLeft = firstRequest.FrameState.Scenes.SelectMany(scene => scene.Objects).Single(obj => obj.SceneObjectId == "object-left");
+            var lastLeft = lastRequest.FrameState.Scenes.SelectMany(scene => scene.Objects).Single(obj => obj.SceneObjectId == "object-left");
+            Assert.NotEqual(firstLeft.Transform.Position, lastLeft.Transform.Position);
+            Assert.NotEqual(firstLeft.Transform.Size, lastLeft.Transform.Size);
+            Assert.NotEqual(firstLeft.Transform.ScaleX, lastLeft.Transform.ScaleX);
+            Assert.NotEqual(firstLeft.Transform.ScaleY, lastLeft.Transform.ScaleY);
+            Assert.NotEqual(firstLeft.Transform.Opacity, lastLeft.Transform.Opacity);
+            Assert.Equal(new Position2D(18, 120), lastLeft.Transform.Position);
+            Assert.Equal(new Size2D(560, 520), lastLeft.Transform.Size);
+            Assert.Equal(1, lastLeft.Transform.ScaleX, 3);
+            Assert.Equal(1, lastLeft.Transform.ScaleY, 3);
+            Assert.Equal(0, lastLeft.Transform.RotationDegrees, 3);
+            Assert.Equal(1, lastLeft.Transform.Opacity, 3);
+
+            var firstArrow = firstRequest.FrameState.Scenes.SelectMany(scene => scene.Objects).Single(obj => obj.SceneObjectId == "object-arrow");
+            var lastArrow = lastRequest.FrameState.Scenes.SelectMany(scene => scene.Objects).Single(obj => obj.SceneObjectId == "object-arrow");
+            Assert.Equal(new Position2D(500, 70), firstArrow.Transform.Position);
+            Assert.Equal(new Size2D(284, 138), firstArrow.Transform.Size);
+            Assert.Equal(-7, firstArrow.Transform.RotationDegrees, 3);
+            Assert.Equal(0.92, firstArrow.Transform.ScaleX, 3);
+            Assert.Equal(0.92, firstArrow.Transform.ScaleY, 3);
+            Assert.Equal(0.88, firstArrow.Transform.Opacity, 3);
+            Assert.Equal(new Position2D(520, 56), lastArrow.Transform.Position);
+            Assert.Equal(new Size2D(308, 150), lastArrow.Transform.Size);
+            Assert.Equal(0, lastArrow.Transform.RotationDegrees, 3);
+            Assert.Equal(1, lastArrow.Transform.ScaleX, 3);
+            Assert.Equal(1, lastArrow.Transform.ScaleY, 3);
+            Assert.Equal(1, lastArrow.Transform.Opacity, 3);
+        }
+        finally
+        {
+            if (Directory.Exists(outputDirectory))
+            {
+                Directory.Delete(outputDirectory, recursive: true);
+            }
+        }
+    }
     [Fact]
     public void PipelineOrchestrator_WithPhase12AuthoredWitnessSpec_ProducesEquivalentArtifactsAcrossRepeatedRuns()
     {

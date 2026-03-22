@@ -112,6 +112,10 @@ public sealed class FrameStateResolverContractTests
         Assert.Equal(firstObject.SceneObjectId, secondObject.SceneObjectId);
         Assert.Equal(firstObject.Transform.Position, secondObject.Transform.Position);
         Assert.Equal(firstObject.Transform.Size, secondObject.Transform.Size);
+        Assert.Equal(firstObject.Transform.RotationDegrees, secondObject.Transform.RotationDegrees);
+        Assert.Equal(firstObject.Transform.ScaleX, secondObject.Transform.ScaleX);
+        Assert.Equal(firstObject.Transform.ScaleY, secondObject.Transform.ScaleY);
+        Assert.Equal(firstObject.Transform.Opacity, secondObject.Transform.Opacity);
         Assert.Equal(firstObject.IsVisible, secondObject.IsVisible);
         Assert.Equal(firstObject.LifecycleState, secondObject.LifecycleState);
         Assert.Equal(firstObject.RevealProgress, secondObject.RevealProgress);
@@ -154,6 +158,10 @@ public sealed class FrameStateResolverContractTests
         Assert.Equal(firstObject.DrawPaths, secondObject.DrawPaths);
         Assert.Equal(firstObject.Transform.Position, secondObject.Transform.Position);
         Assert.Equal(firstObject.Transform.Size, secondObject.Transform.Size);
+        Assert.Equal(firstObject.Transform.RotationDegrees, secondObject.Transform.RotationDegrees);
+        Assert.Equal(firstObject.Transform.ScaleX, secondObject.Transform.ScaleX);
+        Assert.Equal(firstObject.Transform.ScaleY, secondObject.Transform.ScaleY);
+        Assert.Equal(firstObject.Transform.Opacity, secondObject.Transform.Opacity);
         Assert.Equal(first.DeterministicKey, second.DeterministicKey);
     }
 
@@ -240,6 +248,10 @@ public sealed class FrameStateResolverContractTests
         Assert.Equal("svg-1", resolvedObject.AssetRefId);
         Assert.Equal(new Position2D(100, 100), resolvedObject.Transform.Position);
         Assert.Equal(new Size2D(200, 200), resolvedObject.Transform.Size);
+        Assert.Equal(0, resolvedObject.Transform.RotationDegrees);
+        Assert.Equal(1, resolvedObject.Transform.ScaleX);
+        Assert.Equal(1, resolvedObject.Transform.ScaleY);
+        Assert.Equal(1, resolvedObject.Transform.Opacity);
         Assert.Equal(
             new[] { "scene-1:2:object-1:path:0", "scene-1:2:object-1:path:1" },
             resolvedObject.DrawPaths.Select(path => path.OrderingKey).ToArray());
@@ -375,7 +387,75 @@ public sealed class FrameStateResolverContractTests
         Assert.NotEqual(baseline.DeterministicKey, changed.DeterministicKey);
     }
 
-    private static ResolvedObjectState CreateStubResolvedObject(double drawProgress, int activePathIndex)
+    [Fact]
+    public void Contract_PreservesFullTransformPayloadNeededByMotionParity()
+    {
+        var project = CreateProject();
+        var frameContext = FrameContext.FromFrameIndex(frameIndex: 15, frameRate: 30);
+        var expectedTransform = new TransformSpec
+        {
+            Position = new Position2D(100.5, 99.25),
+            Size = new Size2D(220.75, 180.5),
+            RotationDegrees = 12.5,
+            ScaleX = 1.2,
+            ScaleY = 0.85,
+            Opacity = 0.45
+        };
+        var resolver = new FrameStateResolver(
+            objectStateResolver: new StubObjectStateResolver(
+                [new ResolvedSceneState { SceneId = "scene-1", Objects = [CreateStubResolvedObject(drawProgress: 0.75, activePathIndex: 1, transform: expectedTransform)] }]));
+
+        var resolved = resolver.Resolve(project, frameContext);
+        var resolvedObject = resolved.Scenes.Single().Objects.Single();
+
+        Assert.Equal(expectedTransform.Position, resolvedObject.Transform.Position);
+        Assert.Equal(expectedTransform.Size, resolvedObject.Transform.Size);
+        Assert.Equal(expectedTransform.RotationDegrees, resolvedObject.Transform.RotationDegrees);
+        Assert.Equal(expectedTransform.ScaleX, resolvedObject.Transform.ScaleX);
+        Assert.Equal(expectedTransform.ScaleY, resolvedObject.Transform.ScaleY);
+        Assert.Equal(expectedTransform.Opacity, resolvedObject.Transform.Opacity);
+    }
+
+    [Fact]
+    public void Deterministic_TransformPayloadChangesKeyWhenMotionFieldsChange()
+    {
+        var project = CreateProject();
+        var frameContext = FrameContext.FromFrameIndex(frameIndex: 15, frameRate: 30);
+        var baselineTransform = new TransformSpec
+        {
+            Position = new Position2D(100.5, 99.25),
+            Size = new Size2D(220.75, 180.5),
+            RotationDegrees = 12.5,
+            ScaleX = 1.2,
+            ScaleY = 0.85,
+            Opacity = 0.45
+        };
+        var changedTransform = baselineTransform with
+        {
+            RotationDegrees = 27.5,
+            ScaleX = 0.95,
+            ScaleY = 1.1,
+            Opacity = 0.72
+        };
+        var baselineResolver = new FrameStateResolver(
+            objectStateResolver: new StubObjectStateResolver(
+                [new ResolvedSceneState { SceneId = "scene-1", Objects = [CreateStubResolvedObject(drawProgress: 0.75, activePathIndex: 1, transform: baselineTransform)] }]));
+        var changedResolver = new FrameStateResolver(
+            objectStateResolver: new StubObjectStateResolver(
+                [new ResolvedSceneState { SceneId = "scene-1", Objects = [CreateStubResolvedObject(drawProgress: 0.75, activePathIndex: 1, transform: changedTransform)] }]));
+
+        var baseline = baselineResolver.Resolve(project, frameContext);
+        var changed = changedResolver.Resolve(project, frameContext);
+
+        Assert.Equal(baseline.Scenes[0].Objects[0].Transform.Position, changed.Scenes[0].Objects[0].Transform.Position);
+        Assert.Equal(baseline.Scenes[0].Objects[0].Transform.Size, changed.Scenes[0].Objects[0].Transform.Size);
+        Assert.NotEqual(baseline.Scenes[0].Objects[0].Transform.RotationDegrees, changed.Scenes[0].Objects[0].Transform.RotationDegrees);
+        Assert.NotEqual(baseline.Scenes[0].Objects[0].Transform.ScaleX, changed.Scenes[0].Objects[0].Transform.ScaleX);
+        Assert.NotEqual(baseline.Scenes[0].Objects[0].Transform.ScaleY, changed.Scenes[0].Objects[0].Transform.ScaleY);
+        Assert.NotEqual(baseline.Scenes[0].Objects[0].Transform.Opacity, changed.Scenes[0].Objects[0].Transform.Opacity);
+        Assert.NotEqual(baseline.DeterministicKey, changed.DeterministicKey);
+    }
+    private static ResolvedObjectState CreateStubResolvedObject(double drawProgress, int activePathIndex, TransformSpec? transform = null)
     {
         return new ResolvedObjectState
         {
@@ -407,7 +487,7 @@ public sealed class FrameStateResolverContractTests
                     OrderingKey = "scene-1:2:object-1:path:1"
                 }
             ],
-            Transform = new TransformSpec
+            Transform = transform ?? new TransformSpec
             {
                 Position = new Position2D(100, 100),
                 Size = new Size2D(200, 200)

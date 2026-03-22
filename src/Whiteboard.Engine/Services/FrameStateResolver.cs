@@ -91,14 +91,22 @@ public sealed class FrameStateResolver : IFrameStateResolver
                     .Append(obj.ActiveDrawPathIndex)
                     .Append(':')
                     .Append(obj.DrawOrderingKey)
-                    .Append(':')
-                    .Append(obj.Transform.Position.X)
+                    .Append(":position:")
+                    .Append(FormatDeterministicDouble(obj.Transform.Position.X))
                     .Append(',')
-                    .Append(obj.Transform.Position.Y)
-                    .Append(':')
-                    .Append(obj.Transform.Size.Width)
+                    .Append(FormatDeterministicDouble(obj.Transform.Position.Y))
+                    .Append(":size:")
+                    .Append(FormatDeterministicDouble(obj.Transform.Size.Width))
                     .Append(',')
-                    .Append(obj.Transform.Size.Height);
+                    .Append(FormatDeterministicDouble(obj.Transform.Size.Height))
+                    .Append(":rotation:")
+                    .Append(FormatDeterministicDouble(obj.Transform.RotationDegrees))
+                    .Append(":scale:")
+                    .Append(FormatDeterministicDouble(obj.Transform.ScaleX))
+                    .Append(',')
+                    .Append(FormatDeterministicDouble(obj.Transform.ScaleY))
+                    .Append(":opacity:")
+                    .Append(FormatDeterministicDouble(obj.Transform.Opacity));
 
                 foreach (var drawPath in obj.DrawPaths
                              .OrderBy(path => path.PathIndex)
