@@ -1047,6 +1047,77 @@ public sealed class PipelineOrchestratorIntegrationTests
         }
     }
 
+    [Fact]
+    public void PipelineOrchestrator_WithPhase12AuthoredWitnessSpec_ProducesEquivalentArtifactsAcrossRepeatedRuns()
+    {
+        var specPath = ResolveRepoRelativePath("artifacts", "source-parity-demo", "project-engine.json");
+        var firstOutputDirectory = Path.Combine(Path.GetTempPath(), "whiteboard-cli-phase12-tests", Guid.NewGuid().ToString("N"));
+        var secondOutputDirectory = Path.Combine(Path.GetTempPath(), "whiteboard-cli-phase12-tests", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(firstOutputDirectory);
+        Directory.CreateDirectory(secondOutputDirectory);
+        var firstOutputPath = Path.Combine(firstOutputDirectory, "phase12-first.mp4");
+        var secondOutputPath = Path.Combine(secondOutputDirectory, "phase12-second.mp4");
+
+        try
+        {
+            var orchestrator = new PipelineOrchestrator();
+            var first = orchestrator.Run(new CliRunRequest
+            {
+                SpecPath = specPath,
+                OutputPath = firstOutputPath
+            });
+            var second = orchestrator.Run(new CliRunRequest
+            {
+                SpecPath = specPath,
+                OutputPath = secondOutputPath
+            });
+
+            Assert.True(first.Success);
+            Assert.True(second.Success);
+            Assert.Equal("source-parity-authored-witness", first.ExportSummary.ProjectId);
+            Assert.Equal(first.ExportSummary.ProjectId, second.ExportSummary.ProjectId);
+            Assert.Equal(264, first.ExportedFrameCount);
+            Assert.Equal(first.ExportedFrameCount, second.ExportedFrameCount);
+            Assert.Empty(first.ExportAudioCues);
+            Assert.Empty(second.ExportAudioCues);
+            AssertRunArtifactPackagesEquivalent(first, second);
+        }
+        finally
+        {
+            if (Directory.Exists(firstOutputDirectory))
+            {
+                Directory.Delete(firstOutputDirectory, recursive: true);
+            }
+
+            if (Directory.Exists(secondOutputDirectory))
+            {
+                Directory.Delete(secondOutputDirectory, recursive: true);
+            }
+        }
+    }
+
+    [Fact]
+    public void PipelineOrchestrator_WithPhase12RepoSpecs_KeepsShortcutFixturesMarkedLegacy()
+    {
+        var loader = new ProjectSpecLoader();
+        var authored = loader.Load(ResolveRepoRelativePath("artifacts", "source-parity-demo", "project-engine.json"));
+        var segmentedLegacy = loader.Load(ResolveRepoRelativePath("artifacts", "source-parity-demo", "project-image-hand.json"));
+        var cropLegacy = loader.Load(ResolveRepoRelativePath("artifacts", "source-parity-demo", "project.json"));
+
+        Assert.Equal("source-parity-authored-witness", authored.Meta.ProjectId);
+        Assert.DoesNotContain("legacy", authored.Meta.ProjectId, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("legacy", authored.Meta.Name, StringComparison.OrdinalIgnoreCase);
+
+        Assert.Contains("legacy", segmentedLegacy.Meta.ProjectId, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("comparison", segmentedLegacy.Meta.ProjectId, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("legacy", segmentedLegacy.Meta.Name, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("comparison", segmentedLegacy.Meta.Name, StringComparison.OrdinalIgnoreCase);
+
+        Assert.Contains("legacy", cropLegacy.Meta.ProjectId, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("comparison", cropLegacy.Meta.ProjectId, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("legacy", cropLegacy.Meta.Name, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("comparison", cropLegacy.Meta.Name, StringComparison.OrdinalIgnoreCase);
+    }
     private static void AssertRunResultsEquivalent(CliRunResult expected, CliRunResult actual)
     {
         Assert.Equal(expected.Success, actual.Success);

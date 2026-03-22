@@ -1,0 +1,212 @@
+{
+  "meta": {
+    "projectId": "source-image-hand-legacy-comparison",
+    "name": "Source Image Hand Legacy Comparison"
+  },
+  "output": {
+    "width": 1280,
+    "height": 720,
+    "frameRate": 24
+  },
+  "assets": {
+    "imageAssets": [
+      {
+        "id": "image-left",
+        "name": "Left Illustration",
+        "sourcePath": "segmented-assets/left-illustration.png",
+        "type": "image"
+      },
+      {
+        "id": "image-arrow",
+        "name": "Arrow",
+        "sourcePath": "segmented-assets/arrow.png",
+        "type": "image"
+      },
+      {
+        "id": "image-title",
+        "name": "Title",
+        "sourcePath": "segmented-assets/title.png",
+        "type": "image"
+      },
+      {
+        "id": "image-clock-group",
+        "name": "Clock Group",
+        "sourcePath": "segmented-assets/clock-group.png",
+        "type": "image"
+      },
+      {
+        "id": "image-body",
+        "name": "Body",
+        "sourcePath": "segmented-assets/body.png",
+        "type": "image"
+      },
+      {
+        "id": "image-footer",
+        "name": "Footer",
+        "sourcePath": "segmented-assets/footer.png",
+        "type": "image"
+      }
+    ],
+    "handAssets": [
+      {
+        "id": "hand-real",
+        "name": "Real Hand",
+        "sourcePath": "segmented-assets/hand-real.png",
+        "type": "hand",
+        "tipOffset": {
+          "x": 58,
+          "y": 24
+        }
+      }
+    ]
+  },
+  "scenes": [
+    {
+      "id": "scene-1",
+      "name": "Source Image Scene",
+      "durationSeconds": 10,
+      "objects": [
+        {
+          "id": "object-left",
+          "name": "Left Illustration",
+          "type": "image",
+          "assetRefId": "image-left",
+          "layer": 1,
+          "isVisible": true,
+          "transform": {
+            "position": { "x": 26, "y": 34 },
+            "size": { "width": 620, "height": 650 }
+          }
+        },
+        {
+          "id": "object-arrow",
+          "name": "Arrow",
+          "type": "image",
+          "assetRefId": "image-arrow",
+          "layer": 2,
+          "isVisible": true,
+          "transform": {
+            "position": { "x": 500, "y": 38 },
+            "size": { "width": 350, "height": 220 }
+          }
+        },
+        {
+          "id": "object-title",
+          "name": "Title",
+          "type": "image",
+          "assetRefId": "image-title",
+          "layer": 3,
+          "isVisible": true,
+          "transform": {
+            "position": { "x": 794, "y": 56 },
+            "size": { "width": 470, "height": 150 }
+          }
+        },
+        {
+          "id": "object-clock-group",
+          "name": "Clock Group",
+          "type": "image",
+          "assetRefId": "image-clock-group",
+          "layer": 4,
+          "isVisible": true,
+          "transform": {
+            "position": { "x": 738, "y": 164 },
+            "size": { "width": 320, "height": 430 }
+          }
+        },
+        {
+          "id": "object-body",
+          "name": "Body",
+          "type": "image",
+          "assetRefId": "image-body",
+          "layer": 5,
+          "isVisible": true,
+          "transform": {
+            "position": { "x": 1058, "y": 298 },
+            "size": { "width": 202, "height": 240 }
+          }
+        },
+        {
+          "id": "object-footer",
+          "name": "Footer",
+          "type": "image",
+          "assetRefId": "image-footer",
+          "layer": 6,
+          "isVisible": true,
+          "transform": {
+            "position": { "x": 72, "y": 650 },
+            "size": { "width": 640, "height": 48 }
+          }
+        }
+      ]
+    }
+  ],
+  "timeline": {
+    "events": [
+      {
+        "id": "draw-left",
+        "sceneId": "scene-1",
+        "sceneObjectId": "object-left",
+        "actionType": "draw",
+        "startSeconds": 0.0,
+        "durationSeconds": 2.8
+      },
+      {
+        "id": "draw-arrow",
+        "sceneId": "scene-1",
+        "sceneObjectId": "object-arrow",
+        "actionType": "draw",
+        "startSeconds": 2.8,
+        "durationSeconds": 0.8
+      },
+      {
+        "id": "draw-title",
+        "sceneId": "scene-1",
+        "sceneObjectId": "object-title",
+        "actionType": "draw",
+        "startSeconds": 3.6,
+        "durationSeconds": 0.8
+      },
+      {
+        "id": "draw-clock",
+        "sceneId": "scene-1",
+        "sceneObjectId": "object-clock-group",
+        "actionType": "draw",
+        "startSeconds": 4.4,
+        "durationSeconds": 1.7
+      },
+      {
+        "id": "draw-body",
+        "sceneId": "scene-1",
+        "sceneObjectId": "object-body",
+        "actionType": "draw",
+        "startSeconds": 6.1,
+        "durationSeconds": 1.0
+      },
+      {
+        "id": "draw-footer",
+        "sceneId": "scene-1",
+        "sceneObjectId": "object-footer",
+        "actionType": "draw",
+        "startSeconds": 7.1,
+        "durationSeconds": 0.9
+      }
+    ],
+    "cameraTrack": {
+      "keyframes": [
+        {
+          "timeSeconds": 0,
+          "position": { "x": 0, "y": 0 },
+          "zoom": 1,
+          "interpolation": "linear"
+        },
+        {
+          "timeSeconds": 10,
+          "position": { "x": 10, "y": 4 },
+          "zoom": 1.01,
+          "interpolation": "linear"
+        }
+      ]
+    }
+  }
+}

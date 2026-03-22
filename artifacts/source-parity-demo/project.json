@@ -1,0 +1,114 @@
+{
+  "meta": {
+    "projectId": "source-parity-legacy-comparison",
+    "name": "Source Parity Legacy Comparison"
+  },
+  "output": {
+    "width": 1280,
+    "height": 720,
+    "frameRate": 24
+  },
+  "assets": {
+    "imageAssets": [
+      {
+        "id": "image-layout",
+        "name": "Source Layout",
+        "sourcePath": "assets/source-layout-full2.png",
+        "type": "image"
+      },
+      {
+        "id": "image-footer",
+        "name": "Footer Text",
+        "sourcePath": "assets/footer-text-only2.png",
+        "type": "image"
+      }
+    ]
+  },
+  "scenes": [
+    {
+      "id": "scene-1",
+      "name": "Source Layout Scene",
+      "durationSeconds": 6,
+      "objects": [
+        {
+          "id": "object-layout",
+          "name": "Source Layout",
+          "type": "image",
+          "assetRefId": "image-layout",
+          "layer": 1,
+          "isVisible": true,
+          "transform": {
+            "position": {
+              "x": 0,
+              "y": 0
+            },
+            "size": {
+              "width": 1280,
+              "height": 720
+            }
+          }
+        },
+        {
+          "id": "object-footer",
+          "name": "Footer",
+          "type": "image",
+          "assetRefId": "image-footer",
+          "layer": 2,
+          "isVisible": true,
+          "transform": {
+            "position": {
+              "x": 56,
+              "y": 668
+            },
+            "size": {
+              "width": 640,
+              "height": 48
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "timeline": {
+    "events": [
+      {
+        "id": "draw-layout",
+        "sceneId": "scene-1",
+        "sceneObjectId": "object-layout",
+        "actionType": "draw",
+        "startSeconds": 0.0,
+        "durationSeconds": 5.2
+      },
+      {
+        "id": "draw-footer",
+        "sceneId": "scene-1",
+        "sceneObjectId": "object-footer",
+        "actionType": "draw",
+        "startSeconds": 0.2,
+        "durationSeconds": 1.2
+      }
+    ],
+    "cameraTrack": {
+      "keyframes": [
+        {
+          "timeSeconds": 0,
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "zoom": 1,
+          "interpolation": "linear"
+        },
+        {
+          "timeSeconds": 6,
+          "position": {
+            "x": 8,
+            "y": 4
+          },
+          "zoom": 1.01,
+          "interpolation": "linear"
+        }
+      ]
+    }
+  }
+}
