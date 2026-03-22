@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Source Parity
-status: Phase 13 in progress; 13-02 ready to execute
-stopped_at: Completed 13-01-PLAN.md
-last_updated: "2026-03-22T08:01:03+07:00"
-last_activity: 2026-03-22 - Completed Phase 13 plan 01 and advanced to plan 02
+status: Phase 13 in progress; 13-03 ready to execute
+stopped_at: Completed 13-02-PLAN.md
+last_updated: "2026-03-22T08:22:25+07:00"
+last_activity: 2026-03-22 - Completed Phase 13 plan 02 and advanced to plan 03
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 3
-  completed_plans: 1
-  percent: 33
+  completed_plans: 2
+  percent: 67
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 ## Current Position
 
 Phase: 13 of 15 (Object Motion and Hand Sequencing Parity)
-Plan: 2 of 3
-status: Phase 13 in progress; 13-02 ready to execute
-Last activity: 2026-03-22 - Completed Phase 13 plan 01 and advanced to plan 02
+Plan: 3 of 3
+status: Phase 13 in progress; 13-03 ready to execute
+Last activity: 2026-03-22 - Completed Phase 13 plan 02 and advanced to plan 03
 
-Progress: [###-------] 33%
+Progress: [#######---] 67%
 
 ## Accumulated Context
 
@@ -47,6 +47,7 @@ Progress: [###-------] 33%
 - [Phase 12]: Repeated runs of the authored witness must stay package-equivalent; repo-level CLI integration tests and the committed phase12-authored-witness render witness now lock that baseline.
 - [Phase 13]: Motion parity should strengthen existing Move/Scale/Rotate/Fade semantics and hand-follow sequencing on the authored witness path instead of introducing shortcut animation paths or new speculative primitives.
 - [Phase 13]: Frame-state deterministic keys must include the full resolved transform payload, not just position and size, so parity motion regressions surface in engine-level evidence.
+- [Phase 13]: Hand guidance must choose the earliest active authored ordering across SVG, text, and image candidates instead of hardcoding SVG-path precedence, so object-to-object transitions stay aligned with the authored route.
 
 ### Roadmap Evolution
 
@@ -57,6 +58,7 @@ Progress: [###-------] 33%
 - 2026-03-22: Completed Phase 12-03 by committing a deterministic authored witness render package, demoting crop-based specs to legacy comparison fixtures, and adding repeated-run regression coverage.
 - 2026-03-22: Planned Phase 13 with research and three execution plans covering transform semantics, hand sequencing, and motion witness validation.
 - 2026-03-22: Completed Phase 13-01 by extending frame-state deterministic keys to include full transform payloads and adding repo-level transform handoff coverage for the authored witness scene.
+- 2026-03-22: Completed Phase 13-02 by adding ordering-aware hand guidance selection, emitting ordering metadata for text/image operations, and locking authored witness hand-transition coverage.
 
 ### Pending Todos
 
@@ -71,5 +73,5 @@ None captured yet.
 ## Session Continuity
 
 Last session: 2026-03-22T08:01:03+07:00
-Stopped at: Completed 13-01-PLAN.md
-Resume file: .planning/phases/13-object-motion-and-hand-sequencing-parity/13-02-PLAN.md
+Stopped at: Completed 13-02-PLAN.md
+Resume file: .planning/phases/13-object-motion-and-hand-sequencing-parity/13-03-PLAN.md

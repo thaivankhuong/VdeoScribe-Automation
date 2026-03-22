@@ -50,7 +50,7 @@ Plans:
 
 Plans:
 - [x] 13-01: Finalize object transform event semantics and parity-oriented timeline usage
-- [ ] 13-02: Improve hand-follow behavior and object-to-object sequencing for parity scenes
+- [x] 13-02: Improve hand-follow behavior and object-to-object sequencing for parity scenes
 - [ ] 13-03: Validate motion and hand timing parity through frame/video witnesses
 
 ### Phase 14: Text and Illustration Fidelity for Parity Scenes
@@ -88,6 +88,6 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 1-11 | v1.0 Engine Core | 29/29 | Complete | 2026-03-21 |
 | 12 | v1.1 Source Parity | 3/3 | Complete | 2026-03-22 |
-| 13 | v1.1 Source Parity | 1/3 | In Progress | - |
+| 13 | v1.1 Source Parity | 2/3 | In Progress | - |
 | 14 | v1.1 Source Parity | 0/3 | Not started | - |
 | 15 | v1.1 Source Parity | 0/2 | Not started | - |
