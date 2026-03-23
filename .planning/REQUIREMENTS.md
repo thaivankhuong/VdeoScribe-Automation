@@ -8,19 +8,19 @@
 ### Parity Structure
 
 - [x] **PAR-01**: A reference scene can be represented as separate authored scene objects and assets instead of a whole-frame source crop.
-- [ ] **PAR-02**: Object-level move/scale/rotate/fade timeline events drive final frame transforms deterministically for parity scenes.
-- [ ] **PAR-03**: Hand draw sequencing follows the active object/path deterministically across the full scene timeline.
-- [ ] **PAR-04**: A parity sample can reproduce the intended object order and final composition of the reference scene without crop-based content shortcuts.
+- [x] **PAR-02**: Object-level move/scale/rotate/fade timeline events drive final frame transforms deterministically for parity scenes.
+- [x] **PAR-03**: Hand draw sequencing follows the active object/path deterministically across the full scene timeline.
+- [x] **PAR-04**: A parity sample can reproduce the intended object order and final composition of the reference scene without crop-based content shortcuts.
 
 ### Text and Asset Fidelity
 
-- [ ] **TXT-01**: Title, body, and footer content in parity samples render from authored text/vector assets rather than source-video text crops.
+- [x] **TXT-01**: Title, body, and footer content in parity samples render from authored text/vector assets rather than source-video text crops.
 - [x] **AST-01**: SVG, text, and hand assets needed for parity scenes load through spec-driven manifests and reusable asset references.
-- [ ] **AST-02**: Parity sample workflows emit witness frames and final video outputs that are easy to inspect during iteration.
+- [x] **AST-02**: Parity sample workflows emit witness frames and final video outputs that are easy to inspect during iteration.
 
 ### Validation
 
-- [ ] **VAL-01**: Repeated runs of the same parity sample preserve deterministic frame/video witnesses suitable for regression review.
+- [x] **VAL-01**: Repeated runs of the same parity sample preserve deterministic frame/video witnesses suitable for regression review.
 
 ## v2 Requirements
 
@@ -44,12 +44,12 @@
 |-------------|-------|--------|
 | PAR-01 | Phase 12 | Complete |
 | AST-01 | Phase 12 | Complete |
-| PAR-02 | Phase 13 | Pending |
-| PAR-03 | Phase 13 | Pending |
-| PAR-04 | Phase 14 | Pending |
-| TXT-01 | Phase 14 | Pending |
-| AST-02 | Phase 15 | Pending |
-| VAL-01 | Phase 15 | Pending |
+| PAR-02 | Phase 13 | Complete |
+| PAR-03 | Phase 13 | Complete |
+| PAR-04 | Phase 14 | Complete |
+| TXT-01 | Phase 14 | Complete |
+| AST-02 | Phase 15 | Complete |
+| VAL-01 | Phase 15 | Complete |
 
 **Coverage:**
 - v1 requirements: 8 total
@@ -58,4 +58,4 @@
 
 ---
 *Requirements defined: 2026-03-21*
-*Last updated: 2026-03-22 after completing Phase 12 authored parity baseline*
+*Last updated: 2026-03-23 after completing Phase 15 parity witness closeout*

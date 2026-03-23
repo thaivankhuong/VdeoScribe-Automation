@@ -1,15 +1,15 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-status: ready_for_execution
-stopped_at: Phase 15 planned
-last_updated: "2026-03-23T15:05:00+07:00"
+milestone: v1.1
+milestone_name: source-parity
+status: ready_for_milestone_completion
+stopped_at: Phase 15 complete
+last_updated: "2026-03-23T17:06:28.8272977+07:00"
 progress:
   total_phases: 4
-  completed_phases: 3
-  total_plans: 9
-  completed_plans: 9
+  completed_phases: 4
+  total_plans: 11
+  completed_plans: 11
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-21)
 
 **Core value:** Given the same spec, assets, and settings, the engine must always produce the same frame/video output.
-**Current focus:** Phase 15 - parity-witness-and-regression-validation
+**Current focus:** Milestone closeout for v1.1 Source Parity
 
 ## Current Position
 
-Phase: 15 (parity-witness-and-regression-validation) - READY FOR EXECUTION
-Plan: 2 of 2 planned
+Phase: 15 (parity-witness-and-regression-validation) - COMPLETE
+Plan: 2 of 2 complete
 
 ## Accumulated Context
 
@@ -46,6 +46,8 @@ Plan: 2 of 2 planned
 - [Phase 14]: Generate authored parity text as ordered vector path sequences on the main witness route. - Keeps text reveal order reviewable and deterministic without falling back to raster crop assets.
 - [Phase 14]: Refine illustration fidelity by enriching authored SVG geometry inside the existing witness asset ids. - Improves parity without reopening scene semantics, hand behavior, or legacy raster routing.
 - [Phase 14]: Lock composition review through representative authored witness targets and committed phase14-fidelity-witness artifacts instead of ad-hoc screenshot review.
+- [Phase 15]: Keep parity review centered on repo-stored export packages and bundle manifests rather than introducing a review-only runtime mode.
+- [Phase 15]: Regression closeout must fail on committed witness/package drift first, while real FFmpeg-backed media smoke stays explicitly env-gated.
 
 ### Roadmap Evolution
 
@@ -63,6 +65,9 @@ Plan: 2 of 2 planned
 - 2026-03-23: Completed Phase 14-02 by enriching the authored illustration, arrow, and clock-group SVG geometry and adding illustration witness coverage.
 - 2026-03-23: Completed Phase 14-03 by locking composition review targets, rerunning Phase 13 authored regressions, and committing the phase14-fidelity-witness export package.
 - 2026-03-23: Planned Phase 15 with two execution plans covering review-witness packaging and deterministic parity regression validation.
+- 2026-03-23: Completed Phase 15-01 by generating the phase15-review-witness package, publishing a review-bundle manifest, and locking anchor-frame review coverage.
+- 2026-03-23: Completed Phase 15-02 by committing the parity regression baseline, repeated-run package/media regression tests, and the env-gated media validation record.
+- 2026-03-23: Completed Phase 15 and left milestone v1.1 ready for milestone completion.
 
 ### Pending Todos
 
@@ -76,9 +81,6 @@ None captured yet.
 
 ## Session Continuity
 
-Last session: 2026-03-23T15:05:00+07:00
-Stopped at: Phase 15 planned
-Resume file: .planning/phases/15-parity-witness-and-regression-validation/15-01-PLAN.md
-
-
-
+Last session: 2026-03-23T17:06:28.8272977+07:00
+Stopped at: Phase 15 complete
+Resume file: .planning/phases/15-parity-witness-and-regression-validation/15-VERIFICATION.md
