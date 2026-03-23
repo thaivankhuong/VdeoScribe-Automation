@@ -1,0 +1,64 @@
+{
+    "sourceSpec":  "project-engine.json",
+    "baselineWitness":  "out/phase14-fidelity-witness",
+    "reviewWitness":  "out/phase15-review-witness",
+    "frameManifest":  "out/phase15-review-witness/frame-manifest.json",
+    "frameCount":  264,
+    "anchorFrames":  [
+                         {
+                             "frameIndex":  27,
+                             "objectId":  "object-left",
+                             "assetId":  "svg-left",
+                             "relativeArtifactPath":  "frames/frame-000027.svg"
+                         },
+                         {
+                             "frameIndex":  72,
+                             "objectId":  "object-arrow",
+                             "assetId":  "svg-arrow",
+                             "relativeArtifactPath":  "frames/frame-000072.svg"
+                         },
+                         {
+                             "frameIndex":  93,
+                             "objectId":  "object-title",
+                             "assetId":  "svg-title",
+                             "relativeArtifactPath":  "frames/frame-000093.svg"
+                         },
+                         {
+                             "frameIndex":  130,
+                             "objectId":  "object-clock-group",
+                             "assetId":  "svg-clock-group",
+                             "relativeArtifactPath":  "frames/frame-000130.svg"
+                         },
+                         {
+                             "frameIndex":  185,
+                             "objectId":  "object-body",
+                             "assetId":  "svg-body",
+                             "relativeArtifactPath":  "frames/frame-000185.svg"
+                         },
+                         {
+                             "frameIndex":  214,
+                             "objectId":  "object-footer",
+                             "assetId":  "svg-footer",
+                             "relativeArtifactPath":  "frames/frame-000214.svg"
+                         }
+                     ],
+    "lineage":  [
+                    {
+                        "phase":  "14",
+                        "witness":  "out/phase14-fidelity-witness",
+                        "frameManifest":  "out/phase14-fidelity-witness/frame-manifest.json"
+                    },
+                    {
+                        "phase":  "15",
+                        "witness":  "out/phase15-review-witness",
+                        "frameManifest":  "out/phase15-review-witness/frame-manifest.json"
+                    }
+                ],
+    "playableMedia":  {
+                          "status":  "not-configured",
+                          "relativePath":  null,
+                          "expectedWhenEnabled":  "out/phase15-review-witness.mp4",
+                          "enableFlag":  "WHITEBOARD_ENABLE_PLAYABLE_MEDIA",
+                          "ffmpegPathFlag":  "WHITEBOARD_FFMPEG_PATH"
+                      }
+}
