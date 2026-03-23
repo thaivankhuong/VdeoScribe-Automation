@@ -1,17 +1,15 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.1
-milestone_name: Source Parity
-status: Phase 14 planned; 14-01 ready to execute
-stopped_at: Planned Phase 14 text and illustration fidelity work
-last_updated: "2026-03-22T12:15:33+07:00"
-last_activity: 2026-03-22 - Added Phase 14 execution plans for text, illustration, and composition parity
+milestone: v1.0
+milestone_name: milestone
+status: ready_for_planning
+stopped_at: Phase 15 context gathered
+last_updated: "2026-03-23T14:30:53.6407483+07:00"
 progress:
   total_phases: 4
-  completed_phases: 2
-  total_plans: 3
-  completed_plans: 0
-  percent: 0
+  completed_phases: 3
+  total_plans: 9
+  completed_plans: 9
 ---
 
 # Project State
@@ -21,16 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-21)
 
 **Core value:** Given the same spec, assets, and settings, the engine must always produce the same frame/video output.
-**Current focus:** Phase 14 - Text and Illustration Fidelity for Parity Scenes
+**Current focus:** Phase 15 - parity-witness-and-regression-validation
 
 ## Current Position
 
-Phase: 14 of 15 (Text and Illustration Fidelity for Parity Scenes)
-Plan: 1 of 3
-status: Phase 14 planned; 14-01 ready to execute
-Last activity: 2026-03-22 - Added Phase 14 execution plans for text, illustration, and composition parity
-
-Progress: [----------] 0%
+Phase: 15 (parity-witness-and-regression-validation) - READY FOR PLANNING
+Plan: 0 of 2
 
 ## Accumulated Context
 
@@ -49,6 +43,9 @@ Progress: [----------] 0%
 - [Phase 13]: Frame-state deterministic keys must include the full resolved transform payload, not just position and size, so parity motion regressions surface in engine-level evidence.
 - [Phase 13]: Hand guidance must choose the earliest active authored ordering across SVG, text, and image candidates instead of hardcoding SVG-path precedence, so object-to-object transitions stay aligned with the authored route.
 - [Phase 13]: Motion/hand witness validation should be anchored to committed authored export packages plus representative frame checks, not informal spot checks against shortcut fixtures.
+- [Phase 14]: Generate authored parity text as ordered vector path sequences on the main witness route. - Keeps text reveal order reviewable and deterministic without falling back to raster crop assets.
+- [Phase 14]: Refine illustration fidelity by enriching authored SVG geometry inside the existing witness asset ids. - Improves parity without reopening scene semantics, hand behavior, or legacy raster routing.
+- [Phase 14]: Lock composition review through representative authored witness targets and committed phase14-fidelity-witness artifacts instead of ad-hoc screenshot review.
 
 ### Roadmap Evolution
 
@@ -62,6 +59,9 @@ Progress: [----------] 0%
 - 2026-03-22: Completed Phase 13-02 by adding ordering-aware hand guidance selection, emitting ordering metadata for text/image operations, and locking authored witness hand-transition coverage.
 - 2026-03-22: Completed Phase 13-03 by generating the phase13-motion-witness export package, checking representative motion/hand frames, and closing Phase 13 with auditable witness evidence.
 - 2026-03-22: Planned Phase 14 with three execution plans covering authored text fidelity, illustration refinement, and composition witness locking.
+- 2026-03-23: Completed Phase 14-01 by regenerating title, body, and footer content as deterministic multi-path authored vectors and adding CLI-backed text witness checks.
+- 2026-03-23: Completed Phase 14-02 by enriching the authored illustration, arrow, and clock-group SVG geometry and adding illustration witness coverage.
+- 2026-03-23: Completed Phase 14-03 by locking composition review targets, rerunning Phase 13 authored regressions, and committing the phase14-fidelity-witness export package.
 
 ### Pending Todos
 
@@ -75,9 +75,7 @@ None captured yet.
 
 ## Session Continuity
 
-Last session: 2026-03-22T12:15:33+07:00
-Stopped at: Planned Phase 14 text and illustration fidelity work
-Resume file: .planning/phases/14-text-and-illustration-fidelity-for-parity-scenes/14-01-PLAN.md
-
-
+Last session: 2026-03-23T14:30:53.6407483+07:00
+Stopped at: Phase 15 context gathered
+Resume file: .planning/phases/15-parity-witness-and-regression-validation/15-CONTEXT.md
 
