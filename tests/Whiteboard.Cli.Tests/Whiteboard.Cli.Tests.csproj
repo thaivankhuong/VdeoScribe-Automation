@@ -25,11 +25,17 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="AssemblyInfo.cs" />
     <Compile Include="ProjectSpecLoaderTests.cs" />
     <Compile Include="ExportPipelineContractTests.cs" />
     <Compile Include="CliCommandParserTests.cs" />
     <Compile Include="BatchPipelineOrchestratorTests.cs" />
     <Compile Include="PipelineOrchestratorIntegrationTests.cs" />
+    <Compile Include="ParityTextFidelityTests.cs" />
+    <Compile Include="ParityIllustrationFidelityTests.cs" />
+    <Compile Include="ParityCompositionWitnessTests.cs" />
+    <Compile Include="ParityWitnessReviewBundleTests.cs" />
+    <Compile Include="PlayableMediaEncodingContractTests.cs" />
     <Compile Include="..\..\src\Whiteboard.Cli\Models\CliRunRequest.cs" Link="Cli\Models\CliRunRequest.cs" />
     <Compile Include="..\..\src\Whiteboard.Cli\Models\CliRunResult.cs" Link="Cli\Models\CliRunResult.cs" />
     <Compile Include="..\..\src\Whiteboard.Cli\Models\CliBatchManifest.cs" Link="Cli\Models\CliBatchManifest.cs" />
