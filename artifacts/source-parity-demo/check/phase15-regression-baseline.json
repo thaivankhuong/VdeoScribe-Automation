@@ -1,0 +1,53 @@
+{
+  "sourceSpec": "project-engine.json",
+  "comparisonWitness": "out/phase15-review-witness/frame-manifest.json",
+  "expectedProjectId": "source-parity-authored-witness",
+  "expectedFrameCount": 264,
+  "expectedAudioCueCount": 0,
+  "expectedTotalDurationSeconds": 11,
+  "anchorArtifactDeterministicKeys": [
+    {
+      "frameIndex": 27,
+      "artifactDeterministicKey": "sha256:a2d61e1942c9bceff7db201d1297b05afb1200457e3ef0f7ba7ace4dd3ef1cf0"
+    },
+    {
+      "frameIndex": 72,
+      "artifactDeterministicKey": "sha256:fdc9be95daa874983f10e8cbdd0f3ca00b533145f35a236f20d6e170d13f7ee6"
+    },
+    {
+      "frameIndex": 93,
+      "artifactDeterministicKey": "sha256:be667cf7f5bd2e0edab5539560162239e9139b93618b81037409393a7e1831f2"
+    },
+    {
+      "frameIndex": 130,
+      "artifactDeterministicKey": "sha256:f762af5f1cf05e15ebf1c0cd22c837f305cd38737c57885bee040bfb56f7141c"
+    },
+    {
+      "frameIndex": 185,
+      "artifactDeterministicKey": "sha256:934b916bdf5b7b36d9af750b1356a9cf329f310200b5ba108f32942d9a7a75db"
+    },
+    {
+      "frameIndex": 214,
+      "artifactDeterministicKey": "sha256:c37fcf8a6372978bd70cb7fc774a359f895446ddd4679a8bd1f2a3c4d6f4bfb8"
+    }
+  ],
+  "lineage": [
+    {
+      "phase": "13",
+      "witness": "out/phase13-motion-witness/frame-manifest.json"
+    },
+    {
+      "phase": "14",
+      "witness": "out/phase14-fidelity-witness/frame-manifest.json"
+    },
+    {
+      "phase": "15",
+      "witness": "out/phase15-review-witness/frame-manifest.json"
+    }
+  ],
+  "playableMedia": {
+    "deterministicTestStatus": "encoded",
+    "realSmokeStatus": "env-gated",
+    "expectedWhenEnabled": "out/phase15-review-witness.mp4"
+  }
+}

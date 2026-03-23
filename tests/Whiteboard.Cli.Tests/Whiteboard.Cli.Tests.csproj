@@ -35,6 +35,7 @@
     <Compile Include="ParityIllustrationFidelityTests.cs" />
     <Compile Include="ParityCompositionWitnessTests.cs" />
     <Compile Include="ParityWitnessReviewBundleTests.cs" />
+    <Compile Include="ParityWitnessRegressionTests.cs" />
     <Compile Include="PlayableMediaEncodingContractTests.cs" />
     <Compile Include="..\..\src\Whiteboard.Cli\Models\CliRunRequest.cs" Link="Cli\Models\CliRunRequest.cs" />
     <Compile Include="..\..\src\Whiteboard.Cli\Models\CliRunResult.cs" Link="Cli\Models\CliRunResult.cs" />
