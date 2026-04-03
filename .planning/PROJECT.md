@@ -20,12 +20,15 @@ Milestone archives:
 - `.planning/milestones/v1.1-ROADMAP.md`
 - `.planning/milestones/v1.1-REQUIREMENTS.md`
 
-## Next Milestone Goals (Draft)
+## Current Milestone: v1.2 Controlled Automation Pipeline
 
-- Script-to-spec automation: compile scenario/script input into deterministic scene/timeline JSON.
-- Template and asset mapping: reusable scene templates and asset manifests for faster batch generation.
-- Automatic layout/timing pass: improve object placement, reveal order, and duration defaults without manual tuning.
-- Production batch hardening: queue/retry/error reporting and stable artifact manifests for high-volume generation.
+**Goal:** Deliver controlled script-to-video automation with curated assets/effects and no UI dependency.
+
+**Target features:**
+- Versioned asset registry with stable IDs and strict manifest validation.
+- Whitelisted effect profiles with bounded parameters and deterministic behavior.
+- Template-based script-to-spec compiler for repeatable scene generation.
+- Batch automation pipeline with deterministic witness/regression quality gates.
 
 ## Requirements
 
@@ -44,14 +47,15 @@ Milestone archives:
 
 ### Active
 
-- [ ] Compile script/scenario inputs into validated spec JSON automatically.
-- [ ] Scale from one parity sample to multiple reusable templates/scenarios with consistent outputs.
-- [ ] Improve automation quality gates for batch video generation (regression, visual checks, artifact contracts).
+- [ ] Build versioned asset/effect governance so all generated scenes use controlled resources.
+- [ ] Compile script/scenario inputs into validated spec JSON automatically through templates.
+- [ ] Run end-to-end batch generation with deterministic quality gates and auditable manifests.
 
 ### Out of Scope
 
 - Interactive editor UI - engine-first delivery remains the priority.
 - Whole-frame screenshot/video-crop reconstruction as the primary rendering strategy - output quality must come from engine semantics and authored assets.
+- AI-generated image creation in runtime or milestone-critical pipeline - assets must come from curated controlled libraries.
 - Realtime collaborative editing - this project remains offline/batch-first.
 - Plugin ecosystem and advanced non-core effects - defer until script-to-video automation reliability is stable.
 
@@ -76,6 +80,25 @@ The repository now contains archived v1.0 and v1.1 milestones plus parity demo a
 | Full-timeline rendering, playable media, and hand assets were added before source-parity polish | Closed the business-output gap before pursuing final visual similarity | Good |
 | v1.1 targets source parity without relying on whole-frame crops | Aligns milestone with user demand and engine-first rules | Good |
 | Milestone closeout keeps ROADMAP constant-size by archiving full milestone details in `.planning/milestones/` | Preserves context efficiency for future sessions | Good |
+| v1.2 automation must use curated asset/effect libraries (no generative image dependency) | Keeps output quality reviewable, legally traceable, and deterministic | Pending |
+| v1.2 remains CLI/spec driven with no editor UI work | Preserves engine-first scope and execution speed | Pending |
+
+## Evolution
+
+This document evolves at phase transitions and milestone boundaries.
+
+**After each phase transition** (via `$gsd-transition`):
+1. Requirements invalidated? -> Move to Out of Scope with reason
+2. Requirements validated? -> Move to Validated with phase reference
+3. New requirements emerged? -> Add to Active
+4. Decisions to log? -> Add to Key Decisions
+5. "What This Is" still accurate? -> Update if drifted
+
+**After each milestone** (via `$gsd-complete-milestone`):
+1. Full review of all sections
+2. Core Value check - still the right priority?
+3. Audit Out of Scope - reasons still valid?
+4. Update Context with current state
 
 ---
-*Last updated: 2026-04-03 after completing v1.1 Source Parity milestone*
+*Last updated: 2026-04-03 after starting v1.2 Controlled Automation Pipeline milestone*

@@ -1,15 +1,15 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.1
-milestone_name: source-parity
-status: milestone_completed
-stopped_at: Milestone v1.1 complete
-last_updated: "2026-04-03T08:20:00+07:00"
+milestone: v1.2
+milestone_name: controlled-automation-pipeline
+status: roadmap_defined
+stopped_at: Milestone v1.2 initialized
+last_updated: "2026-04-03T09:05:00+07:00"
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 11
-  completed_plans: 11
+  total_phases: 5
+  completed_phases: 0
+  total_plans: 13
+  completed_plans: 0
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-03)
 
 **Core value:** Given the same spec, assets, and settings, the engine must always produce the same frame/video output.
-**Current focus:** Start next milestone definition via $gsd-new-milestone
+**Current focus:** Phase 16 planning for controlled asset/effect automation
 
 ## Current Position
 
-Milestone: v1.1 Source Parity - COMPLETE (archived 2026-04-03)
-Next action: define the next milestone roadmap and requirements
+Phase: 16 (controlled-asset-and-effect-registry) - NOT STARTED
+Plan: 0 of 3 complete
 
 ## Accumulated Context
 
@@ -68,6 +68,7 @@ Next action: define the next milestone roadmap and requirements
 - 2026-03-23: Completed Phase 15-01 by generating the phase15-review-witness package, publishing a review-bundle manifest, and locking anchor-frame review coverage.
 - 2026-03-23: Completed Phase 15-02 by committing the parity regression baseline, repeated-run package/media regression tests, and the env-gated media validation record.
 - 2026-03-23: Completed Phase 15 and left milestone v1.1 ready for milestone completion.
+- 2026-04-03: Archived v1.1 Source Parity and initialized milestone v1.2 Controlled Automation Pipeline (Phases 16-20).
 
 ### Pending Todos
 
@@ -81,6 +82,6 @@ None captured yet.
 
 ## Session Continuity
 
-Last session: 2026-04-03T08:20:00+07:00
-Stopped at: Milestone v1.1 complete
+Last session: 2026-04-03T09:05:00+07:00
+Stopped at: Milestone v1.2 initialized
 Resume file: .planning/ROADMAP.md
