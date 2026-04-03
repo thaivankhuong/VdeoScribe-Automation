@@ -1,14 +1,14 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.2
-milestone_name: controlled-automation-pipeline
-status: planning
-stopped_at: Phase 16 completed
-last_updated: "2026-04-03T10:20:00.000Z"
+milestone: v1.0
+milestone_name: milestone
+status: unknown
+stopped_at: Phase 17 context gathered
+last_updated: "2026-04-03T16:28:51.490Z"
 progress:
   total_phases: 5
   completed_phases: 1
-  total_plans: 13
+  total_plans: 3
   completed_plans: 3
 ---
 
@@ -84,6 +84,6 @@ None captured yet.
 
 ## Session Continuity
 
-Last session: 2026-04-03T17:20:00+07:00
-Stopped at: Phase 16 completed
-Resume file: .planning/phases/17-template-contracts-and-scene-composition
+Last session: 2026-04-03T16:28:51.488Z
+Stopped at: Phase 17 context gathered
+Resume file: .planning/phases/17-template-contracts-and-scene-composition/17-CONTEXT.md
