@@ -19,7 +19,7 @@ v1.0 (engine core) and v1.1 (source parity) are shipped and archived. v1.2 focus
 
 ## Phases
 
-- [ ] **Phase 16: Controlled Asset and Effect Registry** - establish versioned asset/effect governance with strict validation.
+- [x] **Phase 16: Controlled Asset and Effect Registry** - establish versioned asset/effect governance with strict validation. (completed 2026-04-03)
 - [ ] **Phase 17: Template Contracts and Scene Composition** - add reusable template contracts with deterministic slot instantiation.
 - [ ] **Phase 18: Script-to-Spec Compiler** - compile structured script inputs into valid deterministic project specs.
 - [ ] **Phase 19: Batch Automation Orchestrator** - automate script->spec->render->export workflows with auditable manifests.
@@ -35,12 +35,12 @@ v1.0 (engine core) and v1.1 (source parity) are shipped and archived. v1.2 focus
 1. Asset/effect registry entries use stable IDs and version metadata consumable by existing spec contracts.
 2. Project specs can pin registry snapshots and reproduce equivalent outputs across reruns.
 3. Validation blocks unknown, deprecated, mismatched asset IDs and out-of-range effect parameters before rendering.
-**Plans**: 0/3 plans complete
+**Plans**: 3/3 plans complete
 
 Plans:
-- [ ] 16-01: Define registry schema and snapshot/pinning contracts
-- [ ] 16-02: Implement controlled effect profile catalog and parameter bounds validation
-- [ ] 16-03: Integrate registry validation into CLI/spec ingest path with deterministic error output
+- [x] 16-01: Define registry schema and snapshot/pinning contracts
+- [x] 16-02: Implement controlled effect profile catalog and parameter bounds validation
+- [x] 16-03: Integrate registry validation into CLI/spec ingest path with deterministic error output
 
 ### Phase 17: Template Contracts and Scene Composition
 **Goal**: Enable reusable template-based scene authoring without introducing UI dependencies.
@@ -106,7 +106,7 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 1-11 | v1.0 Engine Core | 29/29 | Complete | 2026-03-21 |
 | 12-15 | v1.1 Source Parity | 11/11 | Complete | 2026-04-03 |
-| 16 | v1.2 Controlled Automation Pipeline | 0/3 | Not started | - |
+| 16 | v1.2 Controlled Automation Pipeline | 3/3 | Complete   | 2026-04-03 |
 | 17 | v1.2 Controlled Automation Pipeline | 0/3 | Not started | - |
 | 18 | v1.2 Controlled Automation Pipeline | 0/3 | Not started | - |
 | 19 | v1.2 Controlled Automation Pipeline | 0/2 | Not started | - |

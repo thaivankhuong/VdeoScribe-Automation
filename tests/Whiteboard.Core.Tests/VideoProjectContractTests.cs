@@ -1,3 +1,5 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Whiteboard.Core.Assets;
 using Whiteboard.Core.Enums;
 using Whiteboard.Core.Models;
@@ -10,6 +12,15 @@ namespace Whiteboard.Core.Tests;
 
 public sealed class VideoProjectContractTests
 {
+    private static readonly JsonSerializerOptions SerializerOptions = new()
+    {
+        PropertyNameCaseInsensitive = true,
+        Converters =
+        {
+            new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)
+        }
+    };
+
     [Fact]
     public void VideoProject_CanBeInstantiated()
     {
@@ -49,6 +60,8 @@ public sealed class VideoProjectContractTests
         Assert.Equal(first.Timeline.Events.Count, second.Timeline.Events.Count);
         Assert.Equal(first.Assets.SvgAssets.Count, second.Assets.SvgAssets.Count);
         Assert.Equal(first.Assets.AudioAssets.Count, second.Assets.AudioAssets.Count);
+        Assert.Equal(first.Assets.RegistrySnapshot.SnapshotId, second.Assets.RegistrySnapshot.SnapshotId);
+        Assert.Equal(first.Meta.AssetRegistrySnapshotId, second.Meta.AssetRegistrySnapshotId);
     }
 
     [Fact]
@@ -69,6 +82,172 @@ public sealed class VideoProjectContractTests
         Assert.Equal(first.Timeline.Events[0].ActionType, second.Timeline.Events[0].ActionType);
         Assert.Equal(first.Timeline.CameraTrack.Keyframes[0].Position, second.Timeline.CameraTrack.Keyframes[0].Position);
         Assert.Equal(first.Timeline.AudioCues[0].AudioAssetId, second.Timeline.AudioCues[0].AudioAssetId);
+        Assert.Equal(first.Assets.RegistrySnapshot.SnapshotId, second.Assets.RegistrySnapshot.SnapshotId);
+        Assert.Equal(first.Meta.AssetRegistrySnapshotId, second.Meta.AssetRegistrySnapshotId);
+    }
+
+    [Fact]
+    public void VideoProject_CanBeDeserialized_FromMinimalJson()
+    {
+        const string json = """
+            {
+              "meta": {
+                "projectId": "project-json-001",
+                "name": "JSON Whiteboard",
+                "assetRegistrySnapshotId": "reg-main-2026-04"
+              },
+              "output": {
+                "width": 1280,
+                "height": 720,
+                "frameRate": 24,
+                "backgroundColorHex": "#FAFAFA"
+              },
+              "assets": {
+                "registrySnapshot": {
+                  "registryId": "main-registry",
+                  "snapshotId": "reg-main-2026-04",
+                  "snapshotVersion": "2026.04.0"
+                },
+                "svgAssets": [
+                  {
+                    "id": "svg-1",
+                    "name": "Idea Bulb",
+                    "sourcePath": "assets/idea.svg",
+                    "type": "svg"
+                  }
+                ]
+              },
+              "scenes": [
+                {
+                  "id": "scene-1",
+                  "name": "Intro",
+                  "durationSeconds": 5,
+                  "objects": [
+                    {
+                      "id": "object-1",
+                      "name": "Bulb",
+                      "type": "svg",
+                      "assetRefId": "svg-1",
+                      "transform": {
+                        "position": {
+                          "x": 100,
+                          "y": 200
+                        },
+                        "size": {
+                          "width": 300,
+                          "height": 300
+                        }
+                      }
+                    }
+                  ]
+                }
+              ],
+              "timeline": {
+                "events": [
+                  {
+                    "id": "event-1",
+                    "sceneId": "scene-1",
+                    "sceneObjectId": "object-1",
+                    "actionType": "draw",
+                    "startSeconds": 0,
+                    "durationSeconds": 3
+                  }
+                ],
+                "cameraTrack": {
+                  "keyframes": [
+                    {
+                      "timeSeconds": 0,
+                      "position": {
+                        "x": 0,
+                        "y": 0
+                      },
+                      "zoom": 1
+                    }
+                  ]
+                }
+              }
+            }
+            """;
+
+        var project = JsonSerializer.Deserialize<VideoProject>(json, SerializerOptions);
+
+        Assert.NotNull(project);
+        Assert.Equal("project-json-001", project.Meta.ProjectId);
+        Assert.Equal("JSON Whiteboard", project.Meta.Name);
+        Assert.Equal(1280, project.Output.Width);
+        Assert.Equal(720, project.Output.Height);
+        Assert.Equal("reg-main-2026-04", project.Meta.AssetRegistrySnapshotId);
+        Assert.Equal("reg-main-2026-04", project.Assets.RegistrySnapshot.SnapshotId);
+        Assert.Single(project.Assets.SvgAssets);
+        Assert.Single(project.Scenes);
+        Assert.Single(project.Scenes[0].Objects);
+        Assert.Single(project.Timeline.Events);
+        Assert.Single(project.Timeline.CameraTrack.Keyframes);
+        Assert.Equal(SceneObjectType.Svg, project.Scenes[0].Objects[0].Type);
+        Assert.Equal(TimelineActionType.Draw, project.Timeline.Events[0].ActionType);
+    }
+
+    [Fact]
+    public void VideoProject_EquivalentJsonPayloads_ProduceEquivalentContracts()
+    {
+        const string json = """
+            {
+              "meta": {
+                "projectId": "project-json-001",
+                "name": "JSON Whiteboard",
+                "assetRegistrySnapshotId": "reg-main-2026-04"
+              },
+              "output": {
+                "width": 1280,
+                "height": 720,
+                "frameRate": 24
+              },
+              "scenes": [
+                {
+                  "id": "scene-1",
+                  "name": "Intro",
+                  "durationSeconds": 5,
+                  "objects": [
+                    {
+                      "id": "object-1",
+                      "name": "Bulb",
+                      "type": "svg"
+                    }
+                  ]
+                }
+              ],
+              "timeline": {
+                "events": [
+                  {
+                    "id": "event-1",
+                    "sceneId": "scene-1",
+                    "sceneObjectId": "object-1",
+                    "actionType": "draw",
+                    "startSeconds": 0,
+                    "durationSeconds": 3
+                  }
+                ]
+              }
+            }
+            """;
+
+        var first = JsonSerializer.Deserialize<VideoProject>(json, SerializerOptions);
+        var second = JsonSerializer.Deserialize<VideoProject>(json, SerializerOptions);
+
+        Assert.NotNull(first);
+        Assert.NotNull(second);
+        Assert.Equal(first.Meta.ProjectId, second.Meta.ProjectId);
+        Assert.Equal(first.Meta.Name, second.Meta.Name);
+        Assert.Equal(first.Output.Width, second.Output.Width);
+        Assert.Equal(first.Output.Height, second.Output.Height);
+        Assert.Equal(first.Output.FrameRate, second.Output.FrameRate);
+        Assert.Equal(first.Meta.AssetRegistrySnapshotId, second.Meta.AssetRegistrySnapshotId);
+        Assert.Equal(first.Assets.RegistrySnapshot.SnapshotId, second.Assets.RegistrySnapshot.SnapshotId);
+        Assert.Equal(first.Scenes[0].Id, second.Scenes[0].Id);
+        Assert.Equal(first.Scenes[0].Objects[0].Id, second.Scenes[0].Objects[0].Id);
+        Assert.Equal(first.Scenes[0].Objects[0].Type, second.Scenes[0].Objects[0].Type);
+        Assert.Equal(first.Timeline.Events[0].Id, second.Timeline.Events[0].Id);
+        Assert.Equal(first.Timeline.Events[0].ActionType, second.Timeline.Events[0].ActionType);
     }
 
     private static VideoProject CreateProject()
@@ -78,7 +257,8 @@ public sealed class VideoProjectContractTests
             Meta = new ProjectMeta
             {
                 ProjectId = "project-001",
-                Name = "Sample Whiteboard"
+                Name = "Sample Whiteboard",
+                AssetRegistrySnapshotId = "reg-main-2026-04"
             },
             Output = new OutputSpec
             {
@@ -88,6 +268,12 @@ public sealed class VideoProjectContractTests
             },
             Assets = new AssetCollection
             {
+                RegistrySnapshot = new AssetRegistrySnapshot
+                {
+                    RegistryId = "main-registry",
+                    SnapshotId = "reg-main-2026-04",
+                    SnapshotVersion = "2026.04.0"
+                },
                 SvgAssets =
                 [
                     new SvgAsset

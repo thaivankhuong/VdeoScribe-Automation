@@ -7,14 +7,14 @@
 
 ### Asset Registry
 
-- [ ] **REG-01**: Operator can register SVG, image, font, and hand assets with stable IDs and version metadata.
-- [ ] **REG-02**: A project can pin to a specific registry snapshot so renders are reproducible across runs and environments.
-- [ ] **REG-03**: Validation fails with explicit errors when specs reference unknown, deprecated, or type-mismatched asset IDs.
+- [x] **REG-01**: Operator can register SVG, image, font, and hand assets with stable IDs and version metadata.
+- [x] **REG-02**: A project can pin to a specific registry snapshot so renders are reproducible across runs and environments.
+- [x] **REG-03**: Validation fails with explicit errors when specs reference unknown, deprecated, or type-mismatched asset IDs.
 
 ### Effect Governance
 
-- [ ] **EFX-01**: Scene objects can use only whitelisted effect profiles defined in the controlled library.
-- [ ] **EFX-02**: Effect profile parameters are range-validated before timeline execution to prevent undefined render behavior.
+- [x] **EFX-01**: Scene objects can use only whitelisted effect profiles defined in the controlled library.
+- [x] **EFX-02**: Effect profile parameters are range-validated before timeline execution to prevent undefined render behavior.
 
 ### Template System
 
@@ -52,11 +52,11 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| REG-01 | Phase 16 | Pending |
-| REG-02 | Phase 16 | Pending |
-| REG-03 | Phase 16 | Pending |
-| EFX-01 | Phase 16 | Pending |
-| EFX-02 | Phase 16 | Pending |
+| REG-01 | Phase 16 | Complete |
+| REG-02 | Phase 16 | Complete |
+| REG-03 | Phase 16 | Complete |
+| EFX-01 | Phase 16 | Complete |
+| EFX-02 | Phase 16 | Complete |
 | TMP-01 | Phase 17 | Pending |
 | TMP-02 | Phase 17 | Pending |
 | CMP-01 | Phase 18 | Pending |
@@ -72,4 +72,4 @@
 
 ---
 *Requirements defined: 2026-04-03*
-*Last updated: 2026-04-03 after initializing v1.2 milestone requirements*
+*Last updated: 2026-04-03 after completing Phase 16 controlled registry and effect governance requirements*

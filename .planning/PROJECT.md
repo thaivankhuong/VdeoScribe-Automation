@@ -14,6 +14,9 @@ Shipped milestones:
 - v1.0 Engine Core (2026-03-21): deterministic pipeline from spec ingestion to playable media.
 - v1.1 Source Parity (2026-04-03): authored object decomposition, parity motion/hand sequencing, text/illustration fidelity updates, and witness/regression evidence.
 
+Current milestone progress:
+- v1.2 Phase 16 (2026-04-03): controlled asset registry pinning and effect profile governance validated with deterministic CLI diagnostics.
+
 Milestone archives:
 - `.planning/milestones/v1.0-ROADMAP.md`
 - `.planning/milestones/v1.0-REQUIREMENTS.md`
@@ -44,10 +47,10 @@ Milestone archives:
 - [x] Source-like motion/hand sequencing for authored parity sample - v1.1
 - [x] Text and illustration fidelity improvements for reference sample composition - v1.1
 - [x] Deterministic frame/video parity regression witnesses - v1.1
+- [x] Controlled asset/effect governance with deterministic registry/effect validation - v1.2 Phase 16
 
 ### Active
 
-- [ ] Build versioned asset/effect governance so all generated scenes use controlled resources.
 - [ ] Compile script/scenario inputs into validated spec JSON automatically through templates.
 - [ ] Run end-to-end batch generation with deterministic quality gates and auditable manifests.
 
@@ -80,8 +83,8 @@ The repository now contains archived v1.0 and v1.1 milestones plus parity demo a
 | Full-timeline rendering, playable media, and hand assets were added before source-parity polish | Closed the business-output gap before pursuing final visual similarity | Good |
 | v1.1 targets source parity without relying on whole-frame crops | Aligns milestone with user demand and engine-first rules | Good |
 | Milestone closeout keeps ROADMAP constant-size by archiving full milestone details in `.planning/milestones/` | Preserves context efficiency for future sessions | Good |
-| v1.2 automation must use curated asset/effect libraries (no generative image dependency) | Keeps output quality reviewable, legally traceable, and deterministic | Pending |
-| v1.2 remains CLI/spec driven with no editor UI work | Preserves engine-first scope and execution speed | Pending |
+| v1.2 automation must use curated asset/effect libraries (no generative image dependency) | Keeps output quality reviewable, legally traceable, and deterministic | Good (validated in Phase 16) |
+| v1.2 remains CLI/spec driven with no editor UI work | Preserves engine-first scope and execution speed | Good (still enforced) |
 
 ## Evolution
 
@@ -101,4 +104,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-03 after starting v1.2 Controlled Automation Pipeline milestone*
+*Last updated: 2026-04-03 after completing v1.2 Phase 16 controlled registry/effect governance*

@@ -1,0 +1,68 @@
+{
+  "meta": {
+    "projectId": "phase16-effect-range",
+    "name": "Phase 16 Effect Range"
+  },
+  "output": {
+    "width": 1280,
+    "height": 720,
+    "frameRate": 30
+  },
+  "assets": {
+    "svgAssets": [
+      {
+        "id": "svg-1",
+        "name": "Bulb",
+        "sourcePath": "assets/bulb.svg",
+        "type": "svg"
+      }
+    ]
+  },
+  "scenes": [
+    {
+      "id": "scene-1",
+      "name": "Intro",
+      "durationSeconds": 5,
+      "objects": [
+        {
+          "id": "object-1",
+          "name": "Bulb",
+          "type": "svg",
+          "assetRefId": "svg-1",
+          "layer": 1
+        }
+      ]
+    }
+  ],
+  "timeline": {
+    "effectProfiles": [
+      {
+        "id": "effect-fade-default",
+        "actionType": "fade",
+        "minDurationSeconds": 0.5,
+        "maxDurationSeconds": 4,
+        "parameterBounds": {
+          "opacity": {
+            "key": "opacity",
+            "minValue": 0,
+            "maxValue": 1
+          }
+        }
+      }
+    ],
+    "events": [
+      {
+        "id": "event-1",
+        "sceneId": "scene-1",
+        "sceneObjectId": "object-1",
+        "actionType": "fade",
+        "startSeconds": 0,
+        "durationSeconds": 2,
+        "parameters": {
+          "effectProfileId": "effect-fade-default",
+          "opacity": "1.2"
+        }
+      }
+    ]
+  }
+}

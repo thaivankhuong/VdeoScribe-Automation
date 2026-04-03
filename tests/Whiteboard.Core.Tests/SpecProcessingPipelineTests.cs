@@ -110,6 +110,51 @@ public sealed class SpecProcessingPipelineTests
         Assert.Equal(new[] { "svg-a", "svg-b" }, svgIds);
     }
 
+    [Fact]
+    public void RegistrySnapshotPinning_RequiresSnapshotMetadataWhenPinned()
+    {
+        var result = _pipeline.Process(CreateRegistryPinningMissingSnapshotJson(), "specs/registry-missing.json");
+
+        Assert.False(result.IsSuccess);
+        Assert.Contains(result.Issues, issue => issue.Code == "semantic.asset_registry.snapshot.required");
+        Assert.Contains(result.Issues, issue => issue.Code == "semantic.asset_registry.id.required");
+    }
+
+    [Fact]
+    public void RegistrySnapshotPinning_RejectsUnknownAndDeprecatedSnapshots()
+    {
+        var unknownSnapshot = _pipeline.Process(CreateRegistrySnapshotUnknownJson(), "specs/registry-unknown.json");
+        var deprecatedSnapshot = _pipeline.Process(CreateRegistrySnapshotDeprecatedJson(), "specs/registry-deprecated.json");
+
+        Assert.False(unknownSnapshot.IsSuccess);
+        Assert.Contains(unknownSnapshot.Issues, issue => issue.Code == "semantic.asset_registry.snapshot.unknown");
+
+        Assert.False(deprecatedSnapshot.IsSuccess);
+        Assert.Contains(deprecatedSnapshot.Issues, issue => issue.Code == "semantic.asset_registry.snapshot.deprecated");
+    }
+
+    [Fact]
+    public void EffectProfileValidation_RejectsMissingProfileAndActionMismatch()
+    {
+        var missingProfile = _pipeline.Process(CreateEffectProfileMissingJson(), "specs/effect-profile-missing.json");
+        var mismatchedAction = _pipeline.Process(CreateEffectProfileActionMismatchJson(), "specs/effect-profile-mismatch.json");
+
+        Assert.False(missingProfile.IsSuccess);
+        Assert.Contains(missingProfile.Issues, issue => issue.Code == "semantic.effect_profile.missing");
+
+        Assert.False(mismatchedAction.IsSuccess);
+        Assert.Contains(mismatchedAction.Issues, issue => issue.Code == "semantic.effect_profile.action_mismatch");
+    }
+
+    [Fact]
+    public void EffectProfileValidation_RejectsOutOfRangeParameters()
+    {
+        var result = _pipeline.Process(CreateEffectProfileOutOfRangeJson(), "specs/effect-profile-range.json");
+
+        Assert.False(result.IsSuccess);
+        Assert.Contains(result.Issues, issue => issue.Code == "semantic.effect_profile.parameter_out_of_range");
+    }
+
     private static string CreateValidJson()
     {
         return """
@@ -161,6 +206,382 @@ public sealed class SpecProcessingPipelineTests
                     "durationSeconds": 3,
                     "parameters": {
                       "strokeOrder": "sequential"
+                    }
+                  }
+                ]
+              }
+            }
+            """;
+    }
+
+    private static string CreateRegistryPinningMissingSnapshotJson()
+    {
+        return """
+            {
+              "meta": {
+                "projectId": "registry-missing",
+                "name": "Registry Missing",
+                "assetRegistrySnapshotId": "reg-main-2026-04"
+              },
+              "output": {
+                "width": 1280,
+                "height": 720,
+                "frameRate": 30
+              },
+              "assets": {
+                "svgAssets": [
+                  {
+                    "id": "svg-1",
+                    "name": "Bulb",
+                    "sourcePath": "assets/bulb.svg",
+                    "type": "svg"
+                  }
+                ]
+              },
+              "scenes": [
+                {
+                  "id": "scene-1",
+                  "name": "Intro",
+                  "durationSeconds": 5,
+                  "objects": [
+                    {
+                      "id": "object-1",
+                      "name": "Bulb",
+                      "type": "svg",
+                      "assetRefId": "svg-1",
+                      "layer": 1
+                    }
+                  ]
+                }
+              ],
+              "timeline": {
+                "events": [
+                  {
+                    "id": "event-1",
+                    "sceneId": "scene-1",
+                    "sceneObjectId": "object-1",
+                    "actionType": "draw",
+                    "startSeconds": 0,
+                    "durationSeconds": 1
+                  }
+                ]
+              }
+            }
+            """;
+    }
+
+    private static string CreateRegistrySnapshotUnknownJson()
+    {
+        return """
+            {
+              "meta": {
+                "projectId": "registry-unknown",
+                "name": "Registry Unknown",
+                "assetRegistrySnapshotId": "reg-main-2026-99"
+              },
+              "output": {
+                "width": 1280,
+                "height": 720,
+                "frameRate": 30
+              },
+              "assets": {
+                "registrySnapshot": {
+                  "registryId": "main-registry",
+                  "snapshotId": "reg-main-2026-99",
+                  "snapshotVersion": "2026.99.0"
+                },
+                "svgAssets": [
+                  {
+                    "id": "svg-1",
+                    "name": "Bulb",
+                    "sourcePath": "assets/bulb.svg",
+                    "type": "svg"
+                  }
+                ]
+              },
+              "scenes": [
+                {
+                  "id": "scene-1",
+                  "name": "Intro",
+                  "durationSeconds": 5,
+                  "objects": [
+                    {
+                      "id": "object-1",
+                      "name": "Bulb",
+                      "type": "svg",
+                      "assetRefId": "svg-1",
+                      "layer": 1
+                    }
+                  ]
+                }
+              ],
+              "timeline": {
+                "events": [
+                  {
+                    "id": "event-1",
+                    "sceneId": "scene-1",
+                    "sceneObjectId": "object-1",
+                    "actionType": "draw",
+                    "startSeconds": 0,
+                    "durationSeconds": 1
+                  }
+                ]
+              }
+            }
+            """;
+    }
+
+    private static string CreateRegistrySnapshotDeprecatedJson()
+    {
+        return """
+            {
+              "meta": {
+                "projectId": "registry-deprecated",
+                "name": "Registry Deprecated",
+                "assetRegistrySnapshotId": "reg-main-2026-03"
+              },
+              "output": {
+                "width": 1280,
+                "height": 720,
+                "frameRate": 30
+              },
+              "assets": {
+                "registrySnapshot": {
+                  "registryId": "main-registry",
+                  "snapshotId": "reg-main-2026-03",
+                  "snapshotVersion": "2026.03.0"
+                },
+                "svgAssets": [
+                  {
+                    "id": "svg-1",
+                    "name": "Bulb",
+                    "sourcePath": "assets/bulb.svg",
+                    "type": "svg"
+                  }
+                ]
+              },
+              "scenes": [
+                {
+                  "id": "scene-1",
+                  "name": "Intro",
+                  "durationSeconds": 5,
+                  "objects": [
+                    {
+                      "id": "object-1",
+                      "name": "Bulb",
+                      "type": "svg",
+                      "assetRefId": "svg-1",
+                      "layer": 1
+                    }
+                  ]
+                }
+              ],
+              "timeline": {
+                "events": [
+                  {
+                    "id": "event-1",
+                    "sceneId": "scene-1",
+                    "sceneObjectId": "object-1",
+                    "actionType": "draw",
+                    "startSeconds": 0,
+                    "durationSeconds": 1
+                  }
+                ]
+              }
+            }
+            """;
+    }
+
+    private static string CreateEffectProfileMissingJson()
+    {
+        return """
+            {
+              "meta": {
+                "projectId": "effect-profile-missing",
+                "name": "Effect Profile Missing"
+              },
+              "output": {
+                "width": 1280,
+                "height": 720,
+                "frameRate": 30
+              },
+              "assets": {
+                "svgAssets": [
+                  {
+                    "id": "svg-1",
+                    "name": "Bulb",
+                    "sourcePath": "assets/bulb.svg",
+                    "type": "svg"
+                  }
+                ]
+              },
+              "scenes": [
+                {
+                  "id": "scene-1",
+                  "name": "Intro",
+                  "durationSeconds": 5,
+                  "objects": [
+                    {
+                      "id": "object-1",
+                      "name": "Bulb",
+                      "type": "svg",
+                      "assetRefId": "svg-1",
+                      "layer": 1
+                    }
+                  ]
+                }
+              ],
+              "timeline": {
+                "events": [
+                  {
+                    "id": "event-1",
+                    "sceneId": "scene-1",
+                    "sceneObjectId": "object-1",
+                    "actionType": "draw",
+                    "startSeconds": 0,
+                    "durationSeconds": 2,
+                    "parameters": {
+                      "effectProfileId": "effect-draw-default"
+                    }
+                  }
+                ]
+              }
+            }
+            """;
+    }
+
+    private static string CreateEffectProfileActionMismatchJson()
+    {
+        return """
+            {
+              "meta": {
+                "projectId": "effect-profile-mismatch",
+                "name": "Effect Profile Mismatch"
+              },
+              "output": {
+                "width": 1280,
+                "height": 720,
+                "frameRate": 30
+              },
+              "assets": {
+                "svgAssets": [
+                  {
+                    "id": "svg-1",
+                    "name": "Bulb",
+                    "sourcePath": "assets/bulb.svg",
+                    "type": "svg"
+                  }
+                ]
+              },
+              "scenes": [
+                {
+                  "id": "scene-1",
+                  "name": "Intro",
+                  "durationSeconds": 5,
+                  "objects": [
+                    {
+                      "id": "object-1",
+                      "name": "Bulb",
+                      "type": "svg",
+                      "assetRefId": "svg-1",
+                      "layer": 1
+                    }
+                  ]
+                }
+              ],
+              "timeline": {
+                "effectProfiles": [
+                  {
+                    "id": "effect-move-only",
+                    "actionType": "move",
+                    "minDurationSeconds": 0.5,
+                    "maxDurationSeconds": 4
+                  }
+                ],
+                "events": [
+                  {
+                    "id": "event-1",
+                    "sceneId": "scene-1",
+                    "sceneObjectId": "object-1",
+                    "actionType": "draw",
+                    "startSeconds": 0,
+                    "durationSeconds": 2,
+                    "parameters": {
+                      "effectProfileId": "effect-move-only"
+                    }
+                  }
+                ]
+              }
+            }
+            """;
+    }
+
+    private static string CreateEffectProfileOutOfRangeJson()
+    {
+        return """
+            {
+              "meta": {
+                "projectId": "effect-profile-range",
+                "name": "Effect Profile Range"
+              },
+              "output": {
+                "width": 1280,
+                "height": 720,
+                "frameRate": 30
+              },
+              "assets": {
+                "svgAssets": [
+                  {
+                    "id": "svg-1",
+                    "name": "Bulb",
+                    "sourcePath": "assets/bulb.svg",
+                    "type": "svg"
+                  }
+                ]
+              },
+              "scenes": [
+                {
+                  "id": "scene-1",
+                  "name": "Intro",
+                  "durationSeconds": 5,
+                  "objects": [
+                    {
+                      "id": "object-1",
+                      "name": "Bulb",
+                      "type": "svg",
+                      "assetRefId": "svg-1",
+                      "layer": 1
+                    }
+                  ]
+                }
+              ],
+              "timeline": {
+                "effectProfiles": [
+                  {
+                    "id": "effect-fade-default",
+                    "actionType": "fade",
+                    "minDurationSeconds": 0.5,
+                    "maxDurationSeconds": 4,
+                    "parameterBounds": {
+                      "opacity": {
+                        "key": "opacity",
+                        "minValue": 0,
+                        "maxValue": 1
+                      }
+                    }
+                  }
+                ],
+                "events": [
+                  {
+                    "id": "event-1",
+                    "sceneId": "scene-1",
+                    "sceneObjectId": "object-1",
+                    "actionType": "fade",
+                    "startSeconds": 0,
+                    "durationSeconds": 2,
+                    "parameters": {
+                      "effectProfileId": "effect-fade-default",
+                      "opacity": "1.5"
                     }
                   }
                 ]

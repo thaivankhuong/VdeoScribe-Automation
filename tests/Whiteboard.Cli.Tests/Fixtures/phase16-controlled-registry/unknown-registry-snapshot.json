@@ -1,0 +1,55 @@
+{
+  "meta": {
+    "projectId": "phase16-unknown-registry",
+    "name": "Phase 16 Unknown Registry",
+    "assetRegistrySnapshotId": "reg-main-2026-99"
+  },
+  "output": {
+    "width": 1280,
+    "height": 720,
+    "frameRate": 30
+  },
+  "assets": {
+    "registrySnapshot": {
+      "registryId": "main-registry",
+      "snapshotId": "reg-main-2026-99",
+      "snapshotVersion": "2026.99.0"
+    },
+    "svgAssets": [
+      {
+        "id": "svg-1",
+        "name": "Bulb",
+        "sourcePath": "assets/bulb.svg",
+        "type": "svg"
+      }
+    ]
+  },
+  "scenes": [
+    {
+      "id": "scene-1",
+      "name": "Intro",
+      "durationSeconds": 5,
+      "objects": [
+        {
+          "id": "object-1",
+          "name": "Bulb",
+          "type": "svg",
+          "assetRefId": "svg-1",
+          "layer": 1
+        }
+      ]
+    }
+  ],
+  "timeline": {
+    "events": [
+      {
+        "id": "event-1",
+        "sceneId": "scene-1",
+        "sceneObjectId": "object-1",
+        "actionType": "draw",
+        "startSeconds": 0,
+        "durationSeconds": 1
+      }
+    ]
+  }
+}

@@ -99,13 +99,43 @@ public sealed class ProjectSpecLoaderTests
         Assert.Equal("hand-1", project.Assets.HandAssets.Single().Id);
         Assert.Equal(new[]
         {
-            "object-arrow",
-            "object-body",
-            "object-clock-group",
-            "object-footer",
             "object-left",
-            "object-title"
+            "object-arrow",
+            "object-title",
+            "object-clock-group",
+            "object-body",
+            "object-footer"
         }, project.Scenes.Single().Objects.Select(sceneObject => sceneObject.Id).ToArray());
+    }
+
+    [Fact]
+    public void ProjectSpecLoader_Load_RejectsUnknownRegistrySnapshotFixture()
+    {
+        var specPath = ResolveRepoRelativePath("tests", "Whiteboard.Cli.Tests", "Fixtures", "phase16-controlled-registry", "unknown-registry-snapshot.json");
+        var loader = new ProjectSpecLoader();
+
+        var exception = Assert.Throws<InvalidDataException>(() => loader.Load(specPath));
+        Assert.Contains("semantic.asset_registry.snapshot.unknown", exception.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ProjectSpecLoader_Load_RejectsDeprecatedRegistrySnapshotFixture()
+    {
+        var specPath = ResolveRepoRelativePath("tests", "Whiteboard.Cli.Tests", "Fixtures", "phase16-controlled-registry", "deprecated-registry-snapshot.json");
+        var loader = new ProjectSpecLoader();
+
+        var exception = Assert.Throws<InvalidDataException>(() => loader.Load(specPath));
+        Assert.Contains("semantic.asset_registry.snapshot.deprecated", exception.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ProjectSpecLoader_Load_RejectsOutOfRangeEffectParameterFixtureWithDeterministicOrdering()
+    {
+        var specPath = ResolveRepoRelativePath("tests", "Whiteboard.Cli.Tests", "Fixtures", "phase16-controlled-registry", "effect-parameter-out-of-range.json");
+        var loader = new ProjectSpecLoader();
+
+        var exception = Assert.Throws<InvalidDataException>(() => loader.Load(specPath));
+        Assert.Contains("semantic.effect_profile.parameter_out_of_range", exception.Message, StringComparison.Ordinal);
     }
 
     private static string CreateSpecFile(string fileName, string json)

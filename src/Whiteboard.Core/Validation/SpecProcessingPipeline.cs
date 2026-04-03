@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Whiteboard.Core.Assets;
@@ -11,6 +12,12 @@ namespace Whiteboard.Core.Validation;
 
 public sealed class SpecProcessingPipeline : ISpecProcessingPipeline
 {
+    private enum RegistrySnapshotStatus
+    {
+        Active = 0,
+        Deprecated = 1
+    }
+
     private static readonly JsonSerializerOptions SerializerOptions = new()
     {
         PropertyNameCaseInsensitive = true,
@@ -21,6 +28,13 @@ public sealed class SpecProcessingPipeline : ISpecProcessingPipeline
             new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)
         }
     };
+
+    private static readonly IReadOnlyDictionary<string, RegistrySnapshotStatus> RegistrySnapshotPolicy =
+        new Dictionary<string, RegistrySnapshotStatus>(StringComparer.Ordinal)
+        {
+            ["reg-main-2026-04"] = RegistrySnapshotStatus.Active,
+            ["reg-main-2026-03"] = RegistrySnapshotStatus.Deprecated
+        };
 
     public SpecProcessingResult Process(string json, string sourcePath)
     {
@@ -166,6 +180,45 @@ public sealed class SpecProcessingPipeline : ISpecProcessingPipeline
             }
         }
 
+        var effectProfiles = parsedProject.Timeline.EffectProfiles ?? [];
+        for (var profileIndex = 0; profileIndex < effectProfiles.Count; profileIndex++)
+        {
+            var profile = effectProfiles[profileIndex];
+            if (string.IsNullOrWhiteSpace(profile.Id))
+            {
+                issues.Add(new ValidationIssue(ValidationGate.Schema, $"$.timeline.effectProfiles[{profileIndex}].id", ValidationSeverity.Error, "schema.effect_profile.id.required", "Effect profile id is required."));
+            }
+
+            if (profile.MinDurationSeconds < 0)
+            {
+                issues.Add(new ValidationIssue(ValidationGate.Schema, $"$.timeline.effectProfiles[{profileIndex}].minDurationSeconds", ValidationSeverity.Error, "schema.effect_profile.min_duration.invalid", "Effect profile minDurationSeconds must be zero or greater."));
+            }
+
+            if (profile.MaxDurationSeconds <= 0)
+            {
+                issues.Add(new ValidationIssue(ValidationGate.Schema, $"$.timeline.effectProfiles[{profileIndex}].maxDurationSeconds", ValidationSeverity.Error, "schema.effect_profile.max_duration.invalid", "Effect profile maxDurationSeconds must be greater than zero."));
+            }
+
+            if (profile.MaxDurationSeconds < profile.MinDurationSeconds)
+            {
+                issues.Add(new ValidationIssue(ValidationGate.Schema, $"$.timeline.effectProfiles[{profileIndex}]", ValidationSeverity.Error, "schema.effect_profile.duration_range.invalid", "Effect profile maxDurationSeconds must be greater than or equal to minDurationSeconds."));
+            }
+
+            foreach (var parameterBound in profile.ParameterBounds)
+            {
+                if (string.IsNullOrWhiteSpace(parameterBound.Key))
+                {
+                    issues.Add(new ValidationIssue(ValidationGate.Schema, $"$.timeline.effectProfiles[{profileIndex}].parameterBounds", ValidationSeverity.Error, "schema.effect_profile.parameter.key.required", "Effect profile parameter bound key is required."));
+                    continue;
+                }
+
+                if (parameterBound.Value.MaxValue < parameterBound.Value.MinValue)
+                {
+                    issues.Add(new ValidationIssue(ValidationGate.Schema, $"$.timeline.effectProfiles[{profileIndex}].parameterBounds.{parameterBound.Key}", ValidationSeverity.Error, "schema.effect_profile.parameter.range.invalid", "Effect profile parameter bound maxValue must be greater than or equal to minValue."));
+                }
+            }
+        }
+
         for (var keyframeIndex = 0; keyframeIndex < parsedProject.Timeline.CameraTrack.Keyframes.Count; keyframeIndex++)
         {
             var keyframe = parsedProject.Timeline.CameraTrack.Keyframes[keyframeIndex];
@@ -234,6 +287,9 @@ public sealed class SpecProcessingPipeline : ISpecProcessingPipeline
                 Name = string.IsNullOrWhiteSpace(meta.Name) ? fileName : meta.Name.Trim(),
                 Description = meta.Description?.Trim(),
                 Version = string.IsNullOrWhiteSpace(meta.Version) ? "1.0" : meta.Version.Trim(),
+                AssetRegistrySnapshotId = string.IsNullOrWhiteSpace(meta.AssetRegistrySnapshotId)
+                    ? null
+                    : meta.AssetRegistrySnapshotId.Trim(),
                 CreatedUtc = meta.CreatedUtc,
                 UpdatedUtc = meta.UpdatedUtc
             },
@@ -259,6 +315,7 @@ public sealed class SpecProcessingPipeline : ISpecProcessingPipeline
 
         return new AssetCollection
         {
+            RegistrySnapshot = NormalizeRegistrySnapshot(assets.RegistrySnapshot),
             SvgAssets = assets.SvgAssets
                 .Select(asset => new SvgAsset
                 {
@@ -322,6 +379,22 @@ public sealed class SpecProcessingPipeline : ISpecProcessingPipeline
         };
     }
 
+    private static AssetRegistrySnapshot NormalizeRegistrySnapshot(AssetRegistrySnapshot? registrySnapshot)
+    {
+        registrySnapshot ??= new AssetRegistrySnapshot();
+
+        return new AssetRegistrySnapshot
+        {
+            RegistryId = registrySnapshot.RegistryId.Trim(),
+            SnapshotId = registrySnapshot.SnapshotId.Trim(),
+            SnapshotVersion = registrySnapshot.SnapshotVersion.Trim(),
+            GeneratedUtc = registrySnapshot.GeneratedUtc,
+            SourceManifestPath = string.IsNullOrWhiteSpace(registrySnapshot.SourceManifestPath)
+                ? null
+                : registrySnapshot.SourceManifestPath.Trim()
+        };
+    }
+
     private static List<SceneDefinition> NormalizeScenes(List<SceneDefinition>? scenes)
     {
         scenes ??= [];
@@ -379,6 +452,32 @@ public sealed class SpecProcessingPipeline : ISpecProcessingPipeline
                 .ThenBy(timelineEvent => timelineEvent.ActionType)
                 .ThenBy(timelineEvent => timelineEvent.Id, StringComparer.Ordinal)
                 .ToList(),
+            EffectProfiles = (timeline.EffectProfiles ?? [])
+                .Select(effectProfile => new EffectProfile
+                {
+                    Id = effectProfile.Id.Trim(),
+                    ActionType = effectProfile.ActionType,
+                    MinDurationSeconds = effectProfile.MinDurationSeconds,
+                    MaxDurationSeconds = effectProfile.MaxDurationSeconds,
+                    ParameterBounds = (effectProfile.ParameterBounds ?? [])
+                        .OrderBy(parameter => parameter.Key, StringComparer.Ordinal)
+                        .ToDictionary(
+                            parameter => parameter.Key,
+                            parameter => new EffectParameterBound
+                            {
+                                Key = string.IsNullOrWhiteSpace(parameter.Value.Key)
+                                    ? parameter.Key.Trim()
+                                    : parameter.Value.Key.Trim(),
+                                MinValue = parameter.Value.MinValue,
+                                MaxValue = parameter.Value.MaxValue
+                            },
+                            StringComparer.Ordinal)
+                })
+                .OrderBy(effectProfile => effectProfile.Id, StringComparer.Ordinal)
+                .ThenBy(effectProfile => effectProfile.ActionType)
+                .ThenBy(effectProfile => effectProfile.MinDurationSeconds)
+                .ThenBy(effectProfile => effectProfile.MaxDurationSeconds)
+                .ToList(),
             CameraTrack = new CameraTrack
             {
                 Keyframes = timeline.CameraTrack.Keyframes
@@ -417,6 +516,8 @@ public sealed class SpecProcessingPipeline : ISpecProcessingPipeline
     private static List<ValidationIssue> ValidateSemantic(VideoProject project)
     {
         var issues = new List<ValidationIssue>();
+        ValidateRegistrySnapshotPinning(project, issues);
+
         var assetIds = new HashSet<string>(StringComparer.Ordinal);
         var svgAssetIds = project.Assets.SvgAssets
             .Select(asset => asset.Id)
@@ -424,12 +525,14 @@ public sealed class SpecProcessingPipeline : ISpecProcessingPipeline
         var imageAssetIds = project.Assets.ImageAssets
             .Select(asset => asset.Id)
             .ToHashSet(StringComparer.Ordinal);
+        var effectProfileLookup = new Dictionary<string, EffectProfile>(StringComparer.Ordinal);
 
         AddDuplicateAssetIssues(project.Assets.SvgAssets.Select(asset => asset.Id), "$.assets.svgAssets", "semantic.asset.id.duplicate", "Duplicate SVG asset id.", issues);
         AddDuplicateAssetIssues(project.Assets.AudioAssets.Select(asset => asset.Id), "$.assets.audioAssets", "semantic.asset.id.duplicate", "Duplicate audio asset id.", issues);
         AddDuplicateAssetIssues(project.Assets.FontAssets.Select(asset => asset.Id), "$.assets.fontAssets", "semantic.asset.id.duplicate", "Duplicate font asset id.", issues);
         AddDuplicateAssetIssues(project.Assets.HandAssets.Select(asset => asset.Id), "$.assets.handAssets", "semantic.asset.id.duplicate", "Duplicate hand asset id.", issues);
         AddDuplicateAssetIssues(project.Assets.ImageAssets.Select(asset => asset.Id), "$.assets.imageAssets", "semantic.asset.id.duplicate", "Duplicate image asset id.", issues);
+        AddDuplicateAssetIssues((project.Timeline.EffectProfiles ?? []).Select(effectProfile => effectProfile.Id), "$.timeline.effectProfiles", "semantic.effect_profile.id.duplicate", "Duplicate effect profile id.", issues);
 
         foreach (var assetId in project.Assets.SvgAssets.Select(asset => asset.Id)
                      .Concat(project.Assets.AudioAssets.Select(asset => asset.Id))
@@ -438,6 +541,11 @@ public sealed class SpecProcessingPipeline : ISpecProcessingPipeline
                      .Concat(project.Assets.ImageAssets.Select(asset => asset.Id)))
         {
             assetIds.Add(assetId);
+        }
+
+        foreach (var effectProfile in project.Timeline.EffectProfiles ?? [])
+        {
+            effectProfileLookup.TryAdd(effectProfile.Id, effectProfile);
         }
 
         var sceneLookup = new Dictionary<string, SceneDefinition>(StringComparer.Ordinal);
@@ -502,9 +610,109 @@ public sealed class SpecProcessingPipeline : ISpecProcessingPipeline
             {
                 issues.Add(new ValidationIssue(ValidationGate.Semantic, $"$.timeline.events[{eventIndex}].sceneObjectId", ValidationSeverity.Error, "semantic.timeline_event.scene_object.missing", "Timeline event sceneObjectId must reference an existing scene object."));
             }
+
+            if (!TryResolveEffectProfileId(timelineEvent, out var effectProfileId))
+            {
+                continue;
+            }
+
+            if (!effectProfileLookup.TryGetValue(effectProfileId, out var effectProfile))
+            {
+                issues.Add(new ValidationIssue(ValidationGate.Semantic, $"$.timeline.events[{eventIndex}].parameters.effectProfileId", ValidationSeverity.Error, "semantic.effect_profile.missing", $"Timeline event effectProfileId '{effectProfileId}' must reference an existing effect profile."));
+                continue;
+            }
+
+            if (effectProfile.ActionType != timelineEvent.ActionType)
+            {
+                issues.Add(new ValidationIssue(ValidationGate.Semantic, $"$.timeline.events[{eventIndex}].parameters.effectProfileId", ValidationSeverity.Error, "semantic.effect_profile.action_mismatch", $"Timeline event actionType '{timelineEvent.ActionType}' must match effect profile actionType '{effectProfile.ActionType}'."));
+                continue;
+            }
+
+            foreach (var parameterBound in effectProfile.ParameterBounds.Values.OrderBy(bound => bound.Key, StringComparer.Ordinal))
+            {
+                if (!timelineEvent.Parameters.TryGetValue(parameterBound.Key, out var parameterValueRaw))
+                {
+                    continue;
+                }
+
+                if (!double.TryParse(parameterValueRaw, NumberStyles.Float, CultureInfo.InvariantCulture, out var parameterValue))
+                {
+                    issues.Add(new ValidationIssue(ValidationGate.Semantic, $"$.timeline.events[{eventIndex}].parameters.{parameterBound.Key}", ValidationSeverity.Error, "semantic.effect_profile.parameter_out_of_range", $"Timeline event parameter '{parameterBound.Key}' must be a numeric value between {parameterBound.MinValue} and {parameterBound.MaxValue} (inclusive)."));
+                    continue;
+                }
+
+                if (parameterValue < parameterBound.MinValue || parameterValue > parameterBound.MaxValue)
+                {
+                    issues.Add(new ValidationIssue(ValidationGate.Semantic, $"$.timeline.events[{eventIndex}].parameters.{parameterBound.Key}", ValidationSeverity.Error, "semantic.effect_profile.parameter_out_of_range", $"Timeline event parameter '{parameterBound.Key}' is outside allowed range [{parameterBound.MinValue}, {parameterBound.MaxValue}]."));
+                }
+            }
         }
 
         return issues;
+    }
+
+    private static void ValidateRegistrySnapshotPinning(VideoProject project, ICollection<ValidationIssue> issues)
+    {
+        var metaSnapshotId = project.Meta.AssetRegistrySnapshotId?.Trim();
+        var registrySnapshot = project.Assets.RegistrySnapshot ?? new AssetRegistrySnapshot();
+        var registrySnapshotId = registrySnapshot.SnapshotId.Trim();
+        var registryVersion = registrySnapshot.SnapshotVersion.Trim();
+        var registryId = registrySnapshot.RegistryId.Trim();
+
+        var hasMetaPin = !string.IsNullOrWhiteSpace(metaSnapshotId);
+        var hasSnapshotData =
+            !string.IsNullOrWhiteSpace(registrySnapshotId) ||
+            !string.IsNullOrWhiteSpace(registryVersion) ||
+            !string.IsNullOrWhiteSpace(registryId);
+
+        if (!hasMetaPin && !hasSnapshotData)
+        {
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(registrySnapshotId))
+        {
+            if (hasMetaPin)
+            {
+                issues.Add(new ValidationIssue(ValidationGate.Semantic, "$.assets.registrySnapshot", ValidationSeverity.Error, "semantic.asset_registry.snapshot.required", "Pinned projects must provide assets.registrySnapshot data."));
+            }
+
+            issues.Add(new ValidationIssue(ValidationGate.Semantic, "$.assets.registrySnapshot.snapshotId", ValidationSeverity.Error, "semantic.asset_registry.id.required", "Asset registry snapshotId is required when registry pinning is used."));
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(registryVersion))
+        {
+            issues.Add(new ValidationIssue(ValidationGate.Semantic, "$.assets.registrySnapshot.snapshotVersion", ValidationSeverity.Error, "semantic.asset_registry.version.required", "Asset registry snapshotVersion is required when registry pinning is used."));
+        }
+
+        if (hasMetaPin && !string.Equals(metaSnapshotId, registrySnapshotId, StringComparison.Ordinal))
+        {
+            issues.Add(new ValidationIssue(ValidationGate.Semantic, "$.meta.assetRegistrySnapshotId", ValidationSeverity.Error, "semantic.asset_registry.snapshot.mismatch", "meta.assetRegistrySnapshotId must match assets.registrySnapshot.snapshotId."));
+        }
+
+        if (!RegistrySnapshotPolicy.TryGetValue(registrySnapshotId, out var registrySnapshotStatus))
+        {
+            issues.Add(new ValidationIssue(ValidationGate.Semantic, "$.assets.registrySnapshot.snapshotId", ValidationSeverity.Error, "semantic.asset_registry.snapshot.unknown", $"Asset registry snapshot '{registrySnapshotId}' is not recognized by the controlled registry policy."));
+            return;
+        }
+
+        if (registrySnapshotStatus == RegistrySnapshotStatus.Deprecated)
+        {
+            issues.Add(new ValidationIssue(ValidationGate.Semantic, "$.assets.registrySnapshot.snapshotId", ValidationSeverity.Error, "semantic.asset_registry.snapshot.deprecated", $"Asset registry snapshot '{registrySnapshotId}' is deprecated and cannot be used."));
+        }
+    }
+
+    private static bool TryResolveEffectProfileId(TimelineEvent timelineEvent, out string effectProfileId)
+    {
+        effectProfileId = string.Empty;
+        if (!timelineEvent.Parameters.TryGetValue("effectProfileId", out var rawEffectProfileId))
+        {
+            return false;
+        }
+
+        effectProfileId = rawEffectProfileId?.Trim() ?? string.Empty;
+        return !string.IsNullOrWhiteSpace(effectProfileId);
     }
 
     private static List<ValidationIssue> ValidateReadiness(VideoProject project)

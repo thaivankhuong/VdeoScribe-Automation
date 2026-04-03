@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: controlled-automation-pipeline
-status: roadmap_defined
-stopped_at: Milestone v1.2 initialized
-last_updated: "2026-04-03T09:05:00+07:00"
+status: planning
+stopped_at: Phase 16 completed
+last_updated: "2026-04-03T10:20:00.000Z"
 progress:
   total_phases: 5
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 13
-  completed_plans: 0
+  completed_plans: 3
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-03)
 
 **Core value:** Given the same spec, assets, and settings, the engine must always produce the same frame/video output.
-**Current focus:** Phase 16 planning for controlled asset/effect automation
+**Current focus:** Phase 17 planning — template-contracts-and-scene-composition
 
 ## Current Position
 
-Phase: 16 (controlled-asset-and-effect-registry) - NOT STARTED
-Plan: 0 of 3 complete
+Phase: 17
+Plan: Not started
 
 ## Accumulated Context
 
@@ -48,6 +48,7 @@ Plan: 0 of 3 complete
 - [Phase 14]: Lock composition review through representative authored witness targets and committed phase14-fidelity-witness artifacts instead of ad-hoc screenshot review.
 - [Phase 15]: Keep parity review centered on repo-stored export packages and bundle manifests rather than introducing a review-only runtime mode.
 - [Phase 15]: Regression closeout must fail on committed witness/package drift first, while real FFmpeg-backed media smoke stays explicitly env-gated.
+- [Phase 16]: Controlled automation input must pin curated registry snapshots and whitelisted effect profiles so script-driven generation stays deterministic and reviewable.
 
 ### Roadmap Evolution
 
@@ -69,6 +70,7 @@ Plan: 0 of 3 complete
 - 2026-03-23: Completed Phase 15-02 by committing the parity regression baseline, repeated-run package/media regression tests, and the env-gated media validation record.
 - 2026-03-23: Completed Phase 15 and left milestone v1.1 ready for milestone completion.
 - 2026-04-03: Archived v1.1 Source Parity and initialized milestone v1.2 Controlled Automation Pipeline (Phases 16-20).
+- 2026-04-03: Completed Phase 16 by introducing deterministic registry snapshot pinning, governed effect profiles, and CLI fixture-backed diagnostics.
 
 ### Pending Todos
 
@@ -82,6 +84,6 @@ None captured yet.
 
 ## Session Continuity
 
-Last session: 2026-04-03T09:05:00+07:00
-Stopped at: Milestone v1.2 initialized
-Resume file: .planning/ROADMAP.md
+Last session: 2026-04-03T17:20:00+07:00
+Stopped at: Phase 16 completed
+Resume file: .planning/phases/17-template-contracts-and-scene-composition

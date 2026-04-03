@@ -8,6 +8,7 @@ public record ProjectMeta
     public string Name { get; init; } = string.Empty;
     public string? Description { get; init; }
     public string Version { get; init; } = "1.0";
+    public string? AssetRegistrySnapshotId { get; init; }
     public DateTimeOffset? CreatedUtc { get; init; }
     public DateTimeOffset? UpdatedUtc { get; init; }
 }
