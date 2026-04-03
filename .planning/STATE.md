@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: source-parity
-status: ready_for_milestone_completion
-stopped_at: Phase 15 complete
-last_updated: "2026-03-23T17:06:28.8272977+07:00"
+status: milestone_completed
+stopped_at: Milestone v1.1 complete
+last_updated: "2026-04-03T08:20:00+07:00"
 progress:
   total_phases: 4
   completed_phases: 4
@@ -16,15 +16,15 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-21)
+See: .planning/PROJECT.md (updated 2026-04-03)
 
 **Core value:** Given the same spec, assets, and settings, the engine must always produce the same frame/video output.
-**Current focus:** Milestone closeout for v1.1 Source Parity
+**Current focus:** Start next milestone definition via $gsd-new-milestone
 
 ## Current Position
 
-Phase: 15 (parity-witness-and-regression-validation) - COMPLETE
-Plan: 2 of 2 complete
+Milestone: v1.1 Source Parity - COMPLETE (archived 2026-04-03)
+Next action: define the next milestone roadmap and requirements
 
 ## Accumulated Context
 
@@ -81,6 +81,6 @@ None captured yet.
 
 ## Session Continuity
 
-Last session: 2026-03-23T17:06:28.8272977+07:00
-Stopped at: Phase 15 complete
-Resume file: .planning/phases/15-parity-witness-and-regression-validation/15-VERIFICATION.md
+Last session: 2026-04-03T08:20:00+07:00
+Stopped at: Milestone v1.1 complete
+Resume file: .planning/ROADMAP.md
