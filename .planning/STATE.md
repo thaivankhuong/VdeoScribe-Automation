@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 17-03-PLAN.md
-last_updated: "2026-04-04T03:34:28.094Z"
+stopped_at: Completed 18-01-PLAN.md
+last_updated: "2026-04-04T05:17:08.242Z"
 progress:
   total_phases: 5
   completed_phases: 2
-  total_plans: 6
-  completed_plans: 6
+  total_plans: 9
+  completed_plans: 7
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-03)
 
 **Core value:** Given the same spec, assets, and settings, the engine must always produce the same frame/video output.
-**Current focus:** Phase 18 - script-to-spec-compiler
+**Current focus:** Phase 18 — script-to-spec-compiler
 
 ## Current Position
 
-Phase: 18 (script-to-spec-compiler) - READY TO PLAN
-Plan: Not started
+Phase: 18 (script-to-spec-compiler) — EXECUTING
+Plan: 2 of 3
 
 ## Accumulated Context
 
@@ -55,6 +55,8 @@ Plan: Not started
 - [Phase 17]: Slot validation remains a separate Core step so CLI orchestration can reuse the same failure paths without owning composition semantics. - Preserves module boundaries and keeps template semantics in Core where they can be reused by later automation phases.
 - [Phase 17]: Resolve template ids through .planning/templates/index.json first and keep direct file paths as catalog metadata, not operator inputs. - This preserves repo-governed template discovery and prevents ad hoc file-path bypasses around the catalog.
 - [Phase 17]: Keep CLI output formatting thin and delegate all template semantics to Core plus the template orchestrator service. - The CLI remains an orchestration shell while validation and composition semantics stay reusable for later automation phases.
+- [Phase 18]: Keep script compiler mappings repo-governed under .planning/script-compiler/ and resolve template ids only through .planning/templates/index.json.
+- [Phase 18]: Return ordered section plans with prepared TemplateInstantiationRequest payloads so later compile-to-spec work can stay thin and deterministic.
 
 ### Roadmap Evolution
 
@@ -89,8 +91,23 @@ None captured yet.
 - Source parity work must not regress deterministic behavior or fall back to whole-frame crop-based reconstruction as the main path.
 - apply_patch remains unreliable in this Windows workspace due sandbox refresh failures; PowerShell fallback may be needed for file edits.
 
+## Performance Metrics
+
+**Velocity:**
+
+- Total plans completed: 7
+- Average duration: -
+- Total execution time: -
+
+**By Phase:**
+
+| Phase | Plans | Total | Avg/Plan |
+|-------|-------|-------|----------|
+| - | - | - | - |
+
 ## Session Continuity
 
-Last session: 2026-04-04T03:34:28.092Z
-Stopped at: Completed 17-03-PLAN.md
+Last session: 2026-04-04T05:16:21.006Z
+Stopped at: Completed 18-01-PLAN.md
 Resume file: None
+| Phase 18-script-to-spec-compiler P01 | 8min | 2 tasks | 12 files |

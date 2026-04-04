@@ -23,7 +23,7 @@
 
 ### Script Compilation
 
-- [ ] **CMP-01**: CLI can compile structured script/scenario input into a valid project spec using template and asset mapping rules.
+- [x] **CMP-01**: CLI can compile structured script/scenario input into a valid project spec using template and asset mapping rules.
 - [ ] **CMP-02**: Compilation outputs an auditable report (selected template, slot mapping, asset/effect IDs, validation warnings/errors).
 
 ### Automation and Validation
@@ -59,7 +59,7 @@
 | EFX-02 | Phase 16 | Complete |
 | TMP-01 | Phase 17 | Complete |
 | TMP-02 | Phase 17 | Complete |
-| CMP-01 | Phase 18 | Pending |
+| CMP-01 | Phase 18 | Complete |
 | CMP-02 | Phase 18 | Pending |
 | AUT-01 | Phase 19 | Pending |
 | AUT-02 | Phase 19 | Pending |

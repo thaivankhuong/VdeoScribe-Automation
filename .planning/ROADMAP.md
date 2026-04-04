@@ -68,7 +68,7 @@ Plans:
 **Plans**: 0/3 plans complete
 
 Plans:
-- [ ] 18-01: Define script input contract and compiler mapping rules
+- [x] 18-01: Define script input contract and compiler mapping rules
 - [ ] 18-02: Implement compiler pipeline from script input to project spec output
 - [ ] 18-03: Emit deterministic compile reports and diagnostic contracts
 
@@ -108,6 +108,6 @@ Plans:
 | 12-15 | v1.1 Source Parity | 11/11 | Complete | 2026-04-03 |
 | 16 | v1.2 Controlled Automation Pipeline | 3/3 | Complete   | 2026-04-03 |
 | 17 | v1.2 Controlled Automation Pipeline | 3/3 | Complete   | 2026-04-04 |
-| 18 | v1.2 Controlled Automation Pipeline | 0/3 | Not started | - |
+| 18 | v1.2 Controlled Automation Pipeline | 1/3 | In Progress|  |
 | 19 | v1.2 Controlled Automation Pipeline | 0/2 | Not started | - |
 | 20 | v1.2 Controlled Automation Pipeline | 0/2 | Not started | - |
