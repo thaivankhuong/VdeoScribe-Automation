@@ -83,8 +83,9 @@ public static class Program
         Console.WriteLine($"TemplateCount: {result.TemplateCount}");
         Console.WriteLine($"SectionCount: {result.SectionCount}");
         Console.WriteLine($"SpecOutputPath: {result.SpecOutputPath}");
+        Console.WriteLine($"ReportOutputPath: {result.ReportOutputPath}");
         Console.WriteLine($"DeterministicKey: {result.DeterministicKey}");
-        WriteIssues(result.Issues);
+        WriteDiagnostics(result.Diagnostics);
 
         return result.Success ? 0 : 1;
     }
@@ -150,6 +151,14 @@ public static class Program
         foreach (var issue in issues)
         {
             Console.WriteLine($"Issue: [{issue.Gate}] {issue.Code} at {issue.Path}: {issue.Message}");
+        }
+    }
+
+    private static void WriteDiagnostics(IReadOnlyList<Whiteboard.Core.Compilation.ScriptCompileDiagnostic> diagnostics)
+    {
+        foreach (var diagnostic in diagnostics)
+        {
+            Console.WriteLine($"Issue: [{diagnostic.Gate}] {diagnostic.Code} at {diagnostic.Path}: {diagnostic.Message}");
         }
     }
 }

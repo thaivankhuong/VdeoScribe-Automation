@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Whiteboard.Cli.Contracts;
 using Whiteboard.Cli.Models;
 using Whiteboard.Core.Compilation;
@@ -7,6 +8,12 @@ namespace Whiteboard.Cli.Services;
 
 public sealed class ScriptCompilationOrchestrator : IScriptCompilationOrchestrator
 {
+    private static readonly JsonSerializerOptions ReportSerializerOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        WriteIndented = true
+    };
+
     private readonly IScriptCompiler _scriptCompiler;
 
     public ScriptCompilationOrchestrator(IScriptCompiler? scriptCompiler = null)
@@ -21,30 +28,43 @@ public sealed class ScriptCompilationOrchestrator : IScriptCompilationOrchestrat
         var contractIssues = ValidateRequest(request);
         if (contractIssues.Count > 0)
         {
+            var diagnostics = ToDiagnostics(contractIssues);
+            WriteReport(request.ReportOutputPath, BuildFallbackReport(request, diagnostics));
             return new CliScriptCompileCommandResult
             {
                 Success = false,
-                SpecOutputPath = request.SpecOutputPath,
+                SpecOutputPath = Path.GetFullPath(request.SpecOutputPath),
+                ReportOutputPath = Path.GetFullPath(request.ReportOutputPath),
+                Diagnostics = diagnostics,
                 Issues = contractIssues
             };
         }
 
         var inputPath = Path.GetFullPath(request.InputPath);
+        var specOutputPath = Path.GetFullPath(request.SpecOutputPath);
+        var reportOutputPath = Path.GetFullPath(request.ReportOutputPath);
+
         if (!File.Exists(inputPath))
         {
+            var issues = ValidationIssueOrdering.Sort(
+            [
+                new ValidationIssue(
+                    ValidationGate.Contract,
+                    "$.inputPath",
+                    ValidationSeverity.Error,
+                    "script.contract.required",
+                    $"Input script '{inputPath}' was not found.")
+            ]);
+            var diagnostics = ToDiagnostics(issues);
+            WriteReport(request.ReportOutputPath, BuildFallbackReport(request, diagnostics));
+
             return new CliScriptCompileCommandResult
             {
                 Success = false,
-                SpecOutputPath = Path.GetFullPath(request.SpecOutputPath),
-                Issues =
-                [
-                    new ValidationIssue(
-                        ValidationGate.Contract,
-                        "$.inputPath",
-                        ValidationSeverity.Error,
-                        "script.contract.required",
-                        $"Input script '{inputPath}' was not found.")
-                ]
+                SpecOutputPath = specOutputPath,
+                ReportOutputPath = reportOutputPath,
+                Diagnostics = diagnostics,
+                Issues = issues
             };
         }
 
@@ -56,7 +76,8 @@ public sealed class ScriptCompilationOrchestrator : IScriptCompilationOrchestrat
             Path.Combine(repoRoot, ".planning", "script-compiler", "template-mappings.json"),
             Path.Combine(repoRoot, ".planning", "script-compiler", "governed-library.json"));
 
-        var specOutputPath = Path.GetFullPath(request.SpecOutputPath);
+        WriteReport(request.ReportOutputPath, compileResult.Report);
+
         if (!compileResult.Success)
         {
             return new CliScriptCompileCommandResult
@@ -66,6 +87,9 @@ public sealed class ScriptCompilationOrchestrator : IScriptCompilationOrchestrat
                 TemplateCount = compileResult.TemplateCount,
                 SectionCount = compileResult.SectionCount,
                 SpecOutputPath = specOutputPath,
+                ReportOutputPath = reportOutputPath,
+                DeterministicKey = compileResult.DeterministicKey,
+                Diagnostics = compileResult.Diagnostics,
                 Issues = compileResult.Issues
             };
         }
@@ -76,7 +100,7 @@ public sealed class ScriptCompilationOrchestrator : IScriptCompilationOrchestrat
             Directory.CreateDirectory(outputDirectory);
         }
 
-        File.WriteAllText(specOutputPath, compileResult.CanonicalJson);
+        File.WriteAllText(specOutputPath, compileResult.SpecOutputJson);
 
         return new CliScriptCompileCommandResult
         {
@@ -85,8 +109,29 @@ public sealed class ScriptCompilationOrchestrator : IScriptCompilationOrchestrat
             TemplateCount = compileResult.TemplateCount,
             SectionCount = compileResult.SectionCount,
             SpecOutputPath = specOutputPath,
+            ReportOutputPath = reportOutputPath,
             DeterministicKey = compileResult.DeterministicKey,
+            Diagnostics = compileResult.Diagnostics,
             Issues = []
+        };
+    }
+
+    private static ScriptCompileReport BuildFallbackReport(
+        CliScriptCompileCommandRequest request,
+        IReadOnlyList<ScriptCompileDiagnostic> diagnostics)
+    {
+        return new ScriptCompileReport
+        {
+            Script = new ScriptCompileReportScript
+            {
+                SourcePath = Path.GetFullPath(request.InputPath)
+            },
+            Spec = new ScriptCompileReportSpec
+            {
+                Success = false,
+                SpecOutputGenerated = false
+            },
+            Diagnostics = diagnostics
         };
     }
 
@@ -114,7 +159,42 @@ public sealed class ScriptCompilationOrchestrator : IScriptCompilationOrchestrat
                 "SpecOutputPath is required."));
         }
 
+        if (string.IsNullOrWhiteSpace(request.ReportOutputPath))
+        {
+            issues.Add(new ValidationIssue(
+                ValidationGate.Contract,
+                "$.reportOutputPath",
+                ValidationSeverity.Error,
+                "script.contract.required",
+                "ReportOutputPath is required."));
+        }
+
         return ValidationIssueOrdering.Sort(issues);
+    }
+
+    private static IReadOnlyList<ScriptCompileDiagnostic> ToDiagnostics(IReadOnlyList<ValidationIssue> issues)
+    {
+        return ScriptCompileDiagnostic.Sort(
+            issues.Select(issue => new ScriptCompileDiagnostic
+            {
+                Severity = issue.Severity.ToString().ToLowerInvariant(),
+                Code = issue.Code,
+                Message = issue.Message,
+                Path = issue.Path,
+                Gate = issue.Gate.ToString().ToLowerInvariant()
+            }));
+    }
+
+    private static void WriteReport(string reportOutputPath, ScriptCompileReport report)
+    {
+        var resolvedPath = Path.GetFullPath(reportOutputPath);
+        var outputDirectory = Path.GetDirectoryName(resolvedPath);
+        if (!string.IsNullOrWhiteSpace(outputDirectory))
+        {
+            Directory.CreateDirectory(outputDirectory);
+        }
+
+        File.WriteAllText(resolvedPath, JsonSerializer.Serialize(report, ReportSerializerOptions));
     }
 
     private static string FindRepoRoot(string path)

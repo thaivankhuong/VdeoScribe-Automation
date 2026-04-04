@@ -8,18 +8,20 @@ namespace Whiteboard.Cli.Tests;
 public sealed class ScriptCompilationOrchestratorTests
 {
     [Fact]
-    public void Compile_WritesSpecOutputForValidFixture()
+    public void Compile_WritesSpecAndReportOutputForValidFixture()
     {
         var orchestrator = new ScriptCompilationOrchestrator();
         var outputDirectory = CreateTemporaryDirectory();
         var specOutputPath = Path.Combine(outputDirectory, "compiled-spec.json");
+        var reportOutputPath = Path.Combine(outputDirectory, "compile-report.json");
 
         try
         {
             var result = orchestrator.Compile(new CliScriptCompileCommandRequest
             {
                 InputPath = ResolveRepoRelativePath("tests", "Whiteboard.Cli.Tests", "Fixtures", "phase18-script-compiler", "script-valid.json"),
-                SpecOutputPath = specOutputPath
+                SpecOutputPath = specOutputPath,
+                ReportOutputPath = reportOutputPath
             });
 
             Assert.True(result.Success);
@@ -27,13 +29,17 @@ public sealed class ScriptCompilationOrchestratorTests
             Assert.Equal(1, result.TemplateCount);
             Assert.Equal(2, result.SectionCount);
             Assert.Equal(Path.GetFullPath(specOutputPath), result.SpecOutputPath);
+            Assert.Equal(Path.GetFullPath(reportOutputPath), result.ReportOutputPath);
             Assert.True(File.Exists(result.SpecOutputPath));
+            Assert.True(File.Exists(result.ReportOutputPath));
+            Assert.Empty(result.Diagnostics);
 
-            using var document = JsonDocument.Parse(File.ReadAllText(result.SpecOutputPath));
-            var root = document.RootElement;
-            Assert.Equal("phase18-script-demo", GetPropertyIgnoreCase(GetPropertyIgnoreCase(root, "meta"), "projectId").GetString());
-            Assert.Equal("reg-main-2026-04", GetPropertyIgnoreCase(GetPropertyIgnoreCase(GetPropertyIgnoreCase(root, "assets"), "registrySnapshot"), "snapshotId").GetString());
-            Assert.Equal(2, GetPropertyIgnoreCase(root, "scenes").GetArrayLength());
+            using var specDocument = JsonDocument.Parse(File.ReadAllText(result.SpecOutputPath));
+            Assert.Equal("phase18-script-demo", GetPropertyIgnoreCase(GetPropertyIgnoreCase(specDocument.RootElement, "meta"), "projectId").GetString());
+
+            using var reportDocument = JsonDocument.Parse(File.ReadAllText(result.ReportOutputPath));
+            Assert.Equal("phase18-script-demo", GetPropertyIgnoreCase(GetPropertyIgnoreCase(reportDocument.RootElement, "script"), "scriptId").GetString());
+            Assert.Equal(2, GetPropertyIgnoreCase(reportDocument.RootElement, "sections").GetArrayLength());
         }
         finally
         {
@@ -42,27 +48,74 @@ public sealed class ScriptCompilationOrchestratorTests
     }
 
     [Fact]
-    public void Compile_RepeatedRunsProduceEquivalentSpecOutputAndDeterministicKey()
+    public void Compile_FailureWritesReportAndLeavesSpecOutputAbsent()
     {
         var orchestrator = new ScriptCompilationOrchestrator();
         var outputDirectory = CreateTemporaryDirectory();
-        var firstOutputPath = Path.Combine(outputDirectory, "compiled-spec-a.json");
-        var secondOutputPath = Path.Combine(outputDirectory, "compiled-spec-b.json");
+        var specOutputPath = Path.Combine(outputDirectory, "compiled-spec.json");
+        var reportOutputPath = Path.Combine(outputDirectory, "compile-report.json");
+
+        try
+        {
+            var result = orchestrator.Compile(new CliScriptCompileCommandRequest
+            {
+                InputPath = ResolveRepoRelativePath("tests", "Whiteboard.Cli.Tests", "Fixtures", "phase18-script-compiler", "script-missing-required-field.json"),
+                SpecOutputPath = specOutputPath,
+                ReportOutputPath = reportOutputPath
+            });
+
+            Assert.False(result.Success);
+            Assert.False(File.Exists(specOutputPath));
+            Assert.True(File.Exists(reportOutputPath));
+            Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "script.mapping.field.required");
+
+            using var reportDocument = JsonDocument.Parse(File.ReadAllText(reportOutputPath));
+            var diagnostics = GetPropertyIgnoreCase(reportDocument.RootElement, "diagnostics").EnumerateArray().ToArray();
+            Assert.Contains(diagnostics, diagnostic => GetPropertyIgnoreCase(diagnostic, "code").GetString() == "script.mapping.field.required");
+        }
+        finally
+        {
+            DeleteDirectory(outputDirectory);
+        }
+    }
+
+    [Fact]
+    public void Compile_FailureDiagnosticsStayOrderedAndReportsStayDeterministicAcrossRuns()
+    {
+        var orchestrator = new ScriptCompilationOrchestrator();
+        var outputDirectory = CreateTemporaryDirectory();
+        var specOutputPathA = Path.Combine(outputDirectory, "compiled-spec-a.json");
+        var specOutputPathB = Path.Combine(outputDirectory, "compiled-spec-b.json");
+        var reportOutputPathA = Path.Combine(outputDirectory, "compile-report-a.json");
+        var reportOutputPathB = Path.Combine(outputDirectory, "compile-report-b.json");
 
         try
         {
             var request = new CliScriptCompileCommandRequest
             {
-                InputPath = ResolveRepoRelativePath("tests", "Whiteboard.Cli.Tests", "Fixtures", "phase18-script-compiler", "script-valid.json"),
-                SpecOutputPath = firstOutputPath
+                InputPath = ResolveRepoRelativePath("tests", "Whiteboard.Cli.Tests", "Fixtures", "phase18-script-compiler", "script-unknown-governed-id.json"),
+                SpecOutputPath = specOutputPathA,
+                ReportOutputPath = reportOutputPathA
             };
-            var first = orchestrator.Compile(request);
-            var second = orchestrator.Compile(request with { SpecOutputPath = secondOutputPath });
 
-            Assert.True(first.Success);
-            Assert.True(second.Success);
+            var first = orchestrator.Compile(request);
+            var second = orchestrator.Compile(request with
+            {
+                SpecOutputPath = specOutputPathB,
+                ReportOutputPath = reportOutputPathB
+            });
+
+            Assert.False(first.Success);
+            Assert.False(second.Success);
             Assert.Equal(first.DeterministicKey, second.DeterministicKey);
-            Assert.Equal(File.ReadAllText(first.SpecOutputPath), File.ReadAllText(second.SpecOutputPath));
+            Assert.Equal(first.Diagnostics.Select(diagnostic => diagnostic.Code).ToArray(), second.Diagnostics.Select(diagnostic => diagnostic.Code).ToArray());
+            Assert.Equal(File.ReadAllText(first.ReportOutputPath), File.ReadAllText(second.ReportOutputPath));
+
+            using var reportDocument = JsonDocument.Parse(File.ReadAllText(first.ReportOutputPath));
+            var diagnostics = GetPropertyIgnoreCase(reportDocument.RootElement, "diagnostics").EnumerateArray().ToArray();
+            Assert.Equal(
+                new[] { "script.governed.asset.missing", "script.governed.effect.missing" },
+                diagnostics.Select(diagnostic => GetPropertyIgnoreCase(diagnostic, "code").GetString()).ToArray());
         }
         finally
         {

@@ -1,3 +1,4 @@
+using Whiteboard.Core.Compilation;
 using Whiteboard.Core.Validation;
 
 namespace Whiteboard.Cli.Models;
@@ -6,6 +7,7 @@ public sealed record CliScriptCompileCommandRequest
 {
     public string InputPath { get; init; } = string.Empty;
     public string SpecOutputPath { get; init; } = string.Empty;
+    public string ReportOutputPath { get; init; } = string.Empty;
 }
 
 public sealed record CliScriptCompileCommandResult
@@ -15,6 +17,8 @@ public sealed record CliScriptCompileCommandResult
     public int TemplateCount { get; init; }
     public int SectionCount { get; init; }
     public string SpecOutputPath { get; init; } = string.Empty;
+    public string ReportOutputPath { get; init; } = string.Empty;
     public string DeterministicKey { get; init; } = string.Empty;
+    public IReadOnlyList<ScriptCompileDiagnostic> Diagnostics { get; init; } = [];
     public IReadOnlyList<ValidationIssue> Issues { get; init; } = [];
 }

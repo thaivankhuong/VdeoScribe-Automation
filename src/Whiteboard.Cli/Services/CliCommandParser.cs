@@ -333,10 +333,13 @@ public sealed class CliCommandParser
             switch (arg)
             {
                 case "--input":
-                    inputPath = ReadRequiredValue(args, ref i, arg);
+                    inputPath = ReadSingleValue(args, ref i, arg, seenFlags);
                     break;
                 case "--spec-output":
-                    specOutputPath = ReadRequiredValue(args, ref i, arg);
+                    specOutputPath = ReadSingleValue(args, ref i, arg, seenFlags);
+                    break;
+                case "--report-output":
+                    reportOutputPath = ReadSingleValue(args, ref i, arg, seenFlags);
                     break;
                 default:
                     throw new ArgumentException($"Unknown argument '{arg}'. Use --help for usage.");
@@ -353,15 +356,37 @@ public sealed class CliCommandParser
             throw new ArgumentException("'--spec-output' is required for script compile.");
         }
 
+        if (string.IsNullOrWhiteSpace(reportOutputPath))
+        {
+            throw new ArgumentException("'--report-output' is required for script compile.");
+        }
+
         return new CliCommandParseResult
         {
             Mode = CliCommandMode.ScriptCompile,
             ScriptCompileRequest = new CliScriptCompileCommandRequest
             {
                 InputPath = inputPath,
-                SpecOutputPath = specOutputPath
+                SpecOutputPath = specOutputPath,
+                ReportOutputPath = reportOutputPath
             }
         };
+    }
+
+    private static string ReadSingleValue(string[] args, ref int index, string option, ISet<string> seenFlags)
+    {
+        if (!seenFlags.Add(option))
+        {
+            throw new ArgumentException($"Duplicate '{option}' is not allowed.");
+        }
+
+        var value = ReadRequiredValue(args, ref index, option);
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            throw new ArgumentException($"'{option}' requires a non-blank value.");
+        }
+
+        return value;
     }
 
     private static string ReadRequiredValue(string[] args, ref int index, string option)

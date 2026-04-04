@@ -1,0 +1,23 @@
+{
+  "scriptId": "phase18-script-missing-required",
+  "version": "1.0.0",
+  "projectName": "Phase 18 Missing Required Field",
+  "assetRegistrySnapshotId": "reg-main-2026-04",
+  "output": {
+    "width": 1920,
+    "height": 1080,
+    "frameRate": 30,
+    "backgroundColorHex": "#FFFFFF"
+  },
+  "sections": [
+    {
+      "sectionId": "intro-title",
+      "order": 1,
+      "templateId": "title-card-basic",
+      "headline": "   ",
+      "supportingText": "Generate spec JSON without manual editing.",
+      "illustrationAssetId": "svg-hero-governed",
+      "drawEffectProfileId": "effect-draw-default"
+    }
+  ]
+}

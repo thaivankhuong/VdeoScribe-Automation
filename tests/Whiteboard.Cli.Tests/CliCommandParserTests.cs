@@ -94,7 +94,7 @@ public sealed class CliCommandParserTests
     }
 
     [Fact]
-    public void Parse_ScriptCompile_ParsesInputAndSpecOutput()
+    public void Parse_ScriptCompile_ParsesInputSpecOutputAndReportOutput()
     {
         var parser = new CliCommandParser();
 
@@ -104,12 +104,70 @@ public sealed class CliCommandParserTests
             "--input",
             "script.json",
             "--spec-output",
-            "compiled-spec.json"
+            "compiled-spec.json",
+            "--report-output",
+            "compile-report.json"
         ]);
 
         Assert.Equal(CliCommandMode.ScriptCompile, command.Mode);
         Assert.NotNull(command.ScriptCompileRequest);
         Assert.Equal("script.json", command.ScriptCompileRequest!.InputPath);
         Assert.Equal("compiled-spec.json", command.ScriptCompileRequest.SpecOutputPath);
+        Assert.Equal("compile-report.json", command.ScriptCompileRequest.ReportOutputPath);
+    }
+
+    [Fact]
+    public void Parse_ScriptCompile_RequiresSpecOutput()
+    {
+        var parser = new CliCommandParser();
+
+        var exception = Assert.Throws<ArgumentException>(() => parser.Parse([
+            "script",
+            "compile",
+            "--input",
+            "script.json",
+            "--report-output",
+            "compile-report.json"
+        ]));
+
+        Assert.Contains("--spec-output", exception.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Parse_ScriptCompile_RequiresReportOutput()
+    {
+        var parser = new CliCommandParser();
+
+        var exception = Assert.Throws<ArgumentException>(() => parser.Parse([
+            "script",
+            "compile",
+            "--input",
+            "script.json",
+            "--spec-output",
+            "compiled-spec.json"
+        ]));
+
+        Assert.Contains("--report-output", exception.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Parse_ScriptCompile_RejectsDuplicateReportOutput()
+    {
+        var parser = new CliCommandParser();
+
+        var exception = Assert.Throws<ArgumentException>(() => parser.Parse([
+            "script",
+            "compile",
+            "--input",
+            "script.json",
+            "--spec-output",
+            "compiled-spec.json",
+            "--report-output",
+            "compile-report-a.json",
+            "--report-output",
+            "compile-report-b.json"
+        ]));
+
+        Assert.Contains("Duplicate '--report-output'", exception.Message, StringComparison.Ordinal);
     }
 }
