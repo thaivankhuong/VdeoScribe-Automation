@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 17-02-PLAN.md
-last_updated: "2026-04-04T03:18:57.544Z"
+stopped_at: Completed 17-03-PLAN.md
+last_updated: "2026-04-04T03:34:28.094Z"
 progress:
   total_phases: 5
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 6
-  completed_plans: 5
+  completed_plans: 6
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-03)
 
 **Core value:** Given the same spec, assets, and settings, the engine must always produce the same frame/video output.
-**Current focus:** Phase 17 — template-contracts-and-scene-composition
+**Current focus:** Phase 18 - script-to-spec-compiler
 
 ## Current Position
 
-Phase: 17 (template-contracts-and-scene-composition) — EXECUTING
-Plan: 3 of 3
+Phase: 18 (script-to-spec-compiler) - READY TO PLAN
+Plan: Not started
 
 ## Accumulated Context
 
@@ -49,10 +49,12 @@ Plan: 3 of 3
 - [Phase 15]: Keep parity review centered on repo-stored export packages and bundle manifests rather than introducing a review-only runtime mode.
 - [Phase 15]: Regression closeout must fail on committed witness/package drift first, while real FFmpeg-backed media smoke stays explicitly env-gated.
 - [Phase 16]: Controlled automation input must pin curated registry snapshots and whitelisted effect profiles so script-driven generation stays deterministic and reviewable.
-- [Phase 17]: Keep template authoring file-based under .planning/templates/ with catalog metadata resolved separately from slot payload validation. — Preserves repo-governed reviewability and keeps TMP-01 independent from CLI/operator slot input handling.
-- [Phase 17]: Mirror the existing Core spec pipeline shape so template contracts normalize and fail deterministically before composition. — Reusing ordered validation gates keeps template diagnostics aligned with established Core contract behavior.
-- [Phase 17]: Canonical composition output is hashed as sha256 over deterministic JSON instead of inventing a second ad hoc key format. — This keeps repeatability checks simple and gives 17-03 a stable key to surface through the CLI.
-- [Phase 17]: Slot validation remains a separate Core step so CLI orchestration can reuse the same failure paths without owning composition semantics. — Preserves module boundaries and keeps template semantics in Core where they can be reused by later compilation and automation phases.
+- [Phase 17]: Keep template authoring file-based under .planning/templates/ with catalog metadata resolved separately from slot payload validation. - Preserves repo-governed reviewability and keeps TMP-01 independent from CLI/operator slot input handling.
+- [Phase 17]: Mirror the existing Core spec pipeline shape so template contracts normalize and fail deterministically before composition. - Reusing ordered validation gates keeps template diagnostics aligned with established Core contract behavior.
+- [Phase 17]: Canonical composition output is hashed as sha256 over deterministic JSON instead of inventing a second ad hoc key format. - This keeps repeatability checks simple and gives 17-03 a stable key to surface through the CLI.
+- [Phase 17]: Slot validation remains a separate Core step so CLI orchestration can reuse the same failure paths without owning composition semantics. - Preserves module boundaries and keeps template semantics in Core where they can be reused by later automation phases.
+- [Phase 17]: Resolve template ids through .planning/templates/index.json first and keep direct file paths as catalog metadata, not operator inputs. - This preserves repo-governed template discovery and prevents ad hoc file-path bypasses around the catalog.
+- [Phase 17]: Keep CLI output formatting thin and delegate all template semantics to Core plus the template orchestrator service. - The CLI remains an orchestration shell while validation and composition semantics stay reusable for later automation phases.
 
 ### Roadmap Evolution
 
@@ -75,6 +77,7 @@ Plan: 3 of 3
 - 2026-03-23: Completed Phase 15 and left milestone v1.1 ready for milestone completion.
 - 2026-04-03: Archived v1.1 Source Parity and initialized milestone v1.2 Controlled Automation Pipeline (Phases 16-20).
 - 2026-04-03: Completed Phase 16 by introducing deterministic registry snapshot pinning, governed effect profiles, and CLI fixture-backed diagnostics.
+- 2026-04-04: Completed Phase 17 by shipping repo-governed templates, deterministic Core composition, and catalog-backed CLI template commands.
 
 ### Pending Todos
 
@@ -88,6 +91,6 @@ None captured yet.
 
 ## Session Continuity
 
-Last session: 2026-04-04T03:18:57.542Z
-Stopped at: Completed 17-02-PLAN.md
-Resume file: .planning/phases/17-template-contracts-and-scene-composition/17-03-PLAN.md
+Last session: 2026-04-04T03:34:28.092Z
+Stopped at: Completed 17-03-PLAN.md
+Resume file: None
