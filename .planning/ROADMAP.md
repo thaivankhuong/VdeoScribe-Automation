@@ -50,7 +50,7 @@ Plans:
 1. Templates define named slots and constraints in JSON contracts that are versioned with the repo.
 2. Template instantiation produces deterministic scene/timeline fragments from the same slot data.
 3. Composition contracts integrate with existing engine modules without violating module boundaries.
-**Plans**: 0/3 plans complete
+**Plans**: 1/3 plans complete
 
 Plans:
 - [x] 17-01: Define template contract model (slots, constraints, defaults)
