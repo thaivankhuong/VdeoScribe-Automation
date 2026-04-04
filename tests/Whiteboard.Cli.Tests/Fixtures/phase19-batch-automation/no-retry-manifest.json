@@ -1,0 +1,17 @@
+{
+  "retryLimit": 0,
+  "jobs": [
+    {
+      "jobId": "job-b",
+      "scriptPath": "job-b-script.json",
+      "outputPath": "out/job-b.mp4",
+      "retryLimit": 0
+    },
+    {
+      "jobId": "job-a",
+      "scriptPath": "job-a-script.json",
+      "outputPath": "out/job-a.mp4",
+      "retryLimit": 0
+    }
+  ]
+}

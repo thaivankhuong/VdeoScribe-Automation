@@ -44,6 +44,7 @@
     <Compile Include="..\..\src\Whiteboard.Cli\Models\CliRunResult.cs" Link="Cli\Models\CliRunResult.cs" />
     <Compile Include="..\..\src\Whiteboard.Cli\Models\CliBatchManifest.cs" Link="Cli\Models\CliBatchManifest.cs" />
     <Compile Include="..\..\src\Whiteboard.Cli\Models\CliBatchJob.cs" Link="Cli\Models\CliBatchJob.cs" />
+    <Compile Include="..\..\src\Whiteboard.Cli\Models\CliBatchJobManifest.cs" Link="Cli\Models\CliBatchJobManifest.cs" />
     <Compile Include="..\..\src\Whiteboard.Cli\Models\CliBatchRunRequest.cs" Link="Cli\Models\CliBatchRunRequest.cs" />
     <Compile Include="..\..\src\Whiteboard.Cli\Models\CliBatchRunResult.cs" Link="Cli\Models\CliBatchRunResult.cs" />
     <Compile Include="..\..\src\Whiteboard.Cli\Models\CliScriptCompileCommandRequest.cs" Link="Cli\Models\CliScriptCompileCommandRequest.cs" />
