@@ -1,0 +1,32 @@
+{
+  "scriptId": "phase19-batch-job-a",
+  "version": "1.0.0",
+  "projectName": "Phase 19 Batch Job A",
+  "assetRegistrySnapshotId": "reg-main-2026-04",
+  "output": {
+    "width": 1920,
+    "height": 1080,
+    "frameRate": 30,
+    "backgroundColorHex": "#FFFFFF"
+  },
+  "sections": [
+    {
+      "sectionId": "job-a-intro",
+      "order": 1,
+      "templateId": "title-card-basic",
+      "headline": "Batch job A",
+      "supportingText": "Compile staged specs before render and export.",
+      "illustrationAssetId": "svg-hero-governed",
+      "drawEffectProfileId": "effect-draw-default"
+    },
+    {
+      "sectionId": "job-a-close",
+      "order": 2,
+      "templateId": "title-card-basic",
+      "headline": "Manifest order stays explicit",
+      "supportingText": "Operators choose deterministic batch sequencing.",
+      "illustrationAssetId": "svg-hero-governed",
+      "drawEffectProfileId": "effect-draw-default"
+    }
+  ]
+}

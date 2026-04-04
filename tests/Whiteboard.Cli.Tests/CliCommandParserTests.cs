@@ -8,7 +8,7 @@ namespace Whiteboard.Cli.Tests;
 public sealed class CliCommandParserTests
 {
     [Fact]
-    public void Parse_LegacyRunMode_ParsesSpecAndClampsNegativeFrameIndex()
+    public void Parse_LegacyRunMode_ParsesSpecAndClampsNegativeDebugFrameIndex()
     {
         var parser = new CliCommandParser();
 
@@ -19,6 +19,20 @@ public sealed class CliCommandParserTests
         Assert.Equal("project.json", command.RunRequest!.SpecPath);
         Assert.Equal("out/video.mp4", command.RunRequest.OutputPath);
         Assert.Equal(0, command.RunRequest.FrameIndex);
+    }
+
+    [Fact]
+    public void Parse_RunMode_LeavesFrameIndexUnsetWhenDebugOptionIsMissing()
+    {
+        var parser = new CliCommandParser();
+
+        var command = parser.Parse(["run", "--spec", "project.json", "--output", "out/video.mp4"]);
+
+        Assert.Equal(CliCommandMode.Run, command.Mode);
+        Assert.NotNull(command.RunRequest);
+        Assert.Equal("project.json", command.RunRequest!.SpecPath);
+        Assert.Equal("out/video.mp4", command.RunRequest.OutputPath);
+        Assert.Null(command.RunRequest.FrameIndex);
     }
 
     [Fact]
@@ -36,12 +50,12 @@ public sealed class CliCommandParserTests
     {
         var parser = new CliCommandParser();
 
-        var command = parser.Parse(["batch", "--manifest", "manifest.json", "--summary-output", "summary.json"]);
+        var command = parser.Parse(["batch", "--manifest", "phase19-batch-manifest.json", "--summary-output", "phase19-summary.json"]);
 
         Assert.Equal(CliCommandMode.Batch, command.Mode);
         Assert.NotNull(command.BatchRequest);
-        Assert.Equal("manifest.json", command.BatchRequest!.ManifestPath);
-        Assert.Equal("summary.json", command.BatchRequest.SummaryOutputPath);
+        Assert.Equal("phase19-batch-manifest.json", command.BatchRequest!.ManifestPath);
+        Assert.Equal("phase19-summary.json", command.BatchRequest.SummaryOutputPath);
     }
 
     [Fact]

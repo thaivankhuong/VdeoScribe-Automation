@@ -1,0 +1,14 @@
+{
+  "jobs": [
+    {
+      "jobId": "job-b",
+      "scriptPath": "job-b-script.json",
+      "outputPath": "out/job-b.mp4"
+    },
+    {
+      "jobId": "job-a",
+      "scriptPath": "job-a-script.json",
+      "outputPath": "out/job-a.mp4"
+    }
+  ]
+}

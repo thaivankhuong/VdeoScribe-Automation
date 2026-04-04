@@ -1,0 +1,32 @@
+{
+  "scriptId": "phase19-batch-job-b",
+  "version": "1.0.0",
+  "projectName": "Phase 19 Batch Job B",
+  "assetRegistrySnapshotId": "reg-main-2026-04",
+  "output": {
+    "width": 1920,
+    "height": 1080,
+    "frameRate": 30,
+    "backgroundColorHex": "#FFFFFF"
+  },
+  "sections": [
+    {
+      "sectionId": "job-b-intro",
+      "order": 1,
+      "templateId": "title-card-basic",
+      "headline": "Batch job B",
+      "supportingText": "Script input stays file-driven through the CLI.",
+      "illustrationAssetId": "svg-hero-governed",
+      "drawEffectProfileId": "effect-draw-default"
+    },
+    {
+      "sectionId": "job-b-close",
+      "order": 2,
+      "templateId": "title-card-basic",
+      "headline": "Compile and run existing contracts",
+      "supportingText": "No manual spec editing is required for the batch path.",
+      "illustrationAssetId": "svg-hero-governed",
+      "drawEffectProfileId": "effect-draw-default"
+    }
+  ]
+}
