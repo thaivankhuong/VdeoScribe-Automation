@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 using Whiteboard.Core.Assets;
 using Whiteboard.Core.Enums;
 using Whiteboard.Core.Models;
@@ -17,6 +18,10 @@ public sealed class ScriptCompiler : IScriptCompiler
     private const string DefaultTemplateCatalogPath = ".planning/templates/index.json";
     private const string DefaultMappingCatalogPath = ".planning/script-compiler/template-mappings.json";
     private const string DefaultGovernedLibraryPath = ".planning/script-compiler/governed-library.json";
+
+    private static readonly Regex ScriptSectionPathPattern = new(@"^\$\.sections\[(\d+)\]", RegexOptions.Compiled);
+    private static readonly Regex ScenePathPattern = new(@"^\$\.scenes\[(\d+)\]", RegexOptions.Compiled);
+    private static readonly Regex TimelineEventPathPattern = new(@"^\$\.timeline\.events\[(\d+)\]", RegexOptions.Compiled);
 
     private static readonly JsonSerializerOptions SerializerOptions = new()
     {
@@ -60,15 +65,13 @@ public sealed class ScriptCompiler : IScriptCompiler
             governedLibraryPath);
 
         var document = compilationPlan.Document;
-        if (!compilationPlan.Success || document is null)
-        {
-            return CreateFailureResult(compilationPlan, document, compilationPlan.Issues);
-        }
-
         var resolvedGovernedLibraryPath = ResolveInputPath(sourcePath, governedLibraryPath, DefaultGovernedLibraryPath);
-        if (!TryReadGovernedLibrary(resolvedGovernedLibraryPath, out var governedLibrary, out var governedLibraryIssues))
+
+        ScriptGovernedLibrary? governedLibrary = null;
+        IReadOnlyList<ValidationIssue> governedLibraryIssues = [];
+        if (!string.IsNullOrWhiteSpace(sourcePath))
         {
-            return CreateFailureResult(compilationPlan, document, governedLibraryIssues);
+            _ = TryReadGovernedLibrary(resolvedGovernedLibraryPath, out governedLibrary, out governedLibraryIssues);
         }
 
         var compositionIssues = new List<ValidationIssue>();
@@ -86,49 +89,13 @@ public sealed class ScriptCompiler : IScriptCompiler
             composedSections.Add(new ComposedSectionResult(sectionPlan, compositionResult));
         }
 
-        if (compositionIssues.Count > 0)
-        {
-            return CreateFailureResult(compilationPlan, document, ValidationIssueOrdering.Sort(compositionIssues));
-        }
-
-        var project = BuildProject(document, governedLibrary!, composedSections);
-        var projectJson = JsonSerializer.Serialize(project, SerializerOptions);
-        var specProcessingResult = _specProcessingPipeline.Process(projectJson, sourcePath);
-        if (!specProcessingResult.IsSuccess || specProcessingResult.Project is null)
-        {
-            return CreateFailureResult(compilationPlan, document, specProcessingResult.Issues);
-        }
-
-        var canonicalJson = specProcessingResult.Project.CanonicalJson;
-        return new ScriptCompileResult
-        {
-            Success = true,
-            ScriptId = document.ScriptId,
-            ProjectName = document.ProjectName,
-            TemplateCount = compilationPlan.Sections
-                .Select(section => section.TemplateId)
-                .Distinct(StringComparer.Ordinal)
-                .Count(),
-            SectionCount = compilationPlan.Sections.Count,
-            Project = specProcessingResult.Project.Project,
-            CanonicalJson = canonicalJson,
-            DeterministicKey = BuildDeterministicKey(canonicalJson),
-            CompilationPlan = compilationPlan,
-            Issues = []
-        };
-    }
-
-    private static VideoProject BuildProject(
-        ScriptCompilationDocument document,
-        ScriptGovernedLibrary governedLibrary,
-        IReadOnlyList<ComposedSectionResult> composedSections)
-    {
-        var sceneEntries = composedSections
+        var orderedScenes = composedSections
             .SelectMany(
                 section => section.Result.Fragment.Scenes.Select(
                     (scene, index) => new OrderedScene(
                         section.Plan.Section.Order,
                         section.Plan.Section.SectionId,
+                        section.Plan.TemplateId,
                         index,
                         CloneScene(scene))))
             .OrderBy(entry => entry.Order)
@@ -136,22 +103,356 @@ public sealed class ScriptCompiler : IScriptCompiler
             .ThenBy(entry => entry.Index)
             .ToList();
 
-        var eventEntries = composedSections
-            .SelectMany(section => section.Result.Fragment.TimelineEvents.Select(CloneTimelineEvent))
-            .OrderBy(@event => @event.SceneId, StringComparer.Ordinal)
-            .ThenBy(@event => @event.StartSeconds)
-            .ThenBy(@event => @event.Id, StringComparer.Ordinal)
+        var orderedEvents = composedSections
+            .SelectMany(section => section.Result.Fragment.TimelineEvents.Select(@event => new OrderedEvent(
+                section.Plan.Section.SectionId,
+                section.Plan.TemplateId,
+                CloneTimelineEvent(@event))))
+            .OrderBy(entry => entry.Event.SceneId, StringComparer.Ordinal)
+            .ThenBy(entry => entry.Event.StartSeconds)
+            .ThenBy(entry => entry.Event.Id, StringComparer.Ordinal)
             .ToList();
 
-        var referencedAssetIds = sceneEntries
+        VideoProject? project = null;
+        string specOutputJson = string.Empty;
+        string specOutputDeterministicKey = string.Empty;
+        IReadOnlyList<ValidationIssue> specIssues = [];
+
+        if (document is not null &&
+            compilationPlan.Success &&
+            governedLibraryIssues.Count == 0 &&
+            compositionIssues.Count == 0 &&
+            governedLibrary is not null)
+        {
+            var builtProject = BuildProject(document, governedLibrary, orderedScenes, orderedEvents);
+            var projectJson = JsonSerializer.Serialize(builtProject, SerializerOptions);
+            var specProcessingResult = _specProcessingPipeline.Process(projectJson, sourcePath);
+
+            if (specProcessingResult.IsSuccess && specProcessingResult.Project is not null)
+            {
+                project = specProcessingResult.Project.Project;
+                specOutputJson = specProcessingResult.Project.CanonicalJson;
+                specOutputDeterministicKey = BuildDeterministicKey(specOutputJson);
+            }
+            else
+            {
+                specIssues = BuildSpecValidationIssues(specProcessingResult.Issues);
+            }
+        }
+
+        var orderedValidationIssues = ValidationIssueOrdering.Sort(
+            compilationPlan.Issues
+                .Concat(governedLibraryIssues)
+                .Concat(compositionIssues)
+                .Concat(specIssues));
+
+        var diagnostics = BuildDiagnostics(
+            orderedValidationIssues,
+            document,
+            compilationPlan,
+            orderedScenes,
+            orderedEvents);
+        var report = BuildReport(
+            sourcePath,
+            document,
+            compilationPlan,
+            composedSections,
+            governedLibrary,
+            orderedScenes,
+            orderedEvents,
+            project,
+            diagnostics,
+            specOutputDeterministicKey);
+        var reportJson = SerializeReport(report);
+
+        return new ScriptCompileResult
+        {
+            Success = project is not null && orderedValidationIssues.All(issue => issue.Severity != ValidationSeverity.Error),
+            ScriptId = document?.ScriptId ?? string.Empty,
+            ProjectName = document?.ProjectName ?? string.Empty,
+            TemplateCount = CountTemplates(document, compilationPlan),
+            SectionCount = document?.Sections.Count ?? compilationPlan.Sections.Count,
+            Project = project,
+            SpecOutputJson = specOutputJson,
+            CanonicalJson = specOutputJson,
+            DeterministicKey = string.IsNullOrWhiteSpace(specOutputDeterministicKey)
+                ? BuildDeterministicKey(reportJson)
+                : specOutputDeterministicKey,
+            Report = report,
+            Diagnostics = diagnostics,
+            CompilationPlan = compilationPlan,
+            Issues = orderedValidationIssues
+        };
+    }
+
+    private static int CountTemplates(ScriptCompilationDocument? document, ScriptCompilationPlan compilationPlan)
+    {
+        return (document?.Sections ?? compilationPlan.Sections.Select(section => section.Section).ToList())
+            .Select(section => section.TemplateId)
+            .Where(templateId => !string.IsNullOrWhiteSpace(templateId))
+            .Distinct(StringComparer.Ordinal)
+            .Count();
+    }
+
+    private static IReadOnlyList<ValidationIssue> BuildSpecValidationIssues(IReadOnlyList<ValidationIssue> issues)
+    {
+        if (issues.Count == 0)
+        {
+            return
+            [
+                new ValidationIssue(
+                    ValidationGate.Semantic,
+                    "$.spec",
+                    ValidationSeverity.Error,
+                    "script.spec.validation.failed",
+                    "Generated project spec failed validation.")
+            ];
+        }
+
+        return
+        [
+            new ValidationIssue(
+                ValidationGate.Semantic,
+                "$.spec",
+                ValidationSeverity.Error,
+                "script.spec.validation.failed",
+                "Generated project spec failed validation."),
+            ..issues
+        ];
+    }
+
+    private static ScriptCompileReport BuildReport(
+        string sourcePath,
+        ScriptCompilationDocument? document,
+        ScriptCompilationPlan compilationPlan,
+        IReadOnlyList<ComposedSectionResult> composedSections,
+        ScriptGovernedLibrary? governedLibrary,
+        IReadOnlyList<OrderedScene> orderedScenes,
+        IReadOnlyList<OrderedEvent> orderedEvents,
+        VideoProject? project,
+        IReadOnlyList<ScriptCompileDiagnostic> diagnostics,
+        string specOutputDeterministicKey)
+    {
+        var sectionReports = BuildSectionReports(document, compilationPlan, composedSections);
+        return new ScriptCompileReport
+        {
+            Script = new ScriptCompileReportScript
+            {
+                ScriptId = document?.ScriptId ?? string.Empty,
+                Version = document?.Version ?? string.Empty,
+                ProjectName = document?.ProjectName ?? string.Empty,
+                AssetRegistrySnapshotId = document?.AssetRegistrySnapshotId ?? string.Empty,
+                SourcePath = Path.GetFullPath(sourcePath)
+            },
+            Templates = (document?.Sections ?? [])
+                .Where(section => !string.IsNullOrWhiteSpace(section.TemplateId))
+                .GroupBy(section => section.TemplateId, StringComparer.Ordinal)
+                .OrderBy(group => group.Key, StringComparer.Ordinal)
+                .Select(group => new ScriptCompileReportTemplate
+                {
+                    TemplateId = group.Key,
+                    SectionCount = group.Count(),
+                    SectionIds = group
+                        .Select(section => section.SectionId)
+                        .OrderBy(sectionId => sectionId, StringComparer.Ordinal)
+                        .ToArray()
+                })
+                .ToArray(),
+            Sections = sectionReports,
+            GovernedResources = new ScriptCompileReportGovernedResources
+            {
+                RequestedSnapshotId = document?.AssetRegistrySnapshotId ?? string.Empty,
+                RegistryId = governedLibrary?.RegistryId ?? string.Empty,
+                SnapshotId = governedLibrary?.SnapshotId ?? string.Empty,
+                SnapshotVersion = governedLibrary?.SnapshotVersion ?? string.Empty,
+                AssetIds = sectionReports
+                    .SelectMany(section => section.AssetIds)
+                    .Distinct(StringComparer.Ordinal)
+                    .OrderBy(assetId => assetId, StringComparer.Ordinal)
+                    .ToArray(),
+                EffectProfileIds = sectionReports
+                    .SelectMany(section => section.EffectProfileIds)
+                    .Distinct(StringComparer.Ordinal)
+                    .OrderBy(effectId => effectId, StringComparer.Ordinal)
+                    .ToArray()
+            },
+            Spec = new ScriptCompileReportSpec
+            {
+                Success = project is not null,
+                SpecOutputGenerated = !string.IsNullOrWhiteSpace(specOutputDeterministicKey),
+                SceneCount = orderedScenes.Count,
+                TimelineEventCount = orderedEvents.Count,
+                SvgAssetCount = project?.Assets.SvgAssets.Count ?? 0,
+                EffectProfileCount = project?.Timeline.EffectProfiles.Count ?? 0,
+                SpecOutputDeterministicKey = specOutputDeterministicKey
+            },
+            Diagnostics = diagnostics
+        };
+    }
+
+    private static IReadOnlyList<ScriptCompileReportSection> BuildSectionReports(
+        ScriptCompilationDocument? document,
+        ScriptCompilationPlan compilationPlan,
+        IReadOnlyList<ComposedSectionResult> composedSections)
+    {
+        if (document is null)
+        {
+            return [];
+        }
+
+        var planBySectionId = compilationPlan.Sections.ToDictionary(
+            section => section.Section.SectionId,
+            StringComparer.Ordinal);
+        var composedBySectionId = composedSections.ToDictionary(
+            section => section.Plan.Section.SectionId,
+            StringComparer.Ordinal);
+
+        return document.Sections
+            .OrderBy(section => section.Order)
+            .ThenBy(section => section.SectionId, StringComparer.Ordinal)
+            .Select(section =>
+            {
+                planBySectionId.TryGetValue(section.SectionId, out var plan);
+                composedBySectionId.TryGetValue(section.SectionId, out var composed);
+
+                var slotBindings = plan?.SlotBindings ??
+                    new Dictionary<string, string>(StringComparer.Ordinal);
+                var assetIds = composed is not null
+                    ? composed.Result.Fragment.Scenes
+                        .SelectMany(scene => scene.Objects)
+                        .Where(sceneObject => !string.IsNullOrWhiteSpace(sceneObject.AssetRefId))
+                        .Select(sceneObject => sceneObject.AssetRefId!)
+                        .Distinct(StringComparer.Ordinal)
+                        .OrderBy(assetId => assetId, StringComparer.Ordinal)
+                        .ToArray()
+                    : GetFallbackIds(plan?.GovernedAssetId, section.IllustrationAssetId);
+                var effectProfileIds = composed is not null
+                    ? composed.Result.Fragment.TimelineEvents
+                        .SelectMany(@event => @event.Parameters)
+                        .Where(parameter => string.Equals(parameter.Key, "effectProfileId", StringComparison.Ordinal) && !string.IsNullOrWhiteSpace(parameter.Value))
+                        .Select(parameter => parameter.Value)
+                        .Distinct(StringComparer.Ordinal)
+                        .OrderBy(effectId => effectId, StringComparer.Ordinal)
+                        .ToArray()
+                    : GetFallbackIds(plan?.GovernedEffectProfileId, section.DrawEffectProfileId);
+
+                return new ScriptCompileReportSection
+                {
+                    SectionId = section.SectionId,
+                    Order = section.Order,
+                    TemplateId = plan?.TemplateId ?? section.TemplateId,
+                    SlotBindings = slotBindings,
+                    AssetIds = assetIds,
+                    EffectProfileIds = effectProfileIds,
+                    SceneIds = composed?.Result.Fragment.Scenes
+                        .Select(scene => scene.Id)
+                        .OrderBy(sceneId => sceneId, StringComparer.Ordinal)
+                        .ToArray() ?? [],
+                    TimelineEventIds = composed?.Result.Fragment.TimelineEvents
+                        .Select(@event => @event.Id)
+                        .OrderBy(eventId => eventId, StringComparer.Ordinal)
+                        .ToArray() ?? []
+                };
+            })
+            .ToArray();
+    }
+
+    private static IReadOnlyList<ScriptCompileDiagnostic> BuildDiagnostics(
+        IReadOnlyList<ValidationIssue> issues,
+        ScriptCompilationDocument? document,
+        ScriptCompilationPlan compilationPlan,
+        IReadOnlyList<OrderedScene> orderedScenes,
+        IReadOnlyList<OrderedEvent> orderedEvents)
+    {
+        var diagnostics = issues
+            .Select(issue =>
+            {
+                var scope = ResolveScope(issue.Path, document, compilationPlan, orderedScenes, orderedEvents);
+                return new ScriptCompileDiagnostic
+                {
+                    Severity = issue.Severity.ToString().ToLowerInvariant(),
+                    Code = issue.Code,
+                    Message = issue.Message,
+                    Path = issue.Path,
+                    Gate = issue.Gate.ToString().ToLowerInvariant(),
+                    SectionId = scope.SectionId,
+                    TemplateId = scope.TemplateId
+                };
+            });
+
+        return ScriptCompileDiagnostic.Sort(diagnostics);
+    }
+
+    private static DiagnosticScope ResolveScope(
+        string issuePath,
+        ScriptCompilationDocument? document,
+        ScriptCompilationPlan compilationPlan,
+        IReadOnlyList<OrderedScene> orderedScenes,
+        IReadOnlyList<OrderedEvent> orderedEvents)
+    {
+        var sectionMatch = ScriptSectionPathPattern.Match(issuePath);
+        if (sectionMatch.Success &&
+            document is not null &&
+            int.TryParse(sectionMatch.Groups[1].Value, out var sectionIndex) &&
+            sectionIndex >= 0 &&
+            sectionIndex < document.Sections.Count)
+        {
+            var section = document.Sections[sectionIndex];
+            var plan = compilationPlan.Sections.FirstOrDefault(candidate =>
+                string.Equals(candidate.Section.SectionId, section.SectionId, StringComparison.Ordinal));
+
+            return new DiagnosticScope(section.SectionId, plan?.TemplateId ?? section.TemplateId);
+        }
+
+        var sceneMatch = ScenePathPattern.Match(issuePath);
+        if (sceneMatch.Success &&
+            int.TryParse(sceneMatch.Groups[1].Value, out var sceneIndex) &&
+            sceneIndex >= 0 &&
+            sceneIndex < orderedScenes.Count)
+        {
+            var scene = orderedScenes[sceneIndex];
+            return new DiagnosticScope(scene.SectionId, scene.TemplateId);
+        }
+
+        var eventMatch = TimelineEventPathPattern.Match(issuePath);
+        if (eventMatch.Success &&
+            int.TryParse(eventMatch.Groups[1].Value, out var eventIndex) &&
+            eventIndex >= 0 &&
+            eventIndex < orderedEvents.Count)
+        {
+            var @event = orderedEvents[eventIndex];
+            return new DiagnosticScope(@event.SectionId, @event.TemplateId);
+        }
+
+        return DiagnosticScope.Empty;
+    }
+
+    private static string[] GetFallbackIds(string? primaryValue, string? secondaryValue)
+    {
+        var value = string.IsNullOrWhiteSpace(primaryValue) ? secondaryValue : primaryValue;
+        return string.IsNullOrWhiteSpace(value) ? [] : [value];
+    }
+
+    private static string SerializeReport(ScriptCompileReport report)
+    {
+        return JsonSerializer.Serialize(report, SerializerOptions);
+    }
+
+    private static VideoProject BuildProject(
+        ScriptCompilationDocument document,
+        ScriptGovernedLibrary governedLibrary,
+        IReadOnlyList<OrderedScene> orderedScenes,
+        IReadOnlyList<OrderedEvent> orderedEvents)
+    {
+        var referencedAssetIds = orderedScenes
             .SelectMany(entry => entry.Scene.Objects)
             .Where(sceneObject => !string.IsNullOrWhiteSpace(sceneObject.AssetRefId))
             .Select(sceneObject => sceneObject.AssetRefId!)
             .Distinct(StringComparer.Ordinal)
             .ToHashSet(StringComparer.Ordinal);
 
-        var referencedEffectProfileIds = eventEntries
-            .SelectMany(@event => @event.Parameters)
+        var referencedEffectProfileIds = orderedEvents
+            .SelectMany(entry => entry.Event.Parameters)
             .Where(parameter => string.Equals(parameter.Key, "effectProfileId", StringComparison.Ordinal) && !string.IsNullOrWhiteSpace(parameter.Value))
             .Select(parameter => parameter.Value)
             .Distinct(StringComparer.Ordinal)
@@ -195,12 +496,14 @@ public sealed class ScriptCompiler : IScriptCompiler
                     })
                     .ToList()
             },
-            Scenes = sceneEntries
+            Scenes = orderedScenes
                 .Select(entry => entry.Scene)
                 .ToList(),
             Timeline = new TimelineDefinition
             {
-                Events = eventEntries,
+                Events = orderedEvents
+                    .Select(entry => entry.Event)
+                    .ToList(),
                 EffectProfiles = governedLibrary.EffectProfiles
                     .Where(profile =>
                         referencedEffectProfileIds.Contains(profile.EffectProfileId) &&
@@ -331,27 +634,6 @@ public sealed class ScriptCompiler : IScriptCompiler
         return true;
     }
 
-    private static ScriptCompileResult CreateFailureResult(
-        ScriptCompilationPlan compilationPlan,
-        ScriptCompilationDocument? document,
-        IReadOnlyList<ValidationIssue> issues)
-    {
-        var orderedIssues = ValidationIssueOrdering.Sort(issues);
-        return new ScriptCompileResult
-        {
-            Success = false,
-            ScriptId = document?.ScriptId ?? string.Empty,
-            ProjectName = document?.ProjectName ?? string.Empty,
-            TemplateCount = compilationPlan.Sections
-                .Select(section => section.TemplateId)
-                .Distinct(StringComparer.Ordinal)
-                .Count(),
-            SectionCount = compilationPlan.Sections.Count,
-            CompilationPlan = compilationPlan,
-            Issues = orderedIssues
-        };
-    }
-
     private static string ResolveInputPath(string sourcePath, string providedPath, string defaultPath)
     {
         var candidate = string.IsNullOrWhiteSpace(providedPath) ? defaultPath : providedPath;
@@ -396,9 +678,16 @@ public sealed class ScriptCompiler : IScriptCompiler
         return $"sha256:{Convert.ToHexString(hash).ToLowerInvariant()}";
     }
 
-    private sealed record OrderedScene(int Order, string SectionId, int Index, SceneDefinition Scene);
+    private sealed record OrderedScene(int Order, string SectionId, string TemplateId, int Index, SceneDefinition Scene);
+
+    private sealed record OrderedEvent(string SectionId, string TemplateId, TimelineEvent Event);
 
     private sealed record ComposedSectionResult(
         ScriptSectionCompilationPlan Plan,
         TemplateInstantiationResult Result);
+
+    private sealed record DiagnosticScope(string SectionId, string TemplateId)
+    {
+        public static DiagnosticScope Empty { get; } = new(string.Empty, string.Empty);
+    }
 }

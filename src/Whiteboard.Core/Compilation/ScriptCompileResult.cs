@@ -11,8 +11,11 @@ public sealed record ScriptCompileResult
     public int TemplateCount { get; init; }
     public int SectionCount { get; init; }
     public VideoProject? Project { get; init; }
+    public string SpecOutputJson { get; init; } = string.Empty;
     public string CanonicalJson { get; init; } = string.Empty;
     public string DeterministicKey { get; init; } = string.Empty;
+    public ScriptCompileReport Report { get; init; } = new();
+    public IReadOnlyList<ScriptCompileDiagnostic> Diagnostics { get; init; } = [];
     public ScriptCompilationPlan? CompilationPlan { get; init; }
     public IReadOnlyList<ValidationIssue> Issues { get; init; } = [];
 }

@@ -70,8 +70,8 @@ public sealed class ScriptMappingPipeline : IScriptMappingPipeline
 
         return CreateResult(
             gateResults,
-            semanticIssues.Count == 0 ? normalizedDocument : null,
-            semanticIssues.Count == 0 ? sectionPlans : []);
+            normalizedDocument,
+            sectionPlans);
     }
 
     private static List<ValidationIssue> ValidateContract(
