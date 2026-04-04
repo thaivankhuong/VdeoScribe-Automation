@@ -1,5 +1,29 @@
 # Milestones
 
+## v1.2 Controlled Automation Pipeline (Shipped: 2026-04-04)
+
+**Phases completed:** 5 phases, 13 plans, 22 tasks
+
+**Key accomplishments:**
+
+- Registry snapshot pinning is now a first-class deterministic contract in spec ingest.
+- Timeline effect behavior is now governed by a deterministic whitelist with bounded parameters.
+- CLI spec loading now deterministically blocks unknown/deprecated registry pins and governed effect range violations.
+- Phase 17 now has a repo-versioned template catalog plus deterministic Core validation for reusable scene template packages.
+- Template contracts now instantiate into deterministic scene and timeline fragments with validated slot bindings, explicit offsets, and hashed canonical output.
+- Operators can now validate and instantiate repo templates through explicit CLI commands backed by the template catalog and deterministic Core composition.
+- Deterministic script JSON now resolves ordered sections into governed template instantiation plans through committed mapping and library catalogs.
+- Script JSON can now be compiled into validated deterministic project specs through a thin CLI command backed by Core compilation services.
+- Deterministic script compiles now emit separate audit reports with scoped diagnostics, governed resource usage, and stable CLI report artifacts for both success and failure paths.
+- Ordered batch manifests now compile scripts into deterministic staged specs and then hand those specs into the existing render/export pipeline without manual spec editing.
+- Deterministic batch job manifests now capture append-only retry history, compile/run outcomes, and explicit export or witness artifact keys alongside one ordered aggregate status report.
+
+**Known gaps accepted at completion:**
+
+- No `v1.2` milestone audit document was present at archive time; completion proceeded in YOLO mode with this audit debt explicitly recorded.
+
+---
+
 ## v1.1 Source Parity (Shipped: 2026-04-03)
 
 **Phases completed:** 4 phases, 11 plans, 28 tasks
