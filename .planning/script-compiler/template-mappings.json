@@ -1,0 +1,33 @@
+{
+  "catalogVersion": "1.0.0",
+  "mappings": [
+    {
+      "templateId": "title-card-basic",
+      "status": "active",
+      "fieldMappings": [
+        {
+          "sourceField": "headline",
+          "slotId": "titleText",
+          "required": true
+        },
+        {
+          "sourceField": "supportingText",
+          "slotId": "subtitleText",
+          "required": false
+        },
+        {
+          "sourceField": "illustrationAssetId",
+          "slotId": "illustrationAssetId",
+          "required": true,
+          "governedReferenceType": "asset"
+        },
+        {
+          "sourceField": "drawEffectProfileId",
+          "slotId": "drawEffectProfileId",
+          "required": true,
+          "governedReferenceType": "effect"
+        }
+      ]
+    }
+  ]
+}

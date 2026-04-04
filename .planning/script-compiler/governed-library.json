@@ -1,0 +1,17 @@
+{
+  "snapshotId": "reg-main-2026-04",
+  "assets": [
+    {
+      "assetId": "svg-hero-governed",
+      "assetType": "svg",
+      "status": "active"
+    }
+  ],
+  "effectProfiles": [
+    {
+      "effectProfileId": "effect-draw-default",
+      "actionType": "draw",
+      "status": "active"
+    }
+  ]
+}
