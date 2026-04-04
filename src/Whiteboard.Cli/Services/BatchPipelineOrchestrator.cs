@@ -166,9 +166,10 @@ public sealed class BatchPipelineOrchestrator : IBatchPipelineOrchestrator
 
             if (!string.IsNullOrWhiteSpace(job.ScriptPath))
             {
+                var resolvedScriptPath = ResolvePath(manifestDirectory, job.ScriptPath);
                 var compileResult = _scriptCompilationOrchestrator.Compile(new CliScriptCompileCommandRequest
                 {
-                    InputPath = ResolvePath(manifestDirectory, job.ScriptPath),
+                    InputPath = resolvedScriptPath,
                     SpecOutputPath = workspace.CompiledSpecPath,
                     ReportOutputPath = workspace.CompileReportPath
                 });
@@ -180,6 +181,7 @@ public sealed class BatchPipelineOrchestrator : IBatchPipelineOrchestrator
 
                 resolvedSpecPath = compileResult.SpecOutputPath;
                 logicalSpecPath = workspace.LogicalSpecPath ?? logicalSpecPath;
+                StageCompiledSpecDependencies(resolvedSpecPath, resolvedScriptPath, workspace.DirectoryPath);
             }
 
             var result = _pipelineOrchestrator.Run(new CliRunRequest
@@ -348,6 +350,93 @@ public sealed class BatchPipelineOrchestrator : IBatchPipelineOrchestrator
             Path.Combine("jobs", workspaceName, "compiled-spec.json").Replace('\\', '/'));
     }
 
+    private static void StageCompiledSpecDependencies(string compiledSpecPath, string scriptInputPath, string workspaceDirectory)
+    {
+        if (!File.Exists(compiledSpecPath))
+        {
+            return;
+        }
+
+        using var document = JsonDocument.Parse(File.ReadAllText(compiledSpecPath));
+        var scriptDirectory = Path.GetDirectoryName(scriptInputPath) ?? Environment.CurrentDirectory;
+        var repoRoot = FindRepoRoot(scriptInputPath);
+
+        foreach (var sourcePath in CollectSourcePaths(document.RootElement).Distinct(StringComparer.Ordinal))
+        {
+            if (string.IsNullOrWhiteSpace(sourcePath) || Path.IsPathRooted(sourcePath))
+            {
+                continue;
+            }
+
+            var normalizedSourcePath = sourcePath.Replace('/', Path.DirectorySeparatorChar);
+            var sourceFilePath = ResolveExistingDependencyPath(
+                Path.Combine(scriptDirectory, normalizedSourcePath),
+                Path.Combine(repoRoot, normalizedSourcePath));
+
+            if (sourceFilePath is null)
+            {
+                continue;
+            }
+
+            var destinationPath = Path.Combine(workspaceDirectory, normalizedSourcePath);
+            Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
+            File.Copy(sourceFilePath, destinationPath, overwrite: true);
+        }
+    }
+
+    private static IReadOnlyList<string> CollectSourcePaths(JsonElement element)
+    {
+        var sourcePaths = new List<string>();
+        CollectSourcePaths(element, sourcePaths);
+        return sourcePaths;
+    }
+
+    private static void CollectSourcePaths(JsonElement element, List<string> sourcePaths)
+    {
+        switch (element.ValueKind)
+        {
+            case JsonValueKind.Object:
+                foreach (var property in element.EnumerateObject())
+                {
+                    if (string.Equals(property.Name, "sourcePath", StringComparison.OrdinalIgnoreCase)
+                        && property.Value.ValueKind == JsonValueKind.String)
+                    {
+                        var sourcePath = property.Value.GetString();
+                        if (!string.IsNullOrWhiteSpace(sourcePath))
+                        {
+                            sourcePaths.Add(sourcePath);
+                        }
+                    }
+                    else
+                    {
+                        CollectSourcePaths(property.Value, sourcePaths);
+                    }
+                }
+
+                break;
+            case JsonValueKind.Array:
+                foreach (var item in element.EnumerateArray())
+                {
+                    CollectSourcePaths(item, sourcePaths);
+                }
+
+                break;
+        }
+    }
+
+    private static string? ResolveExistingDependencyPath(params string[] candidates)
+    {
+        foreach (var candidate in candidates)
+        {
+            if (File.Exists(candidate))
+            {
+                return candidate;
+            }
+        }
+
+        return null;
+    }
+
     private static string BuildCompileFailureMessage(
         string jobId,
         IReadOnlyList<Whiteboard.Core.Compilation.ScriptCompileDiagnostic> diagnostics)
@@ -361,6 +450,22 @@ public sealed class BatchPipelineOrchestrator : IBatchPipelineOrchestrator
             " | ",
             diagnostics.Select(diagnostic =>
                 $"{diagnostic.Code} ({diagnostic.Path}): {diagnostic.Message}"));
+    }
+
+    private static string FindRepoRoot(string path)
+    {
+        var current = new DirectoryInfo(Path.GetDirectoryName(Path.GetFullPath(path)) ?? Environment.CurrentDirectory);
+        while (current is not null)
+        {
+            if (Directory.Exists(Path.Combine(current.FullName, ".planning")))
+            {
+                return current.FullName;
+            }
+
+            current = current.Parent;
+        }
+
+        return Environment.CurrentDirectory;
     }
 
     private static string ToLogicalPath(string baseDirectory, string path)

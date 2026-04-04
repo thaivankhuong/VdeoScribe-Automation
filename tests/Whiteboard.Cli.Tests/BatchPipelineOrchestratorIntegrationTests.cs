@@ -26,7 +26,19 @@ public sealed class BatchPipelineOrchestratorIntegrationTests
                 SummaryOutputPath = summaryPath
             });
 
-            Assert.True(result.Success);
+            if (!result.Success)
+            {
+                var assetChecks = string.Join(
+                    Environment.NewLine,
+                    result.Jobs.Select(job =>
+                        $"{job.JobId}: asset-exists={File.Exists(Path.Combine(Path.GetDirectoryName(summaryPath)!, Path.GetDirectoryName(job.SpecPath.Replace('/', Path.DirectorySeparatorChar))!, "assets", "governed", "svg-hero-governed.svg"))}"));
+                throw new Xunit.Sdk.XunitException(
+                    string.Join(
+                        Environment.NewLine,
+                        result.Jobs.Select(job => $"{job.JobId}: {job.Message} | spec={job.SpecPath} | export={job.ExportStatus}"))
+                    + Environment.NewLine
+                    + assetChecks);
+            }
             Assert.Equal(new[] { "job-b", "job-a" }, result.Jobs.Select(job => job.JobId).ToArray());
             Assert.All(result.Jobs, job =>
             {
@@ -63,7 +75,7 @@ public sealed class BatchPipelineOrchestratorIntegrationTests
             .Select(job => job with
             {
                 ScriptPath = Path.Combine(fixtureDirectory, job.ScriptPath),
-                OutputPath = job.OutputPath.Replace('/', Path.DirectorySeparatorChar)
+                OutputPath = Path.Combine("out", job.JobId)
             })
             .ToArray();
 
