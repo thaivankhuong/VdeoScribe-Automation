@@ -80,10 +80,10 @@ Plans:
 1. Batch jobs can run script->spec->render->export end-to-end without manual authoring edits.
 2. Every job publishes deterministic manifest/status artifacts suitable for review and retry logic.
 3. Failure handling and retry behavior remain deterministic and auditable.
-**Plans**: 0/2 plans complete
+**Plans**: 1/2 plans complete
 
 Plans:
-- [ ] 19-01: Implement batch job orchestration flow for script-driven runs
+- [x] 19-01: Implement batch job orchestration flow for script-driven runs
 - [ ] 19-02: Add deterministic job manifest/status outputs and failure/retry contracts
 
 ### Phase 20: Deterministic QA Gates and Release Readiness
@@ -109,5 +109,5 @@ Plans:
 | 16 | v1.2 Controlled Automation Pipeline | 3/3 | Complete   | 2026-04-03 |
 | 17 | v1.2 Controlled Automation Pipeline | 3/3 | Complete   | 2026-04-04 |
 | 18 | v1.2 Controlled Automation Pipeline | 3/3 | Complete    | 2026-04-04 |
-| 19 | v1.2 Controlled Automation Pipeline | 0/2 | Not started | - |
+| 19 | v1.2 Controlled Automation Pipeline | 1/2 | In Progress|  |
 | 20 | v1.2 Controlled Automation Pipeline | 0/2 | Not started | - |

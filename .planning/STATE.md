@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 18-03-PLAN.md
-last_updated: "2026-04-04T09:21:17.462Z"
+stopped_at: Completed 19-01-PLAN.md
+last_updated: "2026-04-04T10:02:10.269Z"
 progress:
   total_phases: 5
   completed_phases: 3
-  total_plans: 9
-  completed_plans: 9
+  total_plans: 11
+  completed_plans: 10
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-03)
 
 **Core value:** Given the same spec, assets, and settings, the engine must always produce the same frame/video output.
-**Current focus:** Phase 18 — script-to-spec-compiler
+**Current focus:** Phase 19 — batch-automation-orchestrator
 
 ## Current Position
 
-Phase: 19
-Plan: Not started
+Phase: 19 (batch-automation-orchestrator) — EXECUTING
+Plan: 2 of 2
 
 ## Accumulated Context
 
@@ -60,6 +60,9 @@ Plan: Not started
 - [Phase 18-script-to-spec-compiler]: Keep compile diagnostics/report assembly in Core and limit CLI to parsing, file IO, and presentation.
 - [Phase 18-script-to-spec-compiler]: Use the spec-output hash on success and the report hash on failure so deterministic keys exist for both compile outcomes.
 - [Phase 18-script-to-spec-compiler]: Preserve normalized script documents and partial section plans on semantic failure so reports remain auditable without fallback generation.
+- [Phase 19]: Preserve manifest array order and derive deterministic batch workspaces from manifest index plus job ID.
+- [Phase 19]: Keep batch orchestration thin by delegating script compilation and render/export execution to the existing CLI orchestrator contracts.
+- [Phase 19]: Stage compiled-spec dependency files into each job workspace instead of rewriting compiled spec asset paths.
 
 ### Roadmap Evolution
 
@@ -109,9 +112,10 @@ None captured yet.
 | 18-script-to-spec-compiler | 1 | 8min | 8min |
 | Phase 18 P02 | 3h 18m | 2 tasks | 14 files |
 | Phase 18-script-to-spec-compiler P03 | 31 min | 2 tasks | 15 files |
+| Phase 19-batch-automation-orchestrator P01 | 17min | 2 tasks | 12 files |
 
 ## Session Continuity
 
-Last session: 2026-04-04T09:11:50.171Z
-Stopped at: Completed 18-03-PLAN.md
+Last session: 2026-04-04T10:02:10.267Z
+Stopped at: Completed 19-01-PLAN.md
 Resume file: None
