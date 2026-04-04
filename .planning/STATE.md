@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 18-01-PLAN.md
-last_updated: "2026-04-04T08:35:57.681Z"
+stopped_at: Completed 18-03-PLAN.md
+last_updated: "2026-04-04T09:11:50.173Z"
 progress:
   total_phases: 5
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 9
-  completed_plans: 8
+  completed_plans: 9
 ---
 
 # Project State
@@ -57,6 +57,9 @@ Plan: 3 of 3
 - [Phase 17]: Keep CLI output formatting thin and delegate all template semantics to Core plus the template orchestrator service. - The CLI remains an orchestration shell while validation and composition semantics stay reusable for later automation phases.
 - [Phase 18]: Keep script compiler mappings repo-governed under .planning/script-compiler/ and resolve template ids only through .planning/templates/index.json.
 - [Phase 18]: Return ordered section plans with prepared TemplateInstantiationRequest payloads so later compile-to-spec work can stay thin and deterministic.
+- [Phase 18-script-to-spec-compiler]: Keep compile diagnostics/report assembly in Core and limit CLI to parsing, file IO, and presentation.
+- [Phase 18-script-to-spec-compiler]: Use the spec-output hash on success and the report hash on failure so deterministic keys exist for both compile outcomes.
+- [Phase 18-script-to-spec-compiler]: Preserve normalized script documents and partial section plans on semantic failure so reports remain auditable without fallback generation.
 
 ### Roadmap Evolution
 
@@ -105,9 +108,10 @@ None captured yet.
 |-------|-------|-------|----------|
 | 18-script-to-spec-compiler | 1 | 8min | 8min |
 | Phase 18 P02 | 3h 18m | 2 tasks | 14 files |
+| Phase 18-script-to-spec-compiler P03 | 31 min | 2 tasks | 15 files |
 
 ## Session Continuity
 
-Last session: 2026-04-04T05:16:21.006Z
-Stopped at: Completed 18-01-PLAN.md
+Last session: 2026-04-04T09:11:50.171Z
+Stopped at: Completed 18-03-PLAN.md
 Resume file: None
