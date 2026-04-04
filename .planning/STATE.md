@@ -103,11 +103,10 @@ None captured yet.
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| - | - | - | - |
+| 18-script-to-spec-compiler | 1 | 8min | 8min |
 
 ## Session Continuity
 
 Last session: 2026-04-04T05:16:21.006Z
 Stopped at: Completed 18-01-PLAN.md
 Resume file: None
-| Phase 18-script-to-spec-compiler P01 | 8min | 2 tasks | 12 files |
