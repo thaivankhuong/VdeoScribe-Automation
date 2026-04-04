@@ -12,15 +12,14 @@ namespace Whiteboard.Cli.Tests;
 public sealed class BatchPipelineOrchestratorIntegrationTests
 {
     [Fact]
-    public void Run_ScriptFixture_ReachesCompiledSpecAndExportArtifactsWithoutManualSpecAssembly()
+    public void Run_ScriptFixture_WritesDeterministicJobManifestArtifacts()
     {
         var manifestPath = CreateTemporaryManifestFromFixture("primary-manifest.json");
         var summaryPath = Path.Combine(Path.GetDirectoryName(manifestPath)!, "summary.json");
 
         try
         {
-            var orchestrator = new BatchPipelineOrchestrator();
-            var result = orchestrator.Run(new CliBatchRunRequest
+            var result = new BatchPipelineOrchestrator().Run(new CliBatchRunRequest
             {
                 ManifestPath = manifestPath,
                 SummaryOutputPath = summaryPath
@@ -28,34 +27,108 @@ public sealed class BatchPipelineOrchestratorIntegrationTests
 
             if (!result.Success)
             {
-                var assetChecks = string.Join(
-                    Environment.NewLine,
-                    result.Jobs.Select(job =>
-                        $"{job.JobId}: asset-exists={File.Exists(Path.Combine(Path.GetDirectoryName(summaryPath)!, Path.GetDirectoryName(job.SpecPath.Replace('/', Path.DirectorySeparatorChar))!, "assets", "governed", "svg-hero-governed.svg"))}"));
                 throw new Xunit.Sdk.XunitException(
                     string.Join(
                         Environment.NewLine,
-                        result.Jobs.Select(job => $"{job.JobId}: {job.Message} | spec={job.SpecPath} | export={job.ExportStatus}"))
-                    + Environment.NewLine
-                    + assetChecks);
+                        result.Jobs.Select(job => $"{job.JobId}: {job.Message} | failureSummary={job.FailureSummary} | export={job.ExportStatus}")));
             }
+
             Assert.Equal(new[] { "job-b", "job-a" }, result.Jobs.Select(job => job.JobId).ToArray());
-            Assert.All(result.Jobs, job =>
-            {
-                Assert.True(job.Success);
-                Assert.StartsWith("jobs/", job.SpecPath, StringComparison.Ordinal);
-                Assert.Contains("compiled-spec.json", job.SpecPath, StringComparison.Ordinal);
-                Assert.False(string.IsNullOrWhiteSpace(job.ExportManifestPath));
-                Assert.True(File.Exists(Path.Combine(Path.GetDirectoryName(summaryPath)!, job.SpecPath.Replace('/', Path.DirectorySeparatorChar))));
-                Assert.True(File.Exists(Path.Combine(Path.GetDirectoryName(summaryPath)!, job.ExportManifestPath.Replace('/', Path.DirectorySeparatorChar))));
-            });
-            Assert.True(File.Exists(Path.Combine(Path.GetDirectoryName(summaryPath)!, "jobs", "000-job-b", "compile-report.json")));
             Assert.True(File.Exists(summaryPath));
+
+            foreach (var job in result.Jobs)
+            {
+                Assert.Equal(1, job.AttemptCount);
+                Assert.False(string.IsNullOrWhiteSpace(job.ManifestPath));
+                Assert.False(string.IsNullOrWhiteSpace(job.CompiledSpecPath));
+                Assert.False(string.IsNullOrWhiteSpace(job.ReportOutputPath));
+                Assert.False(string.IsNullOrWhiteSpace(job.ExportManifestPath));
+                Assert.False(string.IsNullOrWhiteSpace(job.ExportDeterministicKey));
+
+                var manifest = ReadJobManifest(summaryPath, job.ManifestPath);
+                Assert.Equal(job.JobId, manifest.JobId);
+                Assert.Equal(job.AttemptCount, manifest.AttemptCount);
+                Assert.Equal(job.CompiledSpecPath, manifest.CompiledSpecPath);
+                Assert.Equal(job.ReportOutputPath, manifest.ReportOutputPath);
+                Assert.Equal(job.ExportManifestPath, manifest.ExportManifestPath);
+                Assert.Equal(job.ExportDeterministicKey, manifest.ExportDeterministicKey);
+                Assert.Equal(job.PlayableMediaPath, manifest.PlayableMediaPath);
+                Assert.Equal(job.PlayableMediaDeterministicKey, manifest.PlayableMediaDeterministicKey);
+                Assert.Single(manifest.Attempts);
+                Assert.True(manifest.Attempts[0].FinalAttempt);
+                Assert.Equal(CliBatchStageStatus.Succeeded, manifest.Attempts[0].CompileStatus);
+                Assert.Equal(CliBatchStageStatus.Succeeded, manifest.Attempts[0].RunStatus);
+                Assert.True(File.Exists(Path.Combine(Path.GetDirectoryName(summaryPath)!, job.ManifestPath.Replace('/', Path.DirectorySeparatorChar))));
+                Assert.True(File.Exists(Path.Combine(Path.GetDirectoryName(summaryPath)!, job.CompiledSpecPath.Replace('/', Path.DirectorySeparatorChar))));
+                Assert.True(File.Exists(Path.Combine(Path.GetDirectoryName(summaryPath)!, job.ReportOutputPath.Replace('/', Path.DirectorySeparatorChar))));
+                Assert.True(File.Exists(Path.Combine(Path.GetDirectoryName(summaryPath)!, job.ExportManifestPath.Replace('/', Path.DirectorySeparatorChar))));
+            }
         }
         finally
         {
             DeleteDirectory(Path.GetDirectoryName(manifestPath)!);
         }
+    }
+
+    [Fact]
+    public void Run_ScriptFixture_RepeatedRunsProduceByteEquivalentSummaryAndJobManifestArtifacts()
+    {
+        var firstManifestPath = CreateTemporaryManifestFromFixture("primary-manifest.json");
+        var secondManifestPath = CreateTemporaryManifestFromFixture("primary-manifest.json");
+        var firstSummaryPath = Path.Combine(Path.GetDirectoryName(firstManifestPath)!, "summary.json");
+        var secondSummaryPath = Path.Combine(Path.GetDirectoryName(secondManifestPath)!, "summary.json");
+
+        try
+        {
+            var orchestrator = new BatchPipelineOrchestrator();
+            var first = orchestrator.Run(new CliBatchRunRequest
+            {
+                ManifestPath = firstManifestPath,
+                SummaryOutputPath = firstSummaryPath
+            });
+            var second = orchestrator.Run(new CliBatchRunRequest
+            {
+                ManifestPath = secondManifestPath,
+                SummaryOutputPath = secondSummaryPath
+            });
+
+            Assert.True(first.Success);
+            Assert.True(second.Success);
+            Assert.Equal(first.DeterministicKey, second.DeterministicKey);
+            Assert.Equal(File.ReadAllText(firstSummaryPath), File.ReadAllText(secondSummaryPath));
+
+            for (var index = 0; index < first.Jobs.Count; index++)
+            {
+                var firstJob = first.Jobs[index];
+                var secondJob = second.Jobs[index];
+                Assert.Equal(firstJob.JobId, secondJob.JobId);
+                Assert.Equal(firstJob.ManifestPath, secondJob.ManifestPath);
+                Assert.Equal(firstJob.CompiledSpecPath, secondJob.CompiledSpecPath);
+                Assert.Equal(firstJob.ReportOutputPath, secondJob.ReportOutputPath);
+                Assert.Equal(firstJob.ExportManifestPath, secondJob.ExportManifestPath);
+                Assert.Equal(firstJob.ExportDeterministicKey, secondJob.ExportDeterministicKey);
+                Assert.Equal(firstJob.PlayableMediaPath, secondJob.PlayableMediaPath);
+                Assert.Equal(firstJob.PlayableMediaDeterministicKey, secondJob.PlayableMediaDeterministicKey);
+
+                var firstJobManifestPath = Path.Combine(Path.GetDirectoryName(firstSummaryPath)!, firstJob.ManifestPath.Replace('/', Path.DirectorySeparatorChar));
+                var secondJobManifestPath = Path.Combine(Path.GetDirectoryName(secondSummaryPath)!, secondJob.ManifestPath.Replace('/', Path.DirectorySeparatorChar));
+                Assert.Equal(File.ReadAllText(firstJobManifestPath), File.ReadAllText(secondJobManifestPath));
+            }
+        }
+        finally
+        {
+            DeleteDirectory(Path.GetDirectoryName(firstManifestPath)!);
+            DeleteDirectory(Path.GetDirectoryName(secondManifestPath)!);
+        }
+    }
+
+    private static CliBatchJobManifest ReadJobManifest(string summaryPath, string manifestPath)
+    {
+        var fullPath = Path.Combine(Path.GetDirectoryName(summaryPath)!, manifestPath.Replace('/', Path.DirectorySeparatorChar));
+        return JsonSerializer.Deserialize<CliBatchJobManifest>(File.ReadAllText(fullPath), new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        }) ?? throw new InvalidOperationException("Job manifest could not be deserialized.");
     }
 
     private static string CreateTemporaryManifestFromFixture(string manifestFileName)
@@ -82,7 +155,11 @@ public sealed class BatchPipelineOrchestratorIntegrationTests
         var manifestPath = Path.Combine(outputDirectory, manifestFileName);
         File.WriteAllText(
             manifestPath,
-            JsonSerializer.Serialize(new CliBatchManifest { Jobs = remappedJobs }, new JsonSerializerOptions
+            JsonSerializer.Serialize(new CliBatchManifest
+            {
+                RetryLimit = manifest.RetryLimit,
+                Jobs = remappedJobs
+            }, new JsonSerializerOptions
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
                 WriteIndented = true
