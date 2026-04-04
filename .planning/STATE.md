@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Phase 17 context gathered
-last_updated: "2026-04-03T16:28:51.490Z"
+stopped_at: Completed 17-01-PLAN.md
+last_updated: "2026-04-04T03:09:18.957Z"
 progress:
   total_phases: 5
   completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
+  total_plans: 6
+  completed_plans: 4
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-03)
 
 **Core value:** Given the same spec, assets, and settings, the engine must always produce the same frame/video output.
-**Current focus:** Phase 17 planning — template-contracts-and-scene-composition
+**Current focus:** Phase 17 — template-contracts-and-scene-composition
 
 ## Current Position
 
-Phase: 17
-Plan: Not started
+Phase: 17 (template-contracts-and-scene-composition) — EXECUTING
+Plan: 2 of 3
 
 ## Accumulated Context
 
@@ -49,6 +49,8 @@ Plan: Not started
 - [Phase 15]: Keep parity review centered on repo-stored export packages and bundle manifests rather than introducing a review-only runtime mode.
 - [Phase 15]: Regression closeout must fail on committed witness/package drift first, while real FFmpeg-backed media smoke stays explicitly env-gated.
 - [Phase 16]: Controlled automation input must pin curated registry snapshots and whitelisted effect profiles so script-driven generation stays deterministic and reviewable.
+- [Phase 17]: Keep template authoring file-based under .planning/templates/ with catalog metadata resolved separately from slot payload validation. — Preserves repo-governed reviewability and keeps TMP-01 independent from CLI/operator slot input handling.
+- [Phase 17]: Mirror the existing Core spec pipeline shape so template contracts normalize and fail deterministically before composition. — Reusing ordered validation gates keeps template diagnostics aligned with established Core contract behavior.
 
 ### Roadmap Evolution
 
@@ -84,6 +86,6 @@ None captured yet.
 
 ## Session Continuity
 
-Last session: 2026-04-03T16:28:51.488Z
-Stopped at: Phase 17 context gathered
-Resume file: .planning/phases/17-template-contracts-and-scene-composition/17-CONTEXT.md
+Last session: 2026-04-04T03:09:18.955Z
+Stopped at: Completed 17-01-PLAN.md
+Resume file: .planning/phases/17-template-contracts-and-scene-composition/17-02-PLAN.md

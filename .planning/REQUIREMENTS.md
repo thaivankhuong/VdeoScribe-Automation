@@ -18,7 +18,7 @@
 
 ### Template System
 
-- [ ] **TMP-01**: Authors can define reusable scene templates with named slots and slot constraints in JSON.
+- [x] **TMP-01**: Authors can define reusable scene templates with named slots and slot constraints in JSON.
 - [ ] **TMP-02**: Template instantiation produces deterministic scene objects and timeline fragments from the same inputs.
 
 ### Script Compilation
@@ -57,7 +57,7 @@
 | REG-03 | Phase 16 | Complete |
 | EFX-01 | Phase 16 | Complete |
 | EFX-02 | Phase 16 | Complete |
-| TMP-01 | Phase 17 | Pending |
+| TMP-01 | Phase 17 | Complete |
 | TMP-02 | Phase 17 | Pending |
 | CMP-01 | Phase 18 | Pending |
 | CMP-02 | Phase 18 | Pending |

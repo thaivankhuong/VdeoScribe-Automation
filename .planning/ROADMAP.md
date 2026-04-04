@@ -53,7 +53,7 @@ Plans:
 **Plans**: 0/3 plans complete
 
 Plans:
-- [ ] 17-01: Define template contract model (slots, constraints, defaults)
+- [x] 17-01: Define template contract model (slots, constraints, defaults)
 - [ ] 17-02: Implement deterministic template instantiation service
 - [ ] 17-03: Add contract tests for repeatability and boundary validation
 
@@ -107,7 +107,7 @@ Plans:
 | 1-11 | v1.0 Engine Core | 29/29 | Complete | 2026-03-21 |
 | 12-15 | v1.1 Source Parity | 11/11 | Complete | 2026-04-03 |
 | 16 | v1.2 Controlled Automation Pipeline | 3/3 | Complete   | 2026-04-03 |
-| 17 | v1.2 Controlled Automation Pipeline | 0/3 | Not started | - |
+| 17 | v1.2 Controlled Automation Pipeline | 1/3 | In Progress|  |
 | 18 | v1.2 Controlled Automation Pipeline | 0/3 | Not started | - |
 | 19 | v1.2 Controlled Automation Pipeline | 0/2 | Not started | - |
 | 20 | v1.2 Controlled Automation Pipeline | 0/2 | Not started | - |
