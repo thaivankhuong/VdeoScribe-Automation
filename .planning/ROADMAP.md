@@ -2,24 +2,76 @@
 
 ## Overview
 
-Core deterministic engine milestones are shipped through v1.2. Planning context is now archived by milestone to keep active roadmap size stable.
+Core deterministic engine milestones through v1.2 are shipped and archived. Milestone v1.3 focuses on scaling batch execution, preserving deterministic recovery flows, and strengthening release-readiness evidence without weakening compile, render, export, or CLI contract boundaries.
 
 ## Milestones
 
 - [x] **v1.0 Engine Core** - Phases 1-11 (shipped 2026-03-21)
 - [x] **v1.1 Source Parity** - Phases 12-15 (shipped 2026-04-03)
 - [x] **v1.2 Controlled Automation Pipeline** - Phases 16-20 (shipped 2026-04-04)
-- [ ] **v1.3** - Not started (run `$gsd-new-milestone`)
+- [ ] **v1.3 Automation Scale and Reliability** - Phases 21-24
 
 ## Archived Milestones
 
-- v1.0 roadmap: `.planning/milestones/v1.0-ROADMAP.md`
-- v1.0 requirements: `.planning/milestones/v1.0-REQUIREMENTS.md`
-- v1.1 roadmap: `.planning/milestones/v1.1-ROADMAP.md`
-- v1.1 requirements: `.planning/milestones/v1.1-REQUIREMENTS.md`
-- v1.2 roadmap: `.planning/milestones/v1.2-ROADMAP.md`
-- v1.2 requirements: `.planning/milestones/v1.2-REQUIREMENTS.md`
+- v1.0: `.planning/milestones/v1.0-ROADMAP.md`
+- v1.1: `.planning/milestones/v1.1-ROADMAP.md`
+- v1.2: `.planning/milestones/v1.2-ROADMAP.md`
 
-## Current Status
+## Phases
 
-No active phase. Start the next milestone flow with `$gsd-new-milestone`.
+- [ ] **Phase 21: Batch Throughput Profiles** - Add manifest-driven throughput controls while keeping batch outputs semantically stable.
+- [ ] **Phase 22: Execution Diagnostics and Preflight** - Fail fast on invalid environments and emit deterministic throughput evidence.
+- [ ] **Phase 23: Resume and Replay Flows** - Recover interrupted or failed batches without rerunning clean work or losing lineage.
+- [ ] **Phase 24: Release Witness Reliability Gates** - Produce milestone-level witness bundles and deterministic soak/regression proof.
+
+## Phase Details
+
+### Phase 21: Batch Throughput Profiles
+**Goal**: Operators can increase single-host batch throughput without changing what each job produces.
+**Depends on**: Phase 20
+**Requirements**: BTHR-01, BTHR-02
+**Success Criteria** (what must be TRUE):
+  1. Operator can choose sequential or bounded-parallel execution from manifest or config without editing individual job specs.
+  2. The same batch produces the same per-job outputs under sequential and bounded-parallel profiles.
+  3. Aggregate batch summaries remain in stable manifest order regardless of worker count or scheduling interleaving.
+**Plans**: TBD
+
+### Phase 22: Execution Diagnostics and Preflight
+**Goal**: Scaled batch runs fail fast on invalid environments and emit deterministic execution evidence that explains throughput behavior.
+**Depends on**: Phase 21
+**Requirements**: BTHR-03, RLBL-01
+**Success Criteria** (what must be TRUE):
+  1. Batch execution blocks before work starts when required external dependencies for targeted jobs are missing or invalid.
+  2. A successful or failed batch run emits auditable throughput diagnostics that record the selected profile, worker limits, and queue or dispatch stats deterministically.
+  3. Repeated runs against the same inputs and environment produce equivalent preflight outcomes and equivalent diagnostic artifacts.
+**Plans**: TBD
+
+### Phase 23: Resume and Replay Flows
+**Goal**: Operators can deterministically recover from partial failures without rerunning clean work or losing evidence lineage.
+**Depends on**: Phase 22
+**Requirements**: RPLY-01, RPLY-02, RPLY-03
+**Success Criteria** (what must be TRUE):
+  1. Operator can resume an interrupted batch from persisted job manifests and completed successful jobs are skipped rather than rerun.
+  2. Operator can generate a replay manifest that reruns only failed jobs from a prior batch execution.
+  3. Resume and replay outputs keep explicit links back to the original compile, run, and gate evidence for each job.
+  4. Repeating the same resume or replay action with unchanged inputs produces the same selected job set and ordered evidence artifacts.
+**Plans**: TBD
+
+### Phase 24: Release Witness Reliability Gates
+**Goal**: Automation runs produce release-ready witness bundles and deterministic reliability gates for milestone promotion.
+**Depends on**: Phase 23
+**Requirements**: RLBL-02, RLBL-03
+**Success Criteria** (what must be TRUE):
+  1. Gated representative scenario runs produce a deterministic milestone-level release witness bundle that can be reviewed without reconstructing batch history.
+  2. Deterministic soak or regression validation fails the run when reproducible drift or artifact inconsistency is present.
+  3. Re-running the same witness and reliability gate inputs produces equivalent release bundle structure and equivalent gate conclusions.
+**Plans**: TBD
+
+## Progress
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 21. Batch Throughput Profiles | 0/TBD | Not started | - |
+| 22. Execution Diagnostics and Preflight | 0/TBD | Not started | - |
+| 23. Resume and Replay Flows | 0/TBD | Not started | - |
+| 24. Release Witness Reliability Gates | 0/TBD | Not started | - |
