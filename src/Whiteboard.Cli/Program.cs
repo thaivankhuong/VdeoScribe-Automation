@@ -1,6 +1,8 @@
 using System;
+using Whiteboard.Cli.Contracts;
 using Whiteboard.Cli.Models;
 using Whiteboard.Cli.Services;
+using Whiteboard.Core.Validation;
 
 namespace Whiteboard.Cli;
 
@@ -23,6 +25,8 @@ public static class Program
             {
                 CliCommandMode.Run => ExecuteRun(command.RunRequest!),
                 CliCommandMode.Batch => ExecuteBatch(command.BatchRequest!),
+                CliCommandMode.TemplateValidate => ExecuteTemplateValidate(command.TemplateValidateRequest!),
+                CliCommandMode.TemplateInstantiate => ExecuteTemplateInstantiate(command.TemplateInstantiateRequest!),
                 _ => throw new ArgumentOutOfRangeException()
             };
         }
@@ -49,6 +53,37 @@ public static class Program
         Console.WriteLine($"OutputPath: {result.OutputPath}");
         Console.WriteLine($"ExportStatus: {result.ExportStatus}");
         Console.WriteLine($"DeterministicKey: {result.DeterministicKey}");
+
+        return result.Success ? 0 : 1;
+    }
+
+    private static int ExecuteTemplateValidate(CliTemplateValidateRequest request)
+    {
+        ITemplatePipelineOrchestrator orchestrator = new TemplatePipelineOrchestrator();
+        var result = orchestrator.Validate(request);
+
+        Console.WriteLine($"Success: {result.Success}");
+        Console.WriteLine($"TemplateId: {result.TemplateId}");
+        Console.WriteLine($"Version: {result.Version}");
+        Console.WriteLine($"Status: {result.Status}");
+        Console.WriteLine($"SlotValidationStatus: {result.SlotValidationStatus}");
+        WriteIssues(result.Issues);
+
+        return result.Success ? 0 : 1;
+    }
+
+    private static int ExecuteTemplateInstantiate(CliTemplateInstantiateRequest request)
+    {
+        ITemplatePipelineOrchestrator orchestrator = new TemplatePipelineOrchestrator();
+        var result = orchestrator.Instantiate(request);
+
+        Console.WriteLine($"Success: {result.Success}");
+        Console.WriteLine($"TemplateId: {result.TemplateId}");
+        Console.WriteLine($"InstanceId: {result.InstanceId}");
+        Console.WriteLine($"OutputPath: {result.OutputPath}");
+        Console.WriteLine($"SlotValidationStatus: {result.SlotValidationStatus}");
+        Console.WriteLine($"DeterministicKey: {result.DeterministicKey}");
+        WriteIssues(result.Issues);
 
         return result.Success ? 0 : 1;
     }
@@ -86,7 +121,17 @@ public static class Program
         Console.WriteLine("Usage:");
         Console.WriteLine("  whiteboard-cli run --spec <path> [--output <path>] [--frame-index <int>]");
         Console.WriteLine("  whiteboard-cli batch --manifest <path> --summary-output <path>");
+        Console.WriteLine("  whiteboard-cli template validate --template <template-id> [--catalog <path>] [--slots <path>]");
+        Console.WriteLine("  whiteboard-cli template instantiate --template <template-id> [--catalog <path>] --slots <path> --output <path> --instance-id <id> [--time-offset-seconds <double>] [--layer-offset <int>]");
         Console.WriteLine("  whiteboard-cli --spec <path> [--output <path>] [--frame-index <int>]  # legacy run shortcut");
         Console.WriteLine("Phase 6 scope: deterministic CLI orchestration over the existing Core -> Engine -> Renderer -> Export pipeline.");
+    }
+
+    private static void WriteIssues(IReadOnlyList<ValidationIssue> issues)
+    {
+        foreach (var issue in issues)
+        {
+            Console.WriteLine($"Issue: [{issue.Gate}] {issue.Code} at {issue.Path}: {issue.Message}");
+        }
     }
 }

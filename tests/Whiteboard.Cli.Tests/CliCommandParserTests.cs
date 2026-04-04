@@ -43,4 +43,53 @@ public sealed class CliCommandParserTests
         Assert.Equal("manifest.json", command.BatchRequest!.ManifestPath);
         Assert.Equal("summary.json", command.BatchRequest.SummaryOutputPath);
     }
+
+    [Fact]
+    public void Parse_TemplateValidate_UsesDefaultCatalogWhenArgumentIsOmitted()
+    {
+        var parser = new CliCommandParser();
+
+        var command = parser.Parse(["template", "validate", "--template", "title-card-basic", "--slots", "slots.json"]);
+
+        Assert.Equal(CliCommandMode.TemplateValidate, command.Mode);
+        Assert.NotNull(command.TemplateValidateRequest);
+        Assert.Equal("title-card-basic", command.TemplateValidateRequest!.TemplateId);
+        Assert.Equal(".planning/templates/index.json", command.TemplateValidateRequest.CatalogPath);
+        Assert.Equal("slots.json", command.TemplateValidateRequest.SlotValuesPath);
+    }
+
+    [Fact]
+    public void Parse_TemplateInstantiate_ParsesRequiredAndOptionalArguments()
+    {
+        var parser = new CliCommandParser();
+
+        var command = parser.Parse([
+            "template",
+            "instantiate",
+            "--template",
+            "title-card-basic",
+            "--catalog",
+            "catalog.json",
+            "--slots",
+            "slot-values.json",
+            "--output",
+            "output.json",
+            "--instance-id",
+            "title-card-001",
+            "--time-offset-seconds",
+            "2.5",
+            "--layer-offset",
+            "4"
+        ]);
+
+        Assert.Equal(CliCommandMode.TemplateInstantiate, command.Mode);
+        Assert.NotNull(command.TemplateInstantiateRequest);
+        Assert.Equal("title-card-basic", command.TemplateInstantiateRequest!.TemplateId);
+        Assert.Equal("catalog.json", command.TemplateInstantiateRequest.CatalogPath);
+        Assert.Equal("slot-values.json", command.TemplateInstantiateRequest.SlotValuesPath);
+        Assert.Equal("output.json", command.TemplateInstantiateRequest.OutputPath);
+        Assert.Equal("title-card-001", command.TemplateInstantiateRequest.InstanceId);
+        Assert.Equal(2.5, command.TemplateInstantiateRequest.TimeOffsetSeconds);
+        Assert.Equal(4, command.TemplateInstantiateRequest.LayerOffset);
+    }
 }
