@@ -16,6 +16,8 @@ Shipped milestones:
 
 Current milestone progress:
 - v1.2 Phase 16 (2026-04-03): controlled asset registry pinning and effect profile governance validated with deterministic CLI diagnostics.
+- v1.2 Phase 17 (2026-04-04): repo-governed template contracts and deterministic scene composition.
+- v1.2 Phase 18 (2026-04-04): script-to-spec compiler with deterministic compile reports and stable diagnostics.
 
 Milestone archives:
 - `.planning/milestones/v1.0-ROADMAP.md`
@@ -48,10 +50,10 @@ Milestone archives:
 - [x] Text and illustration fidelity improvements for reference sample composition - v1.1
 - [x] Deterministic frame/video parity regression witnesses - v1.1
 - [x] Controlled asset/effect governance with deterministic registry/effect validation - v1.2 Phase 16
+- [x] Compile script/scenario inputs into validated spec JSON automatically through templates and governed mappings - v1.2 Phase 18
 
 ### Active
 
-- [ ] Compile script/scenario inputs into validated spec JSON automatically through templates.
 - [ ] Run end-to-end batch generation with deterministic quality gates and auditable manifests.
 
 ### Out of Scope
@@ -85,6 +87,7 @@ The repository now contains archived v1.0 and v1.1 milestones plus parity demo a
 | Milestone closeout keeps ROADMAP constant-size by archiving full milestone details in `.planning/milestones/` | Preserves context efficiency for future sessions | Good |
 | v1.2 automation must use curated asset/effect libraries (no generative image dependency) | Keeps output quality reviewable, legally traceable, and deterministic | Good (validated in Phase 16) |
 | v1.2 remains CLI/spec driven with no editor UI work | Preserves engine-first scope and execution speed | Good (still enforced) |
+| Script compilation must emit deterministic spec and report artifacts with stable diagnostics | Keeps automation inputs auditable and repeatable before batch orchestration | Good (validated in Phase 18) |
 
 ## Evolution
 
@@ -104,4 +107,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-03 after completing v1.2 Phase 16 controlled registry/effect governance*
+*Last updated: 2026-04-04 after completing v1.2 Phase 18 script-to-spec compiler*
