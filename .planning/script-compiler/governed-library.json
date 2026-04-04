@@ -1,8 +1,12 @@
 {
+  "registryId": "main-registry",
   "snapshotId": "reg-main-2026-04",
+  "snapshotVersion": "2026.04.0",
   "assets": [
     {
       "assetId": "svg-hero-governed",
+      "name": "Governed Hero Illustration",
+      "sourcePath": "assets/governed/svg-hero-governed.svg",
       "assetType": "svg",
       "status": "active"
     }
@@ -11,6 +15,8 @@
     {
       "effectProfileId": "effect-draw-default",
       "actionType": "draw",
+      "minDurationSeconds": 0.5,
+      "maxDurationSeconds": 4.0,
       "status": "active"
     }
   ]
