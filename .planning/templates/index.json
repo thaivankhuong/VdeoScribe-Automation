@@ -1,0 +1,11 @@
+{
+  "catalogVersion": "1.0.0",
+  "templates": [
+    {
+      "templateId": "title-card-basic",
+      "version": "1.0.0",
+      "status": "active",
+      "entryPath": ".planning/templates/title-card-basic/template.json"
+    }
+  ]
+}

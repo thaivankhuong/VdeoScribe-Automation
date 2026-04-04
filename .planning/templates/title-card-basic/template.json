@@ -1,0 +1,153 @@
+{
+  "templateId": "title-card-basic",
+  "version": "1.0.0",
+  "status": "active",
+  "name": "Basic Title Card",
+  "description": "Reusable opening scene with a governed SVG illustration and two text slots.",
+  "slots": [
+    {
+      "slotId": "titleText",
+      "valueType": "text",
+      "required": true,
+      "constraints": {
+        "allowedValues": []
+      }
+    },
+    {
+      "slotId": "subtitleText",
+      "valueType": "text",
+      "required": false,
+      "defaultValue": "Explain the idea in one clean sentence.",
+      "constraints": {
+        "allowedValues": []
+      }
+    },
+    {
+      "slotId": "illustrationAssetId",
+      "valueType": "assetId",
+      "required": true,
+      "constraints": {
+        "allowAssetId": true,
+        "allowedValues": []
+      }
+    },
+    {
+      "slotId": "drawEffectProfileId",
+      "valueType": "effectProfileId",
+      "required": true,
+      "constraints": {
+        "allowEffectProfileId": true,
+        "allowedValues": []
+      }
+    }
+  ],
+  "sceneFragments": [
+    {
+      "localId": "title-scene",
+      "name": "Title Card",
+      "durationSeconds": 6,
+      "objects": [
+        {
+          "id": "hero-illustration",
+          "name": "Hero Illustration",
+          "type": "svg",
+          "assetRefId": "{{slot:illustrationAssetId}}",
+          "layer": 1,
+          "isVisible": true,
+          "transform": {
+            "position": {
+              "x": 120,
+              "y": 120
+            },
+            "size": {
+              "width": 420,
+              "height": 420
+            },
+            "rotationDegrees": 0,
+            "scaleX": 1,
+            "scaleY": 1,
+            "opacity": 1
+          }
+        },
+        {
+          "id": "title-text",
+          "name": "Title Text",
+          "type": "text",
+          "textContent": "{{slot:titleText}}",
+          "layer": 2,
+          "isVisible": true,
+          "transform": {
+            "position": {
+              "x": 620,
+              "y": 180
+            },
+            "size": {
+              "width": 520,
+              "height": 120
+            },
+            "rotationDegrees": 0,
+            "scaleX": 1,
+            "scaleY": 1,
+            "opacity": 1
+          }
+        },
+        {
+          "id": "subtitle-text",
+          "name": "Subtitle Text",
+          "type": "text",
+          "textContent": "{{slot:subtitleText}}",
+          "layer": 3,
+          "isVisible": true,
+          "transform": {
+            "position": {
+              "x": 620,
+              "y": 330
+            },
+            "size": {
+              "width": 520,
+              "height": 100
+            },
+            "rotationDegrees": 0,
+            "scaleX": 1,
+            "scaleY": 1,
+            "opacity": 1
+          }
+        }
+      ]
+    }
+  ],
+  "timelineEventFragments": [
+    {
+      "localId": "draw-hero-illustration",
+      "sceneLocalId": "title-scene",
+      "sceneObjectLocalId": "hero-illustration",
+      "actionType": "draw",
+      "startSeconds": 0,
+      "durationSeconds": 2.5,
+      "easing": "linear",
+      "parameters": {
+        "effectProfileId": "{{slot:drawEffectProfileId}}"
+      }
+    },
+    {
+      "localId": "reveal-title-text",
+      "sceneLocalId": "title-scene",
+      "sceneObjectLocalId": "title-text",
+      "actionType": "reveal",
+      "startSeconds": 0.8,
+      "durationSeconds": 1.2,
+      "easing": "linear",
+      "parameters": {}
+    },
+    {
+      "localId": "reveal-subtitle-text",
+      "sceneLocalId": "title-scene",
+      "sceneObjectLocalId": "subtitle-text",
+      "actionType": "reveal",
+      "startSeconds": 1.4,
+      "durationSeconds": 1.1,
+      "easing": "linear",
+      "parameters": {}
+    }
+  ]
+}
