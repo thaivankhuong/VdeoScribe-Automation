@@ -15,9 +15,13 @@ public sealed record CliBatchJobManifest
     public string Message { get; init; } = string.Empty;
     public string FailureSummary { get; init; } = string.Empty;
     public string ScriptPath { get; init; } = string.Empty;
+    public string RegressionBaselinePath { get; init; } = string.Empty;
     public string OutputPath { get; init; } = string.Empty;
     public string CompiledSpecPath { get; init; } = string.Empty;
     public string ReportOutputPath { get; init; } = string.Empty;
+    public CliBatchStageStatus GateStatus { get; init; }
+    public string GateReportPath { get; init; } = string.Empty;
+    public string GateDeterministicKey { get; init; } = string.Empty;
     public string ExportManifestPath { get; init; } = string.Empty;
     public string ExportDeterministicKey { get; init; } = string.Empty;
     public string PlayableMediaPath { get; init; } = string.Empty;
@@ -39,10 +43,14 @@ public sealed record CliBatchJobAttemptRecord
     public string Message { get; init; } = string.Empty;
     public string FailureSummary { get; init; } = string.Empty;
     public string ScriptPath { get; init; } = string.Empty;
+    public string RegressionBaselinePath { get; init; } = string.Empty;
     public string OutputPath { get; init; } = string.Empty;
     public string CompiledSpecPath { get; init; } = string.Empty;
     public string ReportOutputPath { get; init; } = string.Empty;
     public string CompileDeterministicKey { get; init; } = string.Empty;
+    public CliBatchStageStatus GateStatus { get; init; }
+    public string GateReportPath { get; init; } = string.Empty;
+    public string GateDeterministicKey { get; init; } = string.Empty;
     public string ExportManifestPath { get; init; } = string.Empty;
     public string ExportDeterministicKey { get; init; } = string.Empty;
     public string PlayableMediaPath { get; init; } = string.Empty;
@@ -72,5 +80,6 @@ public enum CliBatchFailureStage
     None = 0,
     Manifest = 1,
     Compile = 2,
-    Run = 3
+    Run = 3,
+    Gate = 4
 }

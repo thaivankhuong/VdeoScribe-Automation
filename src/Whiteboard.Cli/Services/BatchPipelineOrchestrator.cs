@@ -54,7 +54,12 @@ public sealed class BatchPipelineOrchestrator : IBatchPipelineOrchestrator
         {
             var manifest = LoadManifest(manifestPath);
             var orderedJobs = manifest.Jobs
-                .Select((job, index) => NormalizeJob(job, index, manifest.RetryLimit))
+                .Select((job, index) => NormalizeJob(
+                    job,
+                    index,
+                    manifest.RetryLimit,
+                    manifest.DefaultRegressionBaselinePath,
+                    manifest.EnforceDeterministicQaGates))
                 .ToList();
 
             EnsureUniqueJobIds(orderedJobs);
@@ -105,7 +110,12 @@ public sealed class BatchPipelineOrchestrator : IBatchPipelineOrchestrator
         return manifest;
     }
 
-    private static IndexedJob NormalizeJob(CliBatchJob job, int index, int defaultRetryLimit)
+    private static IndexedJob NormalizeJob(
+        CliBatchJob job,
+        int index,
+        int defaultRetryLimit,
+        string defaultRegressionBaselinePath,
+        bool enforceDeterministicQaGates)
     {
         ArgumentNullException.ThrowIfNull(job);
 
@@ -141,6 +151,19 @@ public sealed class BatchPipelineOrchestrator : IBatchPipelineOrchestrator
             throw new InvalidDataException($"Batch job '{normalizedJobId}' retryLimit must be zero or greater.");
         }
 
+        var normalizedDefaultBaselinePath = defaultRegressionBaselinePath?.Trim() ?? string.Empty;
+        var normalizedBaselinePath = job.RegressionBaselinePath?.Trim() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(normalizedBaselinePath))
+        {
+            normalizedBaselinePath = normalizedDefaultBaselinePath;
+        }
+
+        if (enforceDeterministicQaGates && string.IsNullOrWhiteSpace(normalizedBaselinePath))
+        {
+            throw new InvalidDataException(
+                $"Batch job '{normalizedJobId}' is missing 'regressionBaselinePath' while deterministic QA gates are required.");
+        }
+
         return new IndexedJob(
             job with
             {
@@ -148,13 +171,16 @@ public sealed class BatchPipelineOrchestrator : IBatchPipelineOrchestrator
                 ScriptPath = normalizedScriptPath,
                 SpecPath = normalizedSpecPath,
                 OutputPath = normalizedOutputPath,
+                RegressionBaselinePath = normalizedBaselinePath,
                 RetryLimit = effectiveRetryLimit,
                 FrameIndex = job.FrameIndex.HasValue
                     ? Math.Max(0, job.FrameIndex.Value)
                     : null
             },
             index,
-            effectiveRetryLimit);
+            effectiveRetryLimit,
+            normalizedBaselinePath,
+            enforceDeterministicQaGates);
     }
 
     private static void EnsureUniqueJobIds(IReadOnlyList<IndexedJob> jobs)
@@ -208,17 +234,21 @@ public sealed class BatchPipelineOrchestrator : IBatchPipelineOrchestrator
     {
         var job = indexedJob.Job;
         var logicalScriptPath = ToLogicalPath(artifactBaseDirectory, ResolvePath(manifestDirectory, job.ScriptPath));
+        var logicalBaselinePath = ToLogicalPath(artifactBaseDirectory, ResolvePath(manifestDirectory, indexedJob.RegressionBaselinePath));
         var logicalOutputPath = job.OutputPath.Replace('\\', '/');
         var compileStatus = string.IsNullOrWhiteSpace(job.ScriptPath)
             ? CliBatchStageStatus.NotRun
             : CliBatchStageStatus.Failed;
         var runStatus = CliBatchStageStatus.NotRun;
+        var gateStatus = CliBatchStageStatus.NotRun;
         var failureStage = string.IsNullOrWhiteSpace(job.ScriptPath)
             ? CliBatchFailureStage.Run
             : CliBatchFailureStage.Compile;
         var compiledSpecPath = string.Empty;
         var reportOutputPath = string.Empty;
         var compileDeterministicKey = string.Empty;
+        var gateReportPath = string.Empty;
+        var gateDeterministicKey = string.Empty;
 
         try
         {
@@ -257,10 +287,14 @@ public sealed class BatchPipelineOrchestrator : IBatchPipelineOrchestrator
                             Message = message,
                             FailureSummary = compileFailureSummary,
                             ScriptPath = logicalScriptPath,
+                            RegressionBaselinePath = logicalBaselinePath,
                             OutputPath = logicalOutputPath,
                             CompiledSpecPath = compiledSpecPath,
                             ReportOutputPath = reportOutputPath,
                             CompileDeterministicKey = compileDeterministicKey,
+                            GateStatus = gateStatus,
+                            GateReportPath = gateReportPath,
+                            GateDeterministicKey = gateDeterministicKey,
                             DeterministicKey = BuildAttemptDeterministicKey(compileDeterministicKey, compileFailureSummary)
                         },
                         null);
@@ -287,32 +321,66 @@ public sealed class BatchPipelineOrchestrator : IBatchPipelineOrchestrator
             runStatus = runResult.Success
                 ? CliBatchStageStatus.Succeeded
                 : CliBatchStageStatus.Failed;
-
+            var attemptSuccess = runResult.Success;
+            var attemptFailureStage = runResult.Success ? CliBatchFailureStage.None : CliBatchFailureStage.Run;
+            var attemptMessage = runResult.Message;
             var failureSummary = runResult.Success ? string.Empty : runResult.Message;
+
+            if (runResult.Success && !string.IsNullOrWhiteSpace(indexedJob.RegressionBaselinePath))
+            {
+                failureStage = CliBatchFailureStage.Gate;
+                gateReportPath = ToLogicalPath(artifactBaseDirectory, workspace.GateReportPath);
+                var gateEvaluation = EvaluateDeterministicQaGate(
+                    manifestDirectory,
+                    artifactBaseDirectory,
+                    indexedJob,
+                    runResult,
+                    workspace.GateReportPath);
+                gateStatus = gateEvaluation.Success
+                    ? CliBatchStageStatus.Succeeded
+                    : CliBatchStageStatus.Failed;
+                gateDeterministicKey = gateEvaluation.DeterministicKey;
+
+                if (!gateEvaluation.Success)
+                {
+                    attemptSuccess = false;
+                    attemptFailureStage = CliBatchFailureStage.Gate;
+                    attemptMessage = gateEvaluation.Message;
+                    failureSummary = gateEvaluation.FailureSummary;
+                }
+            }
+
+            var deterministicTail = string.Join(
+                "|",
+                new[] { runResult.DeterministicKey, gateDeterministicKey }
+                    .Where(value => !string.IsNullOrWhiteSpace(value)));
+
             return new AttemptExecutionOutcome(
                 new CliBatchJobAttemptRecord
                 {
                     AttemptNumber = attemptNumber,
                     RetryLimit = indexedJob.RetryLimit,
-                    Success = runResult.Success,
+                    Success = attemptSuccess,
                     CompileStatus = compileStatus,
                     RunStatus = runStatus,
-                    FinalStatus = runResult.Success ? CliBatchJobStatus.Succeeded : CliBatchJobStatus.Failed,
-                    FailureStage = runResult.Success ? CliBatchFailureStage.None : CliBatchFailureStage.Run,
-                    Message = runResult.Message,
+                    FinalStatus = attemptSuccess ? CliBatchJobStatus.Succeeded : CliBatchJobStatus.Failed,
+                    FailureStage = attemptFailureStage,
+                    Message = attemptMessage,
                     FailureSummary = failureSummary,
                     ScriptPath = logicalScriptPath,
+                    RegressionBaselinePath = logicalBaselinePath,
                     OutputPath = logicalOutputPath,
                     CompiledSpecPath = compiledSpecPath,
                     ReportOutputPath = reportOutputPath,
                     CompileDeterministicKey = compileDeterministicKey,
+                    GateStatus = gateStatus,
+                    GateReportPath = gateReportPath,
+                    GateDeterministicKey = gateDeterministicKey,
                     ExportManifestPath = ToLogicalPath(artifactBaseDirectory, runResult.ExportManifestPath),
                     ExportDeterministicKey = runResult.ExportDeterministicKey,
                     PlayableMediaPath = ToLogicalPath(artifactBaseDirectory, runResult.PlayableMediaPath),
                     PlayableMediaDeterministicKey = runResult.PlayableMediaDeterministicKey,
-                    DeterministicKey = BuildAttemptDeterministicKey(
-                        compileDeterministicKey,
-                        runResult.DeterministicKey)
+                    DeterministicKey = BuildAttemptDeterministicKey(compileDeterministicKey, deterministicTail)
                 },
                 runResult);
         }
@@ -335,10 +403,14 @@ public sealed class BatchPipelineOrchestrator : IBatchPipelineOrchestrator
                     Message = ex.Message,
                     FailureSummary = ex.Message,
                     ScriptPath = logicalScriptPath,
+                    RegressionBaselinePath = logicalBaselinePath,
                     OutputPath = logicalOutputPath,
                     CompiledSpecPath = compiledSpecPath,
                     ReportOutputPath = reportOutputPath,
                     CompileDeterministicKey = compileDeterministicKey,
+                    GateStatus = gateStatus,
+                    GateReportPath = gateReportPath,
+                    GateDeterministicKey = gateDeterministicKey,
                     DeterministicKey = BuildAttemptDeterministicKey(
                         compileDeterministicKey,
                         $"{failureStage}:{ex.Message}")
@@ -362,9 +434,13 @@ public sealed class BatchPipelineOrchestrator : IBatchPipelineOrchestrator
             Message = finalAttempt.Message,
             FailureSummary = finalAttempt.FailureSummary,
             ScriptPath = finalAttempt.ScriptPath,
+            RegressionBaselinePath = finalAttempt.RegressionBaselinePath,
             OutputPath = finalAttempt.OutputPath,
             CompiledSpecPath = finalAttempt.CompiledSpecPath,
             ReportOutputPath = finalAttempt.ReportOutputPath,
+            GateStatus = finalAttempt.GateStatus,
+            GateReportPath = finalAttempt.GateReportPath,
+            GateDeterministicKey = finalAttempt.GateDeterministicKey,
             ExportManifestPath = finalAttempt.ExportManifestPath,
             ExportDeterministicKey = finalAttempt.ExportDeterministicKey,
             PlayableMediaPath = finalAttempt.PlayableMediaPath,
@@ -389,8 +465,12 @@ public sealed class BatchPipelineOrchestrator : IBatchPipelineOrchestrator
             RetryLimit = indexedJob.RetryLimit,
             AttemptCount = manifest.AttemptCount,
             ManifestPath = ToLogicalPath(artifactBaseDirectory, workspace.JobManifestPath),
+            RegressionBaselinePath = manifest.RegressionBaselinePath,
             CompiledSpecPath = manifest.CompiledSpecPath,
             ReportOutputPath = manifest.ReportOutputPath,
+            GateStatus = manifest.GateStatus,
+            GateReportPath = manifest.GateReportPath,
+            GateDeterministicKey = manifest.GateDeterministicKey,
             SpecPath = manifest.CompiledSpecPath,
             OutputPath = indexedJob.Job.OutputPath.Replace('\\', '/'),
             FrameIndex = indexedJob.Job.FrameIndex,
@@ -399,6 +479,9 @@ public sealed class BatchPipelineOrchestrator : IBatchPipelineOrchestrator
             PlannedFrameCount = runResult?.PlannedFrameCount ?? 0,
             RenderedFrameCount = runResult?.RenderedFrameCount ?? 0,
             ProjectDurationSeconds = runResult?.ProjectDurationSeconds ?? 0,
+            ProjectId = runResult?.ExportSummary.ProjectId ?? string.Empty,
+            ExportedFrameCount = runResult?.ExportedFrameCount ?? 0,
+            ExportedAudioCueCount = runResult?.ExportedAudioCueCount ?? 0,
             Success = manifest.Success,
             FinalStatus = manifest.FinalStatus,
             FailureStage = manifest.FailureStage,
@@ -478,7 +561,7 @@ public sealed class BatchPipelineOrchestrator : IBatchPipelineOrchestrator
         return string.Join(
             "|",
             jobResults.Select(job =>
-                $"{job.SequenceNumber}:{job.JobId}:{job.RetryLimit}:{job.AttemptCount}:{job.ManifestPath}:{job.CompiledSpecPath}:{job.ReportOutputPath}:{job.OutputPath}:{FormatFrameIndex(job.FrameIndex)}:{job.FirstFrameIndex}:{job.LastFrameIndex}:{job.PlannedFrameCount}:{job.RenderedFrameCount}:{FormatDouble(job.ProjectDurationSeconds)}:{job.Success}:{job.FinalStatus}:{job.FailureStage}:{job.Message}:{job.FailureSummary}:{job.ExportStatus}:{job.ExportPackageRootPath}:{job.ExportManifestPath}:{job.PlayableMediaPath}:{job.PlayableMediaStatus}:{job.PlayableMediaDeterministicKey}:{job.PlayableMediaByteCount}:{job.PlayableMediaAudioStatus}:{job.PlayableMediaAudioCueCount}:{job.DeterministicKey}:{job.ExportDeterministicKey}"));
+                $"{job.SequenceNumber}:{job.JobId}:{job.RetryLimit}:{job.AttemptCount}:{job.ManifestPath}:{job.RegressionBaselinePath}:{job.CompiledSpecPath}:{job.ReportOutputPath}:{job.GateStatus}:{job.GateReportPath}:{job.GateDeterministicKey}:{job.OutputPath}:{FormatFrameIndex(job.FrameIndex)}:{job.FirstFrameIndex}:{job.LastFrameIndex}:{job.PlannedFrameCount}:{job.RenderedFrameCount}:{FormatDouble(job.ProjectDurationSeconds)}:{job.ProjectId}:{job.ExportedFrameCount}:{job.ExportedAudioCueCount}:{job.Success}:{job.FinalStatus}:{job.FailureStage}:{job.Message}:{job.FailureSummary}:{job.ExportStatus}:{job.ExportPackageRootPath}:{job.ExportManifestPath}:{job.PlayableMediaPath}:{job.PlayableMediaStatus}:{job.PlayableMediaDeterministicKey}:{job.PlayableMediaByteCount}:{job.PlayableMediaAudioStatus}:{job.PlayableMediaAudioCueCount}:{job.DeterministicKey}:{job.ExportDeterministicKey}"));
     }
 
     private static IReadOnlyList<CliBatchJobAttemptRecord> MarkFinalAttempt(IReadOnlyList<CliBatchJobAttemptRecord> attempts)
@@ -524,8 +607,137 @@ public sealed class BatchPipelineOrchestrator : IBatchPipelineOrchestrator
                 string.Join(
                     ";",
                     attempts.Select(attempt =>
-                        $"{attempt.AttemptNumber}:{attempt.RetryLimit}:{attempt.FinalAttempt}:{attempt.Success}:{attempt.CompileStatus}:{attempt.RunStatus}:{attempt.FinalStatus}:{attempt.FailureStage}:{attempt.Message}:{attempt.FailureSummary}:{attempt.ScriptPath}:{attempt.OutputPath}:{attempt.CompiledSpecPath}:{attempt.ReportOutputPath}:{attempt.CompileDeterministicKey}:{attempt.ExportManifestPath}:{attempt.ExportDeterministicKey}:{attempt.PlayableMediaPath}:{attempt.PlayableMediaDeterministicKey}:{attempt.DeterministicKey}"))
+                        $"{attempt.AttemptNumber}:{attempt.RetryLimit}:{attempt.FinalAttempt}:{attempt.Success}:{attempt.CompileStatus}:{attempt.RunStatus}:{attempt.GateStatus}:{attempt.FinalStatus}:{attempt.FailureStage}:{attempt.Message}:{attempt.FailureSummary}:{attempt.ScriptPath}:{attempt.RegressionBaselinePath}:{attempt.OutputPath}:{attempt.CompiledSpecPath}:{attempt.ReportOutputPath}:{attempt.GateReportPath}:{attempt.CompileDeterministicKey}:{attempt.GateDeterministicKey}:{attempt.ExportManifestPath}:{attempt.ExportDeterministicKey}:{attempt.PlayableMediaPath}:{attempt.PlayableMediaDeterministicKey}:{attempt.DeterministicKey}"))
             });
+    }
+
+    private static QaGateEvaluation EvaluateDeterministicQaGate(
+        string manifestDirectory,
+        string artifactBaseDirectory,
+        IndexedJob indexedJob,
+        CliRunResult runResult,
+        string gateReportOutputPath)
+    {
+        var resolvedBaselinePath = ResolvePath(manifestDirectory, indexedJob.RegressionBaselinePath);
+        var logicalBaselinePath = ToLogicalPath(artifactBaseDirectory, resolvedBaselinePath);
+
+        var checks = new List<QaGateCheck>();
+
+        if (!File.Exists(resolvedBaselinePath))
+        {
+            checks.Add(new QaGateCheck(
+                "qa.baseline.missing",
+                false,
+                logicalBaselinePath,
+                "<missing>",
+                "Regression baseline file was not found."));
+        }
+        else
+        {
+            try
+            {
+                var baseline = JsonSerializer.Deserialize<RegressionBaseline>(
+                    File.ReadAllText(resolvedBaselinePath),
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                if (baseline is null)
+                {
+                    checks.Add(new QaGateCheck(
+                        "qa.baseline.invalid",
+                        false,
+                        logicalBaselinePath,
+                        "<null>",
+                        "Regression baseline file could not be deserialized."));
+                }
+                else
+                {
+                    checks.Add(new QaGateCheck(
+                        "qa.project-id",
+                        string.Equals(runResult.ExportSummary.ProjectId, baseline.ExpectedProjectId, StringComparison.Ordinal),
+                        baseline.ExpectedProjectId,
+                        runResult.ExportSummary.ProjectId,
+                        "ExportSummary.ProjectId must match baseline."));
+                    checks.Add(new QaGateCheck(
+                        "qa.frame-count",
+                        runResult.ExportedFrameCount == baseline.ExpectedFrameCount,
+                        baseline.ExpectedFrameCount.ToString(CultureInfo.InvariantCulture),
+                        runResult.ExportedFrameCount.ToString(CultureInfo.InvariantCulture),
+                        "ExportedFrameCount must match baseline."));
+                    checks.Add(new QaGateCheck(
+                        "qa.audio-cue-count",
+                        runResult.ExportedAudioCueCount == baseline.ExpectedAudioCueCount,
+                        baseline.ExpectedAudioCueCount.ToString(CultureInfo.InvariantCulture),
+                        runResult.ExportedAudioCueCount.ToString(CultureInfo.InvariantCulture),
+                        "ExportedAudioCueCount must match baseline."));
+
+                    var durationDelta = Math.Abs(runResult.ExportSummary.TotalDurationSeconds - baseline.ExpectedTotalDurationSeconds);
+                    checks.Add(new QaGateCheck(
+                        "qa.total-duration-seconds",
+                        durationDelta <= 1e-6,
+                        FormatDouble(baseline.ExpectedTotalDurationSeconds),
+                        FormatDouble(runResult.ExportSummary.TotalDurationSeconds),
+                        "ExportSummary.TotalDurationSeconds must match baseline."));
+
+                    foreach (var anchor in baseline.AnchorArtifactDeterministicKeys)
+                    {
+                        var exportedFrame = runResult.ExportFrames.FirstOrDefault(frame => frame.FrameIndex == anchor.FrameIndex);
+                        if (exportedFrame is null)
+                        {
+                            checks.Add(new QaGateCheck(
+                                "qa.anchor.frame.missing",
+                                false,
+                                $"{anchor.FrameIndex}:{anchor.ArtifactDeterministicKey}",
+                                "<missing-frame>",
+                                "Anchor frame was not exported."));
+                            continue;
+                        }
+
+                        checks.Add(new QaGateCheck(
+                            "qa.anchor.key",
+                            string.Equals(exportedFrame.ArtifactDeterministicKey, anchor.ArtifactDeterministicKey, StringComparison.Ordinal),
+                            $"{anchor.FrameIndex}:{anchor.ArtifactDeterministicKey}",
+                            $"{anchor.FrameIndex}:{exportedFrame.ArtifactDeterministicKey}",
+                            "Anchor deterministic key must match baseline."));
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                checks.Add(new QaGateCheck(
+                    "qa.baseline.invalid",
+                    false,
+                    logicalBaselinePath,
+                    "<error>",
+                    ex.Message));
+            }
+        }
+
+        var success = checks.All(check => check.Success);
+        var failedChecks = checks.Where(check => !check.Success).ToList();
+        var failureSummary = failedChecks.Count == 0
+            ? string.Empty
+            : string.Join(" | ", failedChecks.Select(check => $"{check.Code}:{check.Message}"));
+        var deterministicKey = string.Join(
+            "|",
+            new[] { logicalBaselinePath }.Concat(
+                checks.Select(check => $"{check.Code}:{check.Success}:{check.Expected}:{check.Actual}:{check.Message}")));
+        var report = new QaGateReport
+        {
+            JobId = indexedJob.Job.JobId,
+            SequenceNumber = indexedJob.Index,
+            BaselinePath = logicalBaselinePath,
+            Success = success,
+            FailureSummary = failureSummary,
+            DeterministicKey = deterministicKey,
+            Checks = checks
+        };
+        WriteJson(gateReportOutputPath, report);
+
+        var message = success
+            ? $"Deterministic QA gate passed for batch job '{indexedJob.Job.JobId}'."
+            : $"Deterministic QA gate failed for batch job '{indexedJob.Job.JobId}'.";
+
+        return new QaGateEvaluation(success, failureSummary, message, deterministicKey);
     }
 
     private static void WriteJson<T>(string path, T value)
@@ -563,6 +775,7 @@ public sealed class BatchPipelineOrchestrator : IBatchPipelineOrchestrator
             workspaceDirectory,
             Path.Combine(workspaceDirectory, "compiled-spec.json"),
             Path.Combine(workspaceDirectory, "compile-report.json"),
+            Path.Combine(workspaceDirectory, "qa-gate-report.json"),
             Path.Combine(workspaceDirectory, "job-manifest.json"));
     }
 
@@ -759,7 +972,58 @@ public sealed class BatchPipelineOrchestrator : IBatchPipelineOrchestrator
         return value.ToString("0.######", CultureInfo.InvariantCulture);
     }
 
-    private sealed record IndexedJob(CliBatchJob Job, int Index, int RetryLimit);
-    private sealed record JobWorkspace(string DirectoryPath, string CompiledSpecPath, string CompileReportPath, string JobManifestPath);
+    private sealed record QaGateEvaluation(
+        bool Success,
+        string FailureSummary,
+        string Message,
+        string DeterministicKey);
+
+    private sealed record QaGateCheck(
+        string Code,
+        bool Success,
+        string Expected,
+        string Actual,
+        string Message);
+
+    private sealed record QaGateReport
+    {
+        public string JobId { get; init; } = string.Empty;
+        public int SequenceNumber { get; init; }
+        public string BaselinePath { get; init; } = string.Empty;
+        public bool Success { get; init; }
+        public string FailureSummary { get; init; } = string.Empty;
+        public string DeterministicKey { get; init; } = string.Empty;
+        public IReadOnlyList<QaGateCheck> Checks { get; init; } = [];
+    }
+
+    private sealed record RegressionBaseline
+    {
+        public string ExpectedProjectId { get; init; } = string.Empty;
+        public int ExpectedFrameCount { get; init; }
+        public int ExpectedAudioCueCount { get; init; }
+        public double ExpectedTotalDurationSeconds { get; init; }
+        public IReadOnlyList<RegressionAnchor> AnchorArtifactDeterministicKeys { get; init; } = [];
+    }
+
+    private sealed record RegressionAnchor
+    {
+        public int FrameIndex { get; init; }
+        public string ArtifactDeterministicKey { get; init; } = string.Empty;
+    }
+
+    private sealed record IndexedJob(
+        CliBatchJob Job,
+        int Index,
+        int RetryLimit,
+        string RegressionBaselinePath,
+        bool EnforceDeterministicQaGates);
+
+    private sealed record JobWorkspace(
+        string DirectoryPath,
+        string CompiledSpecPath,
+        string CompileReportPath,
+        string GateReportPath,
+        string JobManifestPath);
+
     private sealed record AttemptExecutionOutcome(CliBatchJobAttemptRecord Attempt, CliRunResult? RunResult);
 }

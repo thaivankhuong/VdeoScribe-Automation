@@ -155,6 +155,7 @@ public static class Program
         Console.WriteLine("  whiteboard-cli template instantiate --template <template-id> [--catalog <path>] --slots <path> --output <path> --instance-id <id> [--time-offset-seconds <double>] [--layer-offset <int>]");
         Console.WriteLine("  whiteboard-cli --spec <path> [--output <path>] [--frame-index <int>]  # legacy run shortcut");
         Console.WriteLine("Batch manifests stay file-driven: each Phase 19 job declares jobId, scriptPath, and outputPath, then reuses the existing script compiler plus render/export pipeline.");
+        Console.WriteLine("Phase 20 optional QA gate fields: enforceDeterministicQaGates, defaultRegressionBaselinePath, and per-job regressionBaselinePath.");
         Console.WriteLine("Legacy batch specPath entries remain compatibility passthrough only; batch mode does not introduce prompts, editor flows, or interactive input.");
         Console.WriteLine("--frame-index is optional debug-only execution; default run semantics render the full planned sequence.");
         Console.WriteLine("Phase 8 scope: deterministic full-timeline packaging with optional playable-media encoding when WHITEBOARD_ENABLE_PLAYABLE_MEDIA=1 and WHITEBOARD_FFMPEG_PATH are configured.");

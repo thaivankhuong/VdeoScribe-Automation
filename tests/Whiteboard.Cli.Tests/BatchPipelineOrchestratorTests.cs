@@ -8,6 +8,7 @@ using Whiteboard.Cli.Models;
 using Whiteboard.Cli.Services;
 using Whiteboard.Core.Compilation;
 using Whiteboard.Core.Validation;
+using Whiteboard.Export.Models;
 using Xunit;
 
 namespace Whiteboard.Cli.Tests;
@@ -204,6 +205,222 @@ public sealed class BatchPipelineOrchestratorTests
     }
 
     [Fact]
+    public void Run_NoRetryFixture_CompileFailuresStopAfterSingleAttemptPerJob()
+    {
+        var manifestPath = CreateManifestFileFromFixture("no-retry-manifest.json");
+        var summaryPath = Path.Combine(Path.GetDirectoryName(manifestPath)!, "summary.json");
+        var scriptCompiler = new RecordingScriptCompilationOrchestrator(new Dictionary<string, Queue<CompileBehavior>>
+        {
+            ["job-b-script.json"] = new Queue<CompileBehavior>([CompileBehavior.Fail("compile failed")]),
+            ["job-a-script.json"] = new Queue<CompileBehavior>([CompileBehavior.Fail("compile failed")])
+        });
+        var pipeline = new RecordingPipelineOrchestrator();
+
+        try
+        {
+            var result = new BatchPipelineOrchestrator(pipeline, scriptCompiler).Run(new CliBatchRunRequest
+            {
+                ManifestPath = manifestPath,
+                SummaryOutputPath = summaryPath
+            });
+
+            Assert.False(result.Success);
+            Assert.Equal(new[] { "job-b", "job-a" }, result.Jobs.Select(job => job.JobId).ToArray());
+            Assert.All(result.Jobs, job => Assert.Equal(1, job.AttemptCount));
+            Assert.Equal(2, scriptCompiler.Requests.Count);
+            Assert.Empty(pipeline.Requests);
+        }
+        finally
+        {
+            DeleteManifestFile(manifestPath);
+        }
+    }
+
+    [Fact]
+    public void Run_RetryFixture_CompileFailuresRespectFixtureRetryLimits()
+    {
+        var manifestPath = CreateManifestFileFromFixture("retry-manifest.json");
+        var summaryPath = Path.Combine(Path.GetDirectoryName(manifestPath)!, "summary.json");
+        var scriptCompiler = new RecordingScriptCompilationOrchestrator(new Dictionary<string, Queue<CompileBehavior>>
+        {
+            ["job-b-script.json"] = new Queue<CompileBehavior>([CompileBehavior.Fail("compile failed"), CompileBehavior.Succeed()]),
+            ["job-a-script.json"] = new Queue<CompileBehavior>([CompileBehavior.Fail("compile failed"), CompileBehavior.Fail("compile failed"), CompileBehavior.Succeed()])
+        });
+        var pipeline = new RecordingPipelineOrchestrator(new Dictionary<string, Queue<RunBehavior>>
+        {
+            ["job-b"] = new Queue<RunBehavior>([RunBehavior.Succeed()]),
+            ["job-a"] = new Queue<RunBehavior>([RunBehavior.Succeed()])
+        });
+
+        try
+        {
+            var result = new BatchPipelineOrchestrator(pipeline, scriptCompiler).Run(new CliBatchRunRequest
+            {
+                ManifestPath = manifestPath,
+                SummaryOutputPath = summaryPath
+            });
+
+            Assert.True(result.Success);
+            Assert.Equal(new[] { "job-b", "job-a" }, result.Jobs.Select(job => job.JobId).ToArray());
+            Assert.Equal(2, result.Jobs[0].AttemptCount);
+            Assert.Equal(3, result.Jobs[1].AttemptCount);
+            Assert.Equal(5, scriptCompiler.Requests.Count);
+            Assert.Equal(2, pipeline.Requests.Count);
+        }
+        finally
+        {
+            DeleteManifestFile(manifestPath);
+        }
+    }
+
+    [Fact]
+    public void Run_DeterministicQaGatePass_SucceedsAndWritesGateReport()
+    {
+        var frameKey = "anchor:job-a:pass";
+        var manifestPath = CreateManifestFile(new CliBatchManifest
+        {
+            RetryLimit = 1,
+            EnforceDeterministicQaGates = true,
+            DefaultRegressionBaselinePath = "baseline-pass.json",
+            Jobs =
+            [
+                new CliBatchJob
+                {
+                    JobId = "job-a",
+                    ScriptPath = "job-a-script.json",
+                    OutputPath = "out/job-a.mp4",
+                    RetryLimit = 1
+                }
+            ]
+        });
+        var summaryPath = Path.Combine(Path.GetDirectoryName(manifestPath)!, "summary.json");
+        WriteRegressionBaseline(
+            manifestPath,
+            "baseline-pass.json",
+            expectedProjectId: "phase19-script-batch",
+            expectedFrameCount: 150,
+            expectedAudioCueCount: 0,
+            expectedTotalDurationSeconds: 5,
+            anchors: [(0, frameKey)]);
+
+        var scriptCompiler = new RecordingScriptCompilationOrchestrator(new Dictionary<string, Queue<CompileBehavior>>
+        {
+            ["job-a-script.json"] = new Queue<CompileBehavior>([CompileBehavior.Succeed()])
+        });
+        var pipeline = new RecordingPipelineOrchestrator(new Dictionary<string, Queue<RunBehavior>>
+        {
+            ["job-a"] = new Queue<RunBehavior>([
+                RunBehavior.Succeed(
+                    projectId: "phase19-script-batch",
+                    exportedFrameCount: 150,
+                    exportedAudioCueCount: 0,
+                    totalDurationSeconds: 5,
+                    exportFrames:
+                    [
+                        new ExportFramePackage
+                        {
+                            FrameIndex = 0,
+                            ArtifactRelativePath = "job-a/frame-000000.svg",
+                            ArtifactDeterministicKey = frameKey
+                        }
+                    ])
+            ])
+        });
+
+        try
+        {
+            var result = new BatchPipelineOrchestrator(pipeline, scriptCompiler).Run(new CliBatchRunRequest
+            {
+                ManifestPath = manifestPath,
+                SummaryOutputPath = summaryPath
+            });
+
+            Assert.True(result.Success);
+            var job = Assert.Single(result.Jobs);
+            Assert.Equal(CliBatchFailureStage.None, job.FailureStage);
+            Assert.Equal(CliBatchStageStatus.Succeeded, job.GateStatus);
+            Assert.NotEmpty(job.GateReportPath);
+            Assert.NotEmpty(job.GateDeterministicKey);
+
+            var gateReportPath = Path.Combine(Path.GetDirectoryName(summaryPath)!, job.GateReportPath.Replace('/', Path.DirectorySeparatorChar));
+            Assert.True(File.Exists(gateReportPath));
+            var gateReportJson = File.ReadAllText(gateReportPath);
+            Assert.Contains("\"success\": true", gateReportJson, StringComparison.Ordinal);
+        }
+        finally
+        {
+            DeleteManifestFile(manifestPath);
+        }
+    }
+
+    [Fact]
+    public void Run_DeterministicQaGateDrift_BlocksSuccessWithoutRetry()
+    {
+        var manifestPath = CreateManifestFile(new CliBatchManifest
+        {
+            RetryLimit = 3,
+            EnforceDeterministicQaGates = true,
+            DefaultRegressionBaselinePath = "baseline-drift.json",
+            Jobs =
+            [
+                new CliBatchJob
+                {
+                    JobId = "job-a",
+                    ScriptPath = "job-a-script.json",
+                    OutputPath = "out/job-a.mp4",
+                    RetryLimit = 3
+                }
+            ]
+        });
+        var summaryPath = Path.Combine(Path.GetDirectoryName(manifestPath)!, "summary.json");
+        WriteRegressionBaseline(
+            manifestPath,
+            "baseline-drift.json",
+            expectedProjectId: "phase19-script-batch",
+            expectedFrameCount: 151,
+            expectedAudioCueCount: 0,
+            expectedTotalDurationSeconds: 5,
+            anchors: []);
+
+        var scriptCompiler = new RecordingScriptCompilationOrchestrator(new Dictionary<string, Queue<CompileBehavior>>
+        {
+            ["job-a-script.json"] = new Queue<CompileBehavior>([CompileBehavior.Succeed()])
+        });
+        var pipeline = new RecordingPipelineOrchestrator(new Dictionary<string, Queue<RunBehavior>>
+        {
+            ["job-a"] = new Queue<RunBehavior>([
+                RunBehavior.Succeed(
+                    projectId: "phase19-script-batch",
+                    exportedFrameCount: 150,
+                    exportedAudioCueCount: 0,
+                    totalDurationSeconds: 5)
+            ])
+        });
+
+        try
+        {
+            var result = new BatchPipelineOrchestrator(pipeline, scriptCompiler).Run(new CliBatchRunRequest
+            {
+                ManifestPath = manifestPath,
+                SummaryOutputPath = summaryPath
+            });
+
+            Assert.False(result.Success);
+            var job = Assert.Single(result.Jobs);
+            Assert.Equal(1, job.AttemptCount);
+            Assert.Equal(CliBatchFailureStage.Gate, job.FailureStage);
+            Assert.Equal(CliBatchStageStatus.Failed, job.GateStatus);
+            Assert.Contains("qa.frame-count", job.FailureSummary, StringComparison.Ordinal);
+            Assert.Single(pipeline.Requests);
+            Assert.Single(scriptCompiler.Requests);
+        }
+        finally
+        {
+            DeleteManifestFile(manifestPath);
+        }
+    }
+
+    [Fact]
     public void Run_WithDuplicateJobId_ProducesDeterministicValidationFailureWithoutAttempts()
     {
         var manifestPath = CreateManifestFile(
@@ -236,18 +453,38 @@ public sealed class BatchPipelineOrchestratorTests
 
     private static string CreateManifestFile(int retryLimit, params CliBatchJob[] jobs)
     {
+        return CreateManifestFile(new CliBatchManifest
+        {
+            RetryLimit = retryLimit,
+            Jobs = jobs
+        });
+    }
+
+    private static string CreateManifestFile(CliBatchManifest manifest)
+    {
         var directoryPath = Path.Combine(Path.GetTempPath(), "whiteboard-batch-contract-tests", Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(directoryPath);
 
         var manifestPath = Path.Combine(directoryPath, "manifest.json");
         File.WriteAllText(
             manifestPath,
-            JsonSerializer.Serialize(new CliBatchManifest { RetryLimit = retryLimit, Jobs = jobs }, new JsonSerializerOptions
+            JsonSerializer.Serialize(manifest, new JsonSerializerOptions
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
                 WriteIndented = true
             }));
 
+        return manifestPath;
+    }
+
+    private static string CreateManifestFileFromFixture(string fixtureManifestFileName)
+    {
+        var fixtureDirectory = ResolveFixtureDirectory();
+        var directoryPath = Path.Combine(Path.GetTempPath(), "whiteboard-batch-contract-tests", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(directoryPath);
+
+        var manifestPath = Path.Combine(directoryPath, fixtureManifestFileName);
+        File.WriteAllText(manifestPath, File.ReadAllText(Path.Combine(fixtureDirectory, fixtureManifestFileName)));
         return manifestPath;
     }
 
@@ -274,6 +511,59 @@ public sealed class BatchPipelineOrchestratorTests
         {
             Directory.Delete(directoryPath, recursive: true);
         }
+    }
+
+    private static string ResolveFixtureDirectory()
+    {
+        var baseDirectory = new DirectoryInfo(AppContext.BaseDirectory);
+
+        for (var current = baseDirectory; current is not null; current = current.Parent)
+        {
+            var fixtureDirectory = Path.Combine(
+                current.FullName,
+                "tests",
+                "Whiteboard.Cli.Tests",
+                "Fixtures",
+                "phase19-batch-automation");
+
+            if (Directory.Exists(fixtureDirectory))
+            {
+                return fixtureDirectory;
+            }
+        }
+
+        throw new DirectoryNotFoundException("Phase 19 batch fixture directory was not found.");
+    }
+
+    private static void WriteRegressionBaseline(
+        string manifestPath,
+        string baselineFileName,
+        string expectedProjectId,
+        int expectedFrameCount,
+        int expectedAudioCueCount,
+        double expectedTotalDurationSeconds,
+        IReadOnlyList<(int FrameIndex, string ArtifactDeterministicKey)> anchors)
+    {
+        var baselinePath = Path.Combine(Path.GetDirectoryName(manifestPath)!, baselineFileName);
+        var payload = new
+        {
+            expectedProjectId,
+            expectedFrameCount,
+            expectedAudioCueCount,
+            expectedTotalDurationSeconds,
+            anchorArtifactDeterministicKeys = anchors.Select(anchor => new
+            {
+                frameIndex = anchor.FrameIndex,
+                artifactDeterministicKey = anchor.ArtifactDeterministicKey
+            }).ToArray()
+        };
+        File.WriteAllText(
+            baselinePath,
+            JsonSerializer.Serialize(payload, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                WriteIndented = true
+            }));
     }
 
     private sealed class RecordingScriptCompilationOrchestrator : IScriptCompilationOrchestrator
@@ -365,6 +655,20 @@ public sealed class BatchPipelineOrchestratorTests
             var playableMediaPath = Path.Combine(packageRootPath, "playable.mp4");
             Directory.CreateDirectory(packageRootPath);
 
+            var exportFrames = behavior.Success
+                ? (behavior.ExportFrames.Count == 0
+                    ? new[]
+                    {
+                        new ExportFramePackage
+                        {
+                            FrameIndex = 0,
+                            ArtifactRelativePath = $"{jobId}/frame-000000.svg",
+                            ArtifactDeterministicKey = $"anchor:{jobId}:{Requests.Count}"
+                        }
+                    }
+                    : behavior.ExportFrames.ToArray())
+                : Array.Empty<ExportFramePackage>();
+
             if (behavior.Success)
             {
                 File.WriteAllText(exportManifestPath, $"manifest:{jobId}:{Requests.Count}");
@@ -379,9 +683,9 @@ public sealed class BatchPipelineOrchestratorTests
                 FrameIndex = request.FrameIndex,
                 FirstFrameIndex = behavior.Success ? 0 : 0,
                 LastFrameIndex = behavior.Success ? 149 : 0,
-                PlannedFrameCount = behavior.Success ? 150 : 0,
-                RenderedFrameCount = behavior.Success ? 150 : 0,
-                ProjectDurationSeconds = behavior.Success ? 5 : 0,
+                PlannedFrameCount = behavior.Success ? behavior.ExportedFrameCount : 0,
+                RenderedFrameCount = behavior.Success ? behavior.ExportedFrameCount : 0,
+                ProjectDurationSeconds = behavior.Success ? behavior.ExpectedTotalDurationSeconds : 0,
                 OutputPath = outputPath,
                 ExportPackageRootPath = packageRootPath,
                 ExportManifestPath = behavior.Success ? exportManifestPath : string.Empty,
@@ -393,6 +697,16 @@ public sealed class BatchPipelineOrchestratorTests
                 PlayableMediaByteCount = behavior.Success ? new FileInfo(playableMediaPath).Length : 0,
                 PlayableMediaAudioStatus = behavior.Success ? "not-requested" : string.Empty,
                 PlayableMediaAudioCueCount = 0,
+                ExportedFrameCount = behavior.Success ? behavior.ExportedFrameCount : 0,
+                ExportedAudioCueCount = behavior.Success ? behavior.ExportedAudioCueCount : 0,
+                ExportFrames = exportFrames,
+                ExportSummary = new ExportPackageSummary
+                {
+                    ProjectId = behavior.Success ? behavior.ProjectId : string.Empty,
+                    FrameCount = behavior.Success ? behavior.ExportedFrameCount : 0,
+                    AudioCueCount = behavior.Success ? behavior.ExportedAudioCueCount : 0,
+                    TotalDurationSeconds = behavior.Success ? behavior.ExpectedTotalDurationSeconds : 0
+                },
                 DeterministicKey = $"run:{jobId}:{Requests.Count}"
             };
         }
@@ -428,16 +742,35 @@ public sealed class BatchPipelineOrchestratorTests
         }
     }
 
-    private sealed record RunBehavior(bool Success, string Message)
+    private sealed record RunBehavior(
+        bool Success,
+        string Message,
+        string ProjectId,
+        int ExportedFrameCount,
+        int ExportedAudioCueCount,
+        double ExpectedTotalDurationSeconds,
+        IReadOnlyList<ExportFramePackage> ExportFrames)
     {
-        public static RunBehavior Succeed()
+        public static RunBehavior Succeed(
+            string projectId = "phase19-script-batch",
+            int exportedFrameCount = 150,
+            int exportedAudioCueCount = 0,
+            double totalDurationSeconds = 5,
+            IReadOnlyList<ExportFramePackage>? exportFrames = null)
         {
-            return new RunBehavior(true, "Rendered and exported successfully.");
+            return new RunBehavior(
+                true,
+                "Rendered and exported successfully.",
+                projectId,
+                exportedFrameCount,
+                exportedAudioCueCount,
+                totalDurationSeconds,
+                exportFrames ?? []);
         }
 
         public static RunBehavior Fail(string message)
         {
-            return new RunBehavior(false, message);
+            return new RunBehavior(false, message, string.Empty, 0, 0, 0, []);
         }
     }
 }

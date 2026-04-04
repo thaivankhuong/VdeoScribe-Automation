@@ -23,8 +23,12 @@ public sealed record CliBatchJobResult
     public int RetryLimit { get; init; }
     public int AttemptCount { get; init; }
     public string ManifestPath { get; init; } = string.Empty;
+    public string RegressionBaselinePath { get; init; } = string.Empty;
     public string CompiledSpecPath { get; init; } = string.Empty;
     public string ReportOutputPath { get; init; } = string.Empty;
+    public CliBatchStageStatus GateStatus { get; init; }
+    public string GateReportPath { get; init; } = string.Empty;
+    public string GateDeterministicKey { get; init; } = string.Empty;
     public string SpecPath { get; init; } = string.Empty;
     public string OutputPath { get; init; } = string.Empty;
     public int? FrameIndex { get; init; }
@@ -33,6 +37,9 @@ public sealed record CliBatchJobResult
     public int PlannedFrameCount { get; init; }
     public int RenderedFrameCount { get; init; }
     public double ProjectDurationSeconds { get; init; }
+    public string ProjectId { get; init; } = string.Empty;
+    public int ExportedFrameCount { get; init; }
+    public int ExportedAudioCueCount { get; init; }
     public bool Success { get; init; }
     public CliBatchJobStatus FinalStatus { get; init; }
     public CliBatchFailureStage FailureStage { get; init; }

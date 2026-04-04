@@ -18,6 +18,8 @@ Current milestone progress:
 - v1.2 Phase 16 (2026-04-03): controlled asset registry pinning and effect profile governance validated with deterministic CLI diagnostics.
 - v1.2 Phase 17 (2026-04-04): repo-governed template contracts and deterministic scene composition.
 - v1.2 Phase 18 (2026-04-04): script-to-spec compiler with deterministic compile reports and stable diagnostics.
+- v1.2 Phase 19 (2026-04-04): deterministic batch script orchestration with per-job manifest/retry contracts.
+- v1.2 Phase 20 (2026-04-04): deterministic QA gate enforcement with drift blocking and reproducible gated witness artifacts.
 
 Milestone archives:
 - `.planning/milestones/v1.0-ROADMAP.md`
@@ -54,7 +56,7 @@ Milestone archives:
 
 ### Active
 
-- [ ] Run end-to-end batch generation with deterministic quality gates and auditable manifests.
+- [ ] Start next milestone planning from the now-shipped v1.2 controlled automation baseline.
 
 ### Out of Scope
 
@@ -88,6 +90,7 @@ The repository now contains archived v1.0 and v1.1 milestones plus parity demo a
 | v1.2 automation must use curated asset/effect libraries (no generative image dependency) | Keeps output quality reviewable, legally traceable, and deterministic | Good (validated in Phase 16) |
 | v1.2 remains CLI/spec driven with no editor UI work | Preserves engine-first scope and execution speed | Good (still enforced) |
 | Script compilation must emit deterministic spec and report artifacts with stable diagnostics | Keeps automation inputs auditable and repeatable before batch orchestration | Good (validated in Phase 18) |
+| Batch automation must enforce deterministic regression gates before reporting success | Prevents silent drift and keeps automation output reviewable at release boundaries | Good (validated in Phase 20) |
 
 ## Evolution
 
@@ -107,4 +110,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-04 after completing v1.2 Phase 18 script-to-spec compiler*
+*Last updated: 2026-04-04 after completing v1.2 Phase 20 deterministic QA gates and release readiness*

@@ -8,7 +8,7 @@ v1.0 (engine core) and v1.1 (source parity) are shipped and archived. v1.2 focus
 
 - [x] **v1.0 Engine Core** - Phases 1-11 (shipped 2026-03-21)
 - [x] **v1.1 Source Parity** - Phases 12-15 (shipped 2026-04-03)
-- [ ] **v1.2 Controlled Automation Pipeline** - Phases 16-20 (in planning)
+- [x] **v1.2 Controlled Automation Pipeline** - Phases 16-20 (shipped 2026-04-04)
 
 ## Archived Milestones
 
@@ -23,7 +23,7 @@ v1.0 (engine core) and v1.1 (source parity) are shipped and archived. v1.2 focus
 - [x] **Phase 17: Template Contracts and Scene Composition** - add reusable template contracts with deterministic slot instantiation. (completed 2026-04-04)
 - [x] **Phase 18: Script-to-Spec Compiler** - compile structured script inputs into valid deterministic project specs. (completed 2026-04-04)
 - [x] **Phase 19: Batch Automation Orchestrator** - automate script->spec->render->export workflows with auditable manifests. (completed 2026-04-04)
-- [ ] **Phase 20: Deterministic QA Gates and Release Readiness** - enforce witness/regression gates as hard pass/fail criteria for automated output.
+- [x] **Phase 20: Deterministic QA Gates and Release Readiness** - enforce witness/regression gates as hard pass/fail criteria for automated output. (completed 2026-04-04)
 
 ## Phase Details
 
@@ -80,7 +80,7 @@ Plans:
 1. Batch jobs can run script->spec->render->export end-to-end without manual authoring edits.
 2. Every job publishes deterministic manifest/status artifacts suitable for review and retry logic.
 3. Failure handling and retry behavior remain deterministic and auditable.
-**Plans**: 1/2 plans complete
+**Plans**: 2/2 plans complete
 
 Plans:
 - [x] 19-01: Implement batch job orchestration flow for script-driven runs
@@ -94,11 +94,11 @@ Plans:
 1. Regression/witness gates are enforced as required checks for automated output jobs.
 2. Drift detection blocks successful job completion and points to reproducible evidence.
 3. Milestone closes with reviewable automation witnesses across representative template/script scenarios.
-**Plans**: 0/2 plans complete
+**Plans**: 2/2 plans complete
 
 Plans:
-- [ ] 20-01: Integrate deterministic witness/regression gate runner into batch pipeline
-- [ ] 20-02: Produce release-readiness witness package and closeout validation artifacts
+- [x] 20-01: Integrate deterministic witness/regression gate runner into batch pipeline
+- [x] 20-02: Produce release-readiness witness package and closeout validation artifacts
 
 ## Progress
 
@@ -110,4 +110,4 @@ Plans:
 | 17 | v1.2 Controlled Automation Pipeline | 3/3 | Complete   | 2026-04-04 |
 | 18 | v1.2 Controlled Automation Pipeline | 3/3 | Complete    | 2026-04-04 |
 | 19 | v1.2 Controlled Automation Pipeline | 2/2 | Complete   | 2026-04-04 |
-| 20 | v1.2 Controlled Automation Pipeline | 0/2 | Not started | - |
+| 20 | v1.2 Controlled Automation Pipeline | 2/2 | Complete | 2026-04-04 |
