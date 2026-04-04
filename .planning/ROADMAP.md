@@ -22,7 +22,7 @@ v1.0 (engine core) and v1.1 (source parity) are shipped and archived. v1.2 focus
 - [x] **Phase 16: Controlled Asset and Effect Registry** - establish versioned asset/effect governance with strict validation. (completed 2026-04-03)
 - [x] **Phase 17: Template Contracts and Scene Composition** - add reusable template contracts with deterministic slot instantiation. (completed 2026-04-04)
 - [x] **Phase 18: Script-to-Spec Compiler** - compile structured script inputs into valid deterministic project specs. (completed 2026-04-04)
-- [ ] **Phase 19: Batch Automation Orchestrator** - automate script->spec->render->export workflows with auditable manifests.
+- [x] **Phase 19: Batch Automation Orchestrator** - automate script->spec->render->export workflows with auditable manifests. (completed 2026-04-04)
 - [ ] **Phase 20: Deterministic QA Gates and Release Readiness** - enforce witness/regression gates as hard pass/fail criteria for automated output.
 
 ## Phase Details
@@ -84,7 +84,7 @@ Plans:
 
 Plans:
 - [x] 19-01: Implement batch job orchestration flow for script-driven runs
-- [ ] 19-02: Add deterministic job manifest/status outputs and failure/retry contracts
+- [x] 19-02: Add deterministic job manifest/status outputs and failure/retry contracts
 
 ### Phase 20: Deterministic QA Gates and Release Readiness
 **Goal**: Lock automation quality with deterministic witness/regression gates before milestone closeout.
@@ -109,5 +109,5 @@ Plans:
 | 16 | v1.2 Controlled Automation Pipeline | 3/3 | Complete   | 2026-04-03 |
 | 17 | v1.2 Controlled Automation Pipeline | 3/3 | Complete   | 2026-04-04 |
 | 18 | v1.2 Controlled Automation Pipeline | 3/3 | Complete    | 2026-04-04 |
-| 19 | v1.2 Controlled Automation Pipeline | 1/2 | In Progress|  |
+| 19 | v1.2 Controlled Automation Pipeline | 2/2 | Complete   | 2026-04-04 |
 | 20 | v1.2 Controlled Automation Pipeline | 0/2 | Not started | - |

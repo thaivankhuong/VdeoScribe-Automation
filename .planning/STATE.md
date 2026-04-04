@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 19-01-PLAN.md
-last_updated: "2026-04-04T10:02:10.269Z"
+stopped_at: Completed 19-02-PLAN.md
+last_updated: "2026-04-04T10:19:45.378Z"
 progress:
   total_phases: 5
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 11
-  completed_plans: 10
+  completed_plans: 11
 ---
 
 # Project State
@@ -63,6 +63,9 @@ Plan: 2 of 2
 - [Phase 19]: Preserve manifest array order and derive deterministic batch workspaces from manifest index plus job ID.
 - [Phase 19]: Keep batch orchestration thin by delegating script compilation and render/export execution to the existing CLI orchestrator contracts.
 - [Phase 19]: Stage compiled-spec dependency files into each job workspace instead of rewriting compiled spec asset paths.
+- [Phase 19-batch-automation-orchestrator]: Preserve retry behavior as explicit manifest data (`retryLimit`) with job overrides instead of hidden orchestration policy.
+- [Phase 19-batch-automation-orchestrator]: Treat each per-job manifest as the canonical batch job outcome artifact and derive aggregate summary entries from that deterministic record.
+- [Phase 19-batch-automation-orchestrator]: Restrict retries to compile and run/export failures only; manifest validation and duplicate job IDs remain immediate deterministic failures.
 
 ### Roadmap Evolution
 
@@ -113,9 +116,10 @@ None captured yet.
 | Phase 18 P02 | 3h 18m | 2 tasks | 14 files |
 | Phase 18-script-to-spec-compiler P03 | 31 min | 2 tasks | 15 files |
 | Phase 19-batch-automation-orchestrator P01 | 17min | 2 tasks | 12 files |
+| Phase 19-batch-automation-orchestrator P02 | 11 min | 2 tasks | 10 files |
 
 ## Session Continuity
 
-Last session: 2026-04-04T10:02:10.267Z
-Stopped at: Completed 19-01-PLAN.md
+Last session: 2026-04-04T10:19:45.376Z
+Stopped at: Completed 19-02-PLAN.md
 Resume file: None

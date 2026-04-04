@@ -29,7 +29,7 @@
 ### Automation and Validation
 
 - [x] **AUT-01**: Batch CLI can execute script -> spec -> render -> export jobs without manual editing steps.
-- [ ] **AUT-02**: Each batch job emits deterministic artifact manifests with output media, witnesses, and status.
+- [x] **AUT-02**: Each batch job emits deterministic artifact manifests with output media, witnesses, and status.
 - [ ] **VAL-02**: Pipeline enforces deterministic witness/regression checks and fails jobs when drift is detected.
 
 ## v2 Requirements
@@ -62,7 +62,7 @@
 | CMP-01 | Phase 18 | Complete |
 | CMP-02 | Phase 18 | Complete |
 | AUT-01 | Phase 19 | Complete |
-| AUT-02 | Phase 19 | Pending |
+| AUT-02 | Phase 19 | Complete |
 | VAL-02 | Phase 20 | Pending |
 
 **Coverage:**
