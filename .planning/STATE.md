@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 17-01-PLAN.md
-last_updated: "2026-04-04T03:09:18.957Z"
+stopped_at: Completed 17-02-PLAN.md
+last_updated: "2026-04-04T03:18:57.544Z"
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 6
-  completed_plans: 4
+  completed_plans: 5
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-04-03)
 ## Current Position
 
 Phase: 17 (template-contracts-and-scene-composition) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 
 ## Accumulated Context
 
@@ -51,6 +51,8 @@ Plan: 2 of 3
 - [Phase 16]: Controlled automation input must pin curated registry snapshots and whitelisted effect profiles so script-driven generation stays deterministic and reviewable.
 - [Phase 17]: Keep template authoring file-based under .planning/templates/ with catalog metadata resolved separately from slot payload validation. — Preserves repo-governed reviewability and keeps TMP-01 independent from CLI/operator slot input handling.
 - [Phase 17]: Mirror the existing Core spec pipeline shape so template contracts normalize and fail deterministically before composition. — Reusing ordered validation gates keeps template diagnostics aligned with established Core contract behavior.
+- [Phase 17]: Canonical composition output is hashed as sha256 over deterministic JSON instead of inventing a second ad hoc key format. — This keeps repeatability checks simple and gives 17-03 a stable key to surface through the CLI.
+- [Phase 17]: Slot validation remains a separate Core step so CLI orchestration can reuse the same failure paths without owning composition semantics. — Preserves module boundaries and keeps template semantics in Core where they can be reused by later compilation and automation phases.
 
 ### Roadmap Evolution
 
@@ -86,6 +88,6 @@ None captured yet.
 
 ## Session Continuity
 
-Last session: 2026-04-04T03:09:18.955Z
-Stopped at: Completed 17-01-PLAN.md
-Resume file: .planning/phases/17-template-contracts-and-scene-composition/17-02-PLAN.md
+Last session: 2026-04-04T03:18:57.542Z
+Stopped at: Completed 17-02-PLAN.md
+Resume file: .planning/phases/17-template-contracts-and-scene-composition/17-03-PLAN.md
