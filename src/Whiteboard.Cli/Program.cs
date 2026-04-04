@@ -25,6 +25,7 @@ public static class Program
             {
                 CliCommandMode.Run => ExecuteRun(command.RunRequest!),
                 CliCommandMode.Batch => ExecuteBatch(command.BatchRequest!),
+                CliCommandMode.ScriptCompile => ExecuteScriptCompile(command.ScriptCompileRequest!),
                 CliCommandMode.TemplateValidate => ExecuteTemplateValidate(command.TemplateValidateRequest!),
                 CliCommandMode.TemplateInstantiate => ExecuteTemplateInstantiate(command.TemplateInstantiateRequest!),
                 _ => throw new ArgumentOutOfRangeException()
@@ -67,6 +68,22 @@ public static class Program
         Console.WriteLine($"Version: {result.Version}");
         Console.WriteLine($"Status: {result.Status}");
         Console.WriteLine($"SlotValidationStatus: {result.SlotValidationStatus}");
+        WriteIssues(result.Issues);
+
+        return result.Success ? 0 : 1;
+    }
+
+    private static int ExecuteScriptCompile(CliScriptCompileCommandRequest request)
+    {
+        IScriptCompilationOrchestrator orchestrator = new ScriptCompilationOrchestrator();
+        var result = orchestrator.Compile(request);
+
+        Console.WriteLine($"Success: {result.Success}");
+        Console.WriteLine($"ScriptId: {result.ScriptId}");
+        Console.WriteLine($"TemplateCount: {result.TemplateCount}");
+        Console.WriteLine($"SectionCount: {result.SectionCount}");
+        Console.WriteLine($"SpecOutputPath: {result.SpecOutputPath}");
+        Console.WriteLine($"DeterministicKey: {result.DeterministicKey}");
         WriteIssues(result.Issues);
 
         return result.Success ? 0 : 1;
@@ -121,6 +138,7 @@ public static class Program
         Console.WriteLine("Usage:");
         Console.WriteLine("  whiteboard-cli run --spec <path> [--output <path>] [--frame-index <int>]");
         Console.WriteLine("  whiteboard-cli batch --manifest <path> --summary-output <path>");
+        Console.WriteLine("  whiteboard-cli script compile --input <path> --spec-output <path>");
         Console.WriteLine("  whiteboard-cli template validate --template <template-id> [--catalog <path>] [--slots <path>]");
         Console.WriteLine("  whiteboard-cli template instantiate --template <template-id> [--catalog <path>] --slots <path> --output <path> --instance-id <id> [--time-offset-seconds <double>] [--layer-offset <int>]");
         Console.WriteLine("  whiteboard-cli --spec <path> [--output <path>] [--frame-index <int>]  # legacy run shortcut");

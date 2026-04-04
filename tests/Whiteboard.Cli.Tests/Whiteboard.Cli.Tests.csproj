@@ -30,6 +30,7 @@
     <Compile Include="ExportPipelineContractTests.cs" />
     <Compile Include="CliCommandParserTests.cs" />
     <Compile Include="BatchPipelineOrchestratorTests.cs" />
+    <Compile Include="ScriptCompilationOrchestratorTests.cs" />
     <Compile Include="TemplatePipelineOrchestratorTests.cs" />
     <Compile Include="PipelineOrchestratorIntegrationTests.cs" />
     <Compile Include="ParityTextFidelityTests.cs" />
@@ -44,15 +45,18 @@
     <Compile Include="..\..\src\Whiteboard.Cli\Models\CliBatchJob.cs" Link="Cli\Models\CliBatchJob.cs" />
     <Compile Include="..\..\src\Whiteboard.Cli\Models\CliBatchRunRequest.cs" Link="Cli\Models\CliBatchRunRequest.cs" />
     <Compile Include="..\..\src\Whiteboard.Cli\Models\CliBatchRunResult.cs" Link="Cli\Models\CliBatchRunResult.cs" />
+    <Compile Include="..\..\src\Whiteboard.Cli\Models\CliScriptCompileCommandRequest.cs" Link="Cli\Models\CliScriptCompileCommandRequest.cs" />
     <Compile Include="..\..\src\Whiteboard.Cli\Models\CliTemplateCommandRequest.cs" Link="Cli\Models\CliTemplateCommandRequest.cs" />
     <Compile Include="..\..\src\Whiteboard.Cli\Contracts\IPipelineOrchestrator.cs" Link="Cli\Contracts\IPipelineOrchestrator.cs" />
     <Compile Include="..\..\src\Whiteboard.Cli\Contracts\IBatchPipelineOrchestrator.cs" Link="Cli\Contracts\IBatchPipelineOrchestrator.cs" />
     <Compile Include="..\..\src\Whiteboard.Cli\Contracts\IProjectSpecLoader.cs" Link="Cli\Contracts\IProjectSpecLoader.cs" />
+    <Compile Include="..\..\src\Whiteboard.Cli\Contracts\IScriptCompilationOrchestrator.cs" Link="Cli\Contracts\IScriptCompilationOrchestrator.cs" />
     <Compile Include="..\..\src\Whiteboard.Cli\Contracts\ITemplatePipelineOrchestrator.cs" Link="Cli\Contracts\ITemplatePipelineOrchestrator.cs" />
     <Compile Include="..\..\src\Whiteboard.Cli\Services\CliCommandParser.cs" Link="Cli\Services\CliCommandParser.cs" />
     <Compile Include="..\..\src\Whiteboard.Cli\Services\BatchPipelineOrchestrator.cs" Link="Cli\Services\BatchPipelineOrchestrator.cs" />
     <Compile Include="..\..\src\Whiteboard.Cli\Services\PipelineOrchestrator.cs" Link="Cli\Services\PipelineOrchestrator.cs" />
     <Compile Include="..\..\src\Whiteboard.Cli\Services\ProjectSpecLoader.cs" Link="Cli\Services\ProjectSpecLoader.cs" />
+    <Compile Include="..\..\src\Whiteboard.Cli\Services\ScriptCompilationOrchestrator.cs" Link="Cli\Services\ScriptCompilationOrchestrator.cs" />
     <Compile Include="..\..\src\Whiteboard.Cli\Services\TemplatePipelineOrchestrator.cs" Link="Cli\Services\TemplatePipelineOrchestrator.cs" />
   </ItemGroup>
 </Project>

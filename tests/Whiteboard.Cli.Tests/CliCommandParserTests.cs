@@ -92,4 +92,24 @@ public sealed class CliCommandParserTests
         Assert.Equal(2.5, command.TemplateInstantiateRequest.TimeOffsetSeconds);
         Assert.Equal(4, command.TemplateInstantiateRequest.LayerOffset);
     }
+
+    [Fact]
+    public void Parse_ScriptCompile_ParsesInputAndSpecOutput()
+    {
+        var parser = new CliCommandParser();
+
+        var command = parser.Parse([
+            "script",
+            "compile",
+            "--input",
+            "script.json",
+            "--spec-output",
+            "compiled-spec.json"
+        ]);
+
+        Assert.Equal(CliCommandMode.ScriptCompile, command.Mode);
+        Assert.NotNull(command.ScriptCompileRequest);
+        Assert.Equal("script.json", command.ScriptCompileRequest!.InputPath);
+        Assert.Equal("compiled-spec.json", command.ScriptCompileRequest.SpecOutputPath);
+    }
 }

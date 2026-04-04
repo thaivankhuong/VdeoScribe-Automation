@@ -8,6 +8,7 @@ public enum CliCommandMode
 {
     Run,
     Batch,
+    ScriptCompile,
     TemplateValidate,
     TemplateInstantiate
 }
@@ -17,6 +18,7 @@ public sealed record CliCommandParseResult
     public CliCommandMode Mode { get; init; }
     public CliRunRequest? RunRequest { get; init; }
     public CliBatchRunRequest? BatchRequest { get; init; }
+    public CliScriptCompileCommandRequest? ScriptCompileRequest { get; init; }
     public CliTemplateValidateRequest? TemplateValidateRequest { get; init; }
     public CliTemplateInstantiateRequest? TemplateInstantiateRequest { get; init; }
 }
@@ -39,6 +41,11 @@ public sealed class CliCommandParser
             return ParseTemplate(args);
         }
 
+        if (IsScriptMode(args))
+        {
+            return ParseScript(args);
+        }
+
         return IsBatchMode(args)
             ? ParseBatch(args)
             : ParseRun(args);
@@ -54,6 +61,11 @@ public sealed class CliCommandParser
         return args[0].Equals("template", StringComparison.OrdinalIgnoreCase);
     }
 
+    private static bool IsScriptMode(string[] args)
+    {
+        return args[0].Equals("script", StringComparison.OrdinalIgnoreCase);
+    }
+
     private static CliCommandParseResult ParseTemplate(string[] args)
     {
         if (args.Length < 2)
@@ -66,6 +78,20 @@ public sealed class CliCommandParser
             "validate" => ParseTemplateValidate(args),
             "instantiate" => ParseTemplateInstantiate(args),
             _ => throw new ArgumentException($"Unknown template command '{args[1]}'. Use 'validate' or 'instantiate'.")
+        };
+    }
+
+    private static CliCommandParseResult ParseScript(string[] args)
+    {
+        if (args.Length < 2)
+        {
+            throw new ArgumentException("Script mode requires 'compile'.");
+        }
+
+        return args[1].ToLowerInvariant() switch
+        {
+            "compile" => ParseScriptCompile(args),
+            _ => throw new ArgumentException($"Unknown script command '{args[1]}'. Use 'compile'.")
         };
     }
 
@@ -291,6 +317,49 @@ public sealed class CliCommandParser
                 InstanceId = instanceId,
                 TimeOffsetSeconds = timeOffsetSeconds,
                 LayerOffset = layerOffset
+            }
+        };
+    }
+
+    private static CliCommandParseResult ParseScriptCompile(string[] args)
+    {
+        string? inputPath = null;
+        string? specOutputPath = null;
+
+        for (var i = 2; i < args.Length; i++)
+        {
+            var arg = args[i];
+
+            switch (arg)
+            {
+                case "--input":
+                    inputPath = ReadRequiredValue(args, ref i, arg);
+                    break;
+                case "--spec-output":
+                    specOutputPath = ReadRequiredValue(args, ref i, arg);
+                    break;
+                default:
+                    throw new ArgumentException($"Unknown argument '{arg}'. Use --help for usage.");
+            }
+        }
+
+        if (string.IsNullOrWhiteSpace(inputPath))
+        {
+            throw new ArgumentException("'--input' is required for script compile.");
+        }
+
+        if (string.IsNullOrWhiteSpace(specOutputPath))
+        {
+            throw new ArgumentException("'--spec-output' is required for script compile.");
+        }
+
+        return new CliCommandParseResult
+        {
+            Mode = CliCommandMode.ScriptCompile,
+            ScriptCompileRequest = new CliScriptCompileCommandRequest
+            {
+                InputPath = inputPath,
+                SpecOutputPath = specOutputPath
             }
         };
     }
