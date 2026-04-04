@@ -50,7 +50,7 @@ Plans:
 1. Templates define named slots and constraints in JSON contracts that are versioned with the repo.
 2. Template instantiation produces deterministic scene/timeline fragments from the same slot data.
 3. Composition contracts integrate with existing engine modules without violating module boundaries.
-**Plans**: 1/3 plans complete
+**Plans**: 3/3 plans complete
 
 Plans:
 - [x] 17-01: Define template contract model (slots, constraints, defaults)
@@ -65,11 +65,11 @@ Plans:
 1. CLI compiler converts structured script input into valid project specs using template and registry mappings.
 2. Compile output includes auditable mapping/report artifacts for template choice, slot fills, and asset/effect selections.
 3. Compile failures are deterministic and actionable with clear diagnostics.
-**Plans**: 1/3 plans complete
+**Plans**: 2/3 plans complete
 
 Plans:
 - [x] 18-01: Define script input contract and compiler mapping rules
-- [ ] 18-02: Implement compiler pipeline from script input to project spec output
+- [x] 18-02: Implement compiler pipeline from script input to project spec output
 - [ ] 18-03: Emit deterministic compile reports and diagnostic contracts
 
 ### Phase 19: Batch Automation Orchestrator
@@ -108,6 +108,6 @@ Plans:
 | 12-15 | v1.1 Source Parity | 11/11 | Complete | 2026-04-03 |
 | 16 | v1.2 Controlled Automation Pipeline | 3/3 | Complete   | 2026-04-03 |
 | 17 | v1.2 Controlled Automation Pipeline | 3/3 | Complete   | 2026-04-04 |
-| 18 | v1.2 Controlled Automation Pipeline | 1/3 | In Progress|  |
+| 18 | v1.2 Controlled Automation Pipeline | 2/3 | In Progress|  |
 | 19 | v1.2 Controlled Automation Pipeline | 0/2 | Not started | - |
 | 20 | v1.2 Controlled Automation Pipeline | 0/2 | Not started | - |
