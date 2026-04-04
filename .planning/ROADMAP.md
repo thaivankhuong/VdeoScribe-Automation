@@ -65,7 +65,7 @@ Plans:
 1. CLI compiler converts structured script input into valid project specs using template and registry mappings.
 2. Compile output includes auditable mapping/report artifacts for template choice, slot fills, and asset/effect selections.
 3. Compile failures are deterministic and actionable with clear diagnostics.
-**Plans**: 0/3 plans complete
+**Plans**: 1/3 plans complete
 
 Plans:
 - [x] 18-01: Define script input contract and compiler mapping rules
