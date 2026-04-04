@@ -30,6 +30,7 @@
     <Compile Include="ExportPipelineContractTests.cs" />
     <Compile Include="CliCommandParserTests.cs" />
     <Compile Include="BatchPipelineOrchestratorTests.cs" />
+    <Compile Include="BatchPipelineOrchestratorIntegrationTests.cs" />
     <Compile Include="ScriptCompilationOrchestratorTests.cs" />
     <Compile Include="TemplatePipelineOrchestratorTests.cs" />
     <Compile Include="PipelineOrchestratorIntegrationTests.cs" />

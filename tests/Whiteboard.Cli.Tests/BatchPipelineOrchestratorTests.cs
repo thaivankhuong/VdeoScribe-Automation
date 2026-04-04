@@ -1,10 +1,13 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
 using Whiteboard.Cli.Contracts;
 using Whiteboard.Cli.Models;
 using Whiteboard.Cli.Services;
+using Whiteboard.Core.Compilation;
+using Whiteboard.Core.Validation;
 using Xunit;
 
 namespace Whiteboard.Cli.Tests;
@@ -12,16 +15,18 @@ namespace Whiteboard.Cli.Tests;
 public sealed class BatchPipelineOrchestratorTests
 {
     [Fact]
-    public void Run_OrdersJobsByCanonicalJobIdAndWritesSummaryArtifact()
+    public void Run_ScriptedJobs_ExecuteInDeclaredOrderThroughCompileThenRenderExport()
     {
         var manifestPath = CreateManifestFile(
-            new CliBatchJob { JobId = "job-b", SpecPath = "b.json", OutputPath = "out/b.mp4", FrameIndex = 8 },
-            new CliBatchJob { JobId = "job-a", SpecPath = "a.json", OutputPath = "out/a.mp4", FrameIndex = 4 });
+            new CliBatchJob { JobId = "job-b", ScriptPath = "job-b-script.json", OutputPath = "out/job-b.mp4" },
+            new CliBatchJob { JobId = "job-a", ScriptPath = "job-a-script.json", OutputPath = "out/job-a.mp4" });
         var summaryPath = Path.Combine(Path.GetDirectoryName(manifestPath)!, "summary.json");
+        var scriptCompiler = new RecordingScriptCompilationOrchestrator();
+        var pipeline = new RecordingPipelineOrchestrator();
 
         try
         {
-            var orchestrator = new BatchPipelineOrchestrator(new FakePipelineOrchestrator());
+            var orchestrator = new BatchPipelineOrchestrator(pipeline, scriptCompiler);
             var result = orchestrator.Run(new CliBatchRunRequest
             {
                 ManifestPath = manifestPath,
@@ -29,17 +34,71 @@ public sealed class BatchPipelineOrchestratorTests
             });
 
             Assert.True(result.Success);
-            Assert.Equal(new[] { "job-a", "job-b" }, result.Jobs.Select(job => job.JobId).ToArray());
+            Assert.Equal(new[] { "job-b", "job-a" }, result.Jobs.Select(job => job.JobId).ToArray());
+            Assert.Equal(
+                new[]
+                {
+                    "job-b-script.json",
+                    "job-a-script.json"
+                },
+                scriptCompiler.Requests.Select(request => Path.GetFileName(request.InputPath)).ToArray());
+            Assert.Equal(
+                new[]
+                {
+                    "jobs/000-job-b/compiled-spec.json",
+                    "jobs/001-job-a/compiled-spec.json"
+                },
+                result.Jobs.Select(job => job.SpecPath).ToArray());
+            Assert.Equal(
+                new[]
+                {
+                    Path.GetFullPath(Path.Combine(Path.GetDirectoryName(summaryPath)!, "jobs", "000-job-b", "compiled-spec.json")),
+                    Path.GetFullPath(Path.Combine(Path.GetDirectoryName(summaryPath)!, "jobs", "001-job-a", "compiled-spec.json"))
+                },
+                pipeline.Requests.Select(request => request.SpecPath).ToArray());
+            Assert.All(pipeline.Requests, request => Assert.Null(request.FrameIndex));
             Assert.True(File.Exists(summaryPath));
+        }
+        finally
+        {
+            DeleteManifestFile(manifestPath);
+        }
+    }
 
-            var summary = JsonSerializer.Deserialize<CliBatchRunResult>(File.ReadAllText(summaryPath), new JsonSerializerOptions
+    [Fact]
+    public void Run_CompileFailure_SkipsRenderAndExportForThatJobButContinuesDeclaredOrder()
+    {
+        var manifestPath = CreateManifestFile(
+            new CliBatchJob { JobId = "job-b", ScriptPath = "job-b-script.json", OutputPath = "out/job-b.mp4" },
+            new CliBatchJob { JobId = "job-a", ScriptPath = "job-a-script.json", OutputPath = "out/job-a.mp4" });
+        var summaryPath = Path.Combine(Path.GetDirectoryName(manifestPath)!, "summary.json");
+        var scriptCompiler = new RecordingScriptCompilationOrchestrator(failingScriptFileName: "job-b-script.json");
+        var pipeline = new RecordingPipelineOrchestrator();
+
+        try
+        {
+            var orchestrator = new BatchPipelineOrchestrator(pipeline, scriptCompiler);
+            var result = orchestrator.Run(new CliBatchRunRequest
             {
-                PropertyNameCaseInsensitive = true
+                ManifestPath = manifestPath,
+                SummaryOutputPath = summaryPath
             });
 
-            Assert.NotNull(summary);
-            Assert.Equal(result.DeterministicKey, summary!.DeterministicKey);
-            Assert.Equal(result.Jobs.Select(job => job.JobId).ToArray(), summary.Jobs.Select(job => job.JobId).ToArray());
+            Assert.False(result.Success);
+            Assert.Equal(2, result.JobCount);
+            Assert.Equal(1, result.SuccessCount);
+            Assert.Equal(1, result.FailureCount);
+            Assert.Equal(new[] { "job-b", "job-a" }, result.Jobs.Select(job => job.JobId).ToArray());
+            Assert.False(result.Jobs[0].Success);
+            Assert.Contains("script.compile.failed", result.Jobs[0].Message, StringComparison.Ordinal);
+            Assert.Equal("not-run", result.Jobs[0].ExportStatus);
+            Assert.True(File.Exists(Path.Combine(Path.GetDirectoryName(summaryPath)!, "jobs", "000-job-b", "compile-report.json")));
+            Assert.True(result.Jobs[1].Success);
+            Assert.Single(pipeline.Requests);
+            Assert.Equal(
+                Path.GetFullPath(Path.Combine(Path.GetDirectoryName(summaryPath)!, "jobs", "001-job-a", "compiled-spec.json")),
+                pipeline.Requests[0].SpecPath);
+            Assert.Equal("out/job-a.mp4", result.Jobs[1].OutputPath);
         }
         finally
         {
@@ -51,13 +110,13 @@ public sealed class BatchPipelineOrchestratorTests
     public void Run_WithDuplicateJobId_ProducesDeterministicFailureArtifact()
     {
         var manifestPath = CreateManifestFile(
-            new CliBatchJob { JobId = "job-a", SpecPath = "a.json", OutputPath = "out/a.mp4", FrameIndex = 1 },
-            new CliBatchJob { JobId = "job-a", SpecPath = "b.json", OutputPath = "out/b.mp4", FrameIndex = 2 });
+            new CliBatchJob { JobId = "job-a", ScriptPath = "job-a-script.json", OutputPath = "out/a.mp4" },
+            new CliBatchJob { JobId = "job-a", ScriptPath = "job-b-script.json", OutputPath = "out/b.mp4" });
         var summaryPath = Path.Combine(Path.GetDirectoryName(manifestPath)!, "summary.json");
 
         try
         {
-            var orchestrator = new BatchPipelineOrchestrator(new FakePipelineOrchestrator());
+            var orchestrator = new BatchPipelineOrchestrator(new RecordingPipelineOrchestrator(), new RecordingScriptCompilationOrchestrator());
             var result = orchestrator.Run(new CliBatchRunRequest
             {
                 ManifestPath = manifestPath,
@@ -68,38 +127,6 @@ public sealed class BatchPipelineOrchestratorTests
             Assert.Equal(1, result.FailureCount);
             Assert.Single(result.Jobs);
             Assert.Contains("duplicate jobId", result.Jobs[0].Message, StringComparison.OrdinalIgnoreCase);
-            Assert.True(File.Exists(summaryPath));
-        }
-        finally
-        {
-            DeleteManifestFile(manifestPath);
-        }
-    }
-
-    [Fact]
-    public void Run_AggregatesMixedJobFailuresWithoutStoppingBatch()
-    {
-        var manifestPath = CreateManifestFile(
-            new CliBatchJob { JobId = "job-b", SpecPath = "missing.json", OutputPath = "out/b.mp4", FrameIndex = 1 },
-            new CliBatchJob { JobId = "job-a", SpecPath = "a.json", OutputPath = "out/a.mp4", FrameIndex = 0 });
-        var summaryPath = Path.Combine(Path.GetDirectoryName(manifestPath)!, "summary.json");
-
-        try
-        {
-            var orchestrator = new BatchPipelineOrchestrator(new FakePipelineOrchestrator());
-            var result = orchestrator.Run(new CliBatchRunRequest
-            {
-                ManifestPath = manifestPath,
-                SummaryOutputPath = summaryPath
-            });
-
-            Assert.False(result.Success);
-            Assert.Equal(2, result.JobCount);
-            Assert.Equal(1, result.SuccessCount);
-            Assert.Equal(1, result.FailureCount);
-            Assert.Equal(new[] { "job-a", "job-b" }, result.Jobs.Select(job => job.JobId).ToArray());
-            Assert.True(result.Jobs[0].Success);
-            Assert.False(result.Jobs[1].Success);
             Assert.True(File.Exists(summaryPath));
         }
         finally
@@ -141,26 +168,93 @@ public sealed class BatchPipelineOrchestratorTests
         }
     }
 
-    private sealed class FakePipelineOrchestrator : IPipelineOrchestrator
+    private sealed class RecordingScriptCompilationOrchestrator : IScriptCompilationOrchestrator
     {
-        public CliRunResult Run(CliRunRequest request)
+        private readonly string? _failingScriptFileName;
+
+        public RecordingScriptCompilationOrchestrator(string? failingScriptFileName = null)
         {
-            if (request.SpecPath.Contains("missing", StringComparison.OrdinalIgnoreCase))
+            _failingScriptFileName = failingScriptFileName;
+        }
+
+        public List<CliScriptCompileCommandRequest> Requests { get; } = [];
+
+        public CliScriptCompileCommandResult Compile(CliScriptCompileCommandRequest request)
+        {
+            Requests.Add(request);
+            Directory.CreateDirectory(Path.GetDirectoryName(request.ReportOutputPath)!);
+
+            if (string.Equals(Path.GetFileName(request.InputPath), _failingScriptFileName, StringComparison.Ordinal))
             {
-                throw new FileNotFoundException("Spec file was not found.", request.SpecPath);
+                File.WriteAllText(request.ReportOutputPath, "compile failed");
+                return new CliScriptCompileCommandResult
+                {
+                    Success = false,
+                    ScriptId = Path.GetFileNameWithoutExtension(request.InputPath),
+                    SpecOutputPath = request.SpecOutputPath,
+                    ReportOutputPath = request.ReportOutputPath,
+                    DeterministicKey = "compile-failed",
+                    Diagnostics =
+                    [
+                        new ScriptCompileDiagnostic
+                        {
+                            Severity = "error",
+                            Code = "script.compile.failed",
+                            Message = "The scripted batch compile failed.",
+                            Path = "$.sections[0]",
+                            Gate = "semantic"
+                        }
+                    ]
+                };
             }
 
+            Directory.CreateDirectory(Path.GetDirectoryName(request.SpecOutputPath)!);
+            File.WriteAllText(request.SpecOutputPath, "{}");
+            File.WriteAllText(request.ReportOutputPath, "compile succeeded");
+
+            return new CliScriptCompileCommandResult
+            {
+                Success = true,
+                ScriptId = Path.GetFileNameWithoutExtension(request.InputPath),
+                SpecOutputPath = request.SpecOutputPath,
+                ReportOutputPath = request.ReportOutputPath,
+                DeterministicKey = $"compile:{Path.GetFileNameWithoutExtension(request.InputPath)}"
+            };
+        }
+    }
+
+    private sealed class RecordingPipelineOrchestrator : IPipelineOrchestrator
+    {
+        public List<CliRunRequest> Requests { get; } = [];
+
+        public CliRunResult Run(CliRunRequest request)
+        {
+            Requests.Add(request);
+
             var specName = Path.GetFileNameWithoutExtension(request.SpecPath);
+            var outputPath = Path.GetFullPath(request.OutputPath ?? Path.Combine(Path.GetTempPath(), $"{specName}.mp4"));
+            var packageRootPath = Path.Combine(Path.GetDirectoryName(outputPath)!, Path.GetFileNameWithoutExtension(outputPath));
+            var manifestPath = Path.Combine(packageRootPath, "frame-manifest.json");
+            Directory.CreateDirectory(packageRootPath);
+            File.WriteAllText(manifestPath, $"manifest:{specName}");
+
             return new CliRunResult
             {
                 Success = true,
-                Message = $"Processed {specName}.",
+                Message = $"Rendered and exported {specName}.",
                 SpecPath = request.SpecPath,
                 FrameIndex = request.FrameIndex,
-                OutputPath = request.OutputPath ?? string.Empty,
+                FirstFrameIndex = 0,
+                LastFrameIndex = 149,
+                PlannedFrameCount = 150,
+                RenderedFrameCount = 150,
+                ProjectDurationSeconds = 5,
+                OutputPath = outputPath,
+                ExportPackageRootPath = packageRootPath,
+                ExportManifestPath = manifestPath,
                 ExportStatus = "ok",
                 ExportDeterministicKey = $"export:{specName}",
-                DeterministicKey = $"run:{specName}:{request.FrameIndex}"
+                DeterministicKey = $"run:{specName}"
             };
         }
     }
