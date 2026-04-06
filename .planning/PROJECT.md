@@ -2,7 +2,7 @@
 
 ## What This Is
 
-whiteboard-engine is a .NET engine-first system that generates VideoScribe-like whiteboard videos from JSON specs. It now ships deterministic compile, render, export, batch orchestration, and regression-gated automation artifacts suitable for repeatable production pipelines.
+whiteboard-engine is a .NET engine-first system that generates VideoScribe-like whiteboard videos from JSON specs. It now ships deterministic compile, render, export, batch orchestration, recovery/replay, and release-witness reliability gating suitable for repeatable production pipelines.
 
 ## Core Value
 
@@ -14,6 +14,7 @@ Shipped milestones:
 - v1.0 Engine Core (2026-03-21)
 - v1.1 Source Parity (2026-04-03)
 - v1.2 Controlled Automation Pipeline (2026-04-04)
+- v1.3 Automation Scale and Reliability (2026-04-06)
 
 Milestone archives:
 - `.planning/milestones/v1.0-ROADMAP.md`
@@ -22,15 +23,16 @@ Milestone archives:
 - `.planning/milestones/v1.1-REQUIREMENTS.md`
 - `.planning/milestones/v1.2-ROADMAP.md`
 - `.planning/milestones/v1.2-REQUIREMENTS.md`
+- `.planning/milestones/v1.3-ROADMAP.md`
+- `.planning/milestones/v1.3-REQUIREMENTS.md`
 
-## Current Milestone: v1.3 Automation Scale and Reliability
+## Next Milestone Planning
 
-**Goal:** Expand deterministic automation throughput and operational resilience without weakening compile/render/export contract boundaries.
+**Goal:** Define v1.4 scope from fresh requirements without weakening compile/render/export contract boundaries.
 
-**Target features:**
-- Throughput-oriented batch execution controls for larger script sets.
-- Deterministic resume/rerun operational flows for failed or partial batches.
-- Stronger release-readiness evidence and reliability hardening for automated production runs.
+**Planned setup:**
+- Recreate `.planning/REQUIREMENTS.md` for v1.4 via `$gsd-new-milestone`.
+- Keep roadmap and requirements milestone-scoped with archive-first rollover.
 
 ## Requirements
 
@@ -39,10 +41,11 @@ Milestone archives:
 - v1.0 deterministic engine pipeline baseline shipped.
 - v1.1 authored source parity witness pipeline shipped.
 - v1.2 controlled automation pipeline (registry/template/compiler/batch/gates) shipped.
+- v1.3 throughput scaling, deterministic preflight diagnostics, resume/replay recovery flows, and release witness reliability gating shipped.
 
 ### Active
 
-- Define and ship v1.3 automation scale and reliability requirements.
+- Define and ship v1.4 requirements.
 
 ### Out of Scope
 
@@ -52,7 +55,7 @@ Milestone archives:
 
 ## Context
 
-The system has passed from deterministic rendering foundation (v1.0), through parity hardening (v1.1), to deterministic automation flow control (v1.2). The next milestone focuses on operational maturity at scale rather than new visual semantics.
+The system has moved from deterministic rendering foundation (v1.0), through parity hardening (v1.1), controlled automation flow control (v1.2), and scale/reliability hardening (v1.3). Next work should prioritize the highest-impact automation gaps while preserving deterministic evidence contracts.
 
 ## Constraints
 
@@ -69,6 +72,10 @@ The system has passed from deterministic rendering foundation (v1.0), through pa
 | JSON spec as single source of truth | Enables reusable automation and stable contracts | Good |
 | Batch artifacts are canonical operational evidence | Keeps automation auditable and replayable | Good |
 | Regression gates are required for automated success | Blocks deterministic drift before release promotion | Good |
+| Resume/replay stays file-driven through explicit batch flags | Keeps recovery deterministic and automation-friendly without interactive state | Good |
+| Recovery outputs must include lineage links to prior evidence | Preserves auditability across resume/replay reruns | Good |
+| Release witness bundle is generated as deterministic batch artifact | Gives milestone-level review context without reconstructing per-job history | Good |
+| Reliability promotion gate compares witness bundle against deterministic baseline | Fails reproducible drift or inconsistency before milestone promotion | Good |
 
 ## Evolution
 
@@ -88,4 +95,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-04 after starting v1.3 milestone initialization*
+*Last updated: 2026-04-06 after completing v1.3 milestone archive*

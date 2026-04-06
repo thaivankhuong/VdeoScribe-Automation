@@ -1,5 +1,23 @@
 # Milestones
 
+## v1.3 Automation Scale and Reliability (Shipped: 2026-04-06)
+
+**Phases completed:** 4 phases, 5 plans, 0 tasks
+
+**Key accomplishments:**
+
+- Added manifest-driven throughput profile controls with bounded parallel execution while preserving manifest-ordered deterministic outputs.
+- Added deterministic preflight validation and throughput diagnostics artifacts (`preflight-report.json`, `throughput-diagnostics.json`) for both pass/fail runs.
+- Added deterministic resume/replay recovery flows that skip clean jobs, replay only failed jobs, and preserve lineage to prior evidence artifacts.
+- Added release witness bundle generation and deterministic reliability promotion gating with baseline comparison and drift failure reporting.
+- Expanded CLI and orchestrator test coverage so repeated runs preserve equivalent witness/gate outcomes under unchanged inputs.
+
+**Known gaps accepted at completion:**
+
+- No `v1.3` milestone audit document was present at archive time; completion proceeded with this audit debt explicitly recorded.
+
+---
+
 ## v1.2 Controlled Automation Pipeline (Shipped: 2026-04-04)
 
 **Phases completed:** 5 phases, 13 plans, 22 tasks
